@@ -1,0 +1,10 @@
+2026-08-02 INFO Sentinel Core Started
+2026-08-02 TEST Core-API-Database Sync OK
+2026-08-02T14:58:58.109Z TEST API Logger Connected
+2026-08-02T15:18:54.374Z TEST LOGGER CORE CONNECTED
+2026-08-02T15:24:41.382Z {"id":"test-001","timestamp":"2026-08-02T15:24:41.381Z","type":"TEST_EVENT","source":"event-test","severity":"INFO","status":"NEW","description":"Sentinel Event System Test"}
+2026-08-02T15:34:53.516Z {"id":"test-001","timestamp":"2026-08-02T15:34:53.516Z","type":"TEST_EVENT","source":"event-test","severity":"INFO","status":"NEW","description":"Sentinel Event System Test"}
+2026-08-02T15:36:46.709Z {"id":"test-001","timestamp":"2026-08-02T15:36:46.708Z","type":"TEST_EVENT","source":"event-test","severity":"INFO","status":"NEW","description":"Sentinel Event System Test"}
+2026-08-02T15:37:24.869Z {"id":"test-001","timestamp":"2026-08-02T15:37:24.868Z","type":"TEST_EVENT","source":"event-test","severity":"INFO","status":"NEW","description":"Sentinel Event System Test"}
+2026-08-02T17:31:51.420Z {"id":"test-001","timestamp":"2026-08-02T17:31:51.420Z","type":"TEST_EVENT","source":"event-test","severity":"INFO","status":"NEW","description":"Sentinel Event System Test"}
+2026-08-02T19:16:57.849Z TEST LOGGER CORE CONNECTED
