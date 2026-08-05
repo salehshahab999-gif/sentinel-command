@@ -1,0 +1,163 @@
+﻿"use client";
+
+import { useEffect, useState } from "react";
+import SystemMetrics from "./components/SystemMetrics";
+type Target = {
+  id: string;
+  name: string;
+  address: string;
+  createdAt?: string;
+};
+
+export default function Home() {
+  const [time, setTime] = useState("");
+
+  const [logs, setLogs] = useState("");
+  const [network, setNetwork] = useState("Checking...");
+
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [databaseInfo, setDatabaseInfo] = useState<{
+    status?: string;
+    database?: string;
+    targets?: Target[];
+  } | null>(null);
+
+  const [apiInfo, setApiInfo] = useState<{
+    status?: string;
+    service?: string;
+    database?: string;
+    time?: string;
+  } | null>(null);
+
+  async function loadData() {
+    try {
+      const db = await fetch("/api/database");
+
+      const dbData = await db.json();
+
+      setDatabaseInfo(dbData);
+      setTargets(dbData.targets || []);
+
+      const api = await fetch("/api/status");
+      const apiData = await api.json();
+
+      setApiInfo(apiData);
+      const log = await fetch("/api/logs");
+      const logData = await log.json();
+
+      setLogs(logData.logs || "");
+      setNetwork("Online");
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    const start = async () => {
+      await loadData();
+    };
+
+    start();
+
+    const refresh = setInterval(loadData, 30000);
+
+    return () => clearInterval(refresh);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date().toLocaleTimeString("en-GB"));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-black text-white p-10">
+      <h1 className="text-4xl font-bold">Sentinel Command Center V1.6</h1>
+
+      <p className="mt-3 text-gray-400">
+        Global Monitoring & Intelligence Dashboard
+      </p>
+
+      <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒƒó Database</h2>
+
+          <p className="mt-3">Status: {databaseInfo?.status || "Loading"}</p>
+
+          <p>Engine: {databaseInfo?.database || "Loading"}</p>
+
+          <p>Targets: {targets.length}</p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒÄ» Target Intelligence</h2>
+
+          {targets.map((target) => (
+            <div
+              key={target.id}
+              className="mt-4 border border-gray-700 p-3 rounded-lg"
+            >
+              <p>Name: {target.name}</p>
+              <p>ID: {target.id}</p>
+              <p>Address: {target.address}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒòÆ System Time</h2>
+
+          <p className="mt-3 text-2xl">{time}</p>
+        </div>
+
+        <SystemMetrics />
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒƒó System Status</h2>
+
+          <p className="mt-3">Online</p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒƒó API Gateway</h2>
+
+          <p className="mt-3">Status: {apiInfo?.status || "Loading"}</p>
+
+          <p>Service: {apiInfo?.service || "Loading"}</p>
+
+          <p>Database: {apiInfo?.database || "Loading"}</p>
+
+          <p className="text-sm text-gray-400 mt-2">
+            Last Check: {apiInfo?.time || "Loading"}
+          </p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒñû AI Core</h2>
+
+          <p className="mt-3">Active</p>
+        </div>
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒô¥ Logger Center</h2>
+
+          <p className="mt-3">Logs: {logs.split("\n").length - 1}</p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒöö Alert Center</h2>
+
+          <p className="mt-3">No Active Alerts</p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">≡ƒôí Network Monitor</h2>
+
+          <p className="mt-3">Connection: {network}</p>
+
+          <p>Latency: 24 ms</p>
+        </div>
+      </div>
+    </main>
+  );
+}
