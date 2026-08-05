@@ -110,6 +110,15 @@ export default function Home() {
           <h2 className="text-xl font-bold">🕒 System Time</h2>
 
           <p className="mt-3 text-2xl">{time}</p>
+
+          <p className="mt-2 text-gray-400">
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
         </div>
 
         <SystemMetrics />

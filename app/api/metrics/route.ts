@@ -9,7 +9,11 @@ export async function GET() {
 
   const ramPercent = Math.round((usedMemory / totalMemory) * 100);
 
-  const uptime = Math.floor(os.uptime());
+  const uptimeSeconds = Math.floor(os.uptime());
+
+  const hours = Math.floor(uptimeSeconds / 3600);
+  const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+  const seconds = uptimeSeconds % 60;
 
   let cpu = "0";
 
@@ -26,6 +30,6 @@ export async function GET() {
   return Response.json({
     cpu: `${cpu}%`,
     ram: `${ramPercent}%`,
-    uptime: `${uptime} seconds`,
+    uptime: `${hours}h ${minutes}m ${seconds}s`,
   });
 }
