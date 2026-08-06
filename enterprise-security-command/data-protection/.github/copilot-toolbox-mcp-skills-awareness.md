@@ -1,6 +1,6 @@
 # GitHub Copilot Toolbox — MCP & Skills awareness
 
-_Generated: 2026-08-05T20:36:39.541Z_
+_Generated: 2026-08-03T23:52:04.310Z_
 
 ## How to use this report
 
@@ -13,9 +13,9 @@ _Generated: 2026-08-05T20:36:39.541Z_
 
 ## MCP — workspace
 
-Workspace `mcp.json` _(folder: sentinel-command)_
+Workspace `mcp.json` _(folder: data-protection)_
 
-- **c:\Users\Saleh Shahab\sentinel-command\.vscode\mcp.json** — _File missing_
+- **c:\Users\Saleh Shahab\sentinel-command\enterprise-security-command\data-protection\.vscode\mcp.json** — _File missing_
 
 _No active workspace servers in mcp.json._
 
