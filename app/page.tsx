@@ -103,9 +103,14 @@ export default function Home() {
         <div className="bg-gray-900 p-6 rounded-xl">
           <h2 className="text-xl font-bold">🟢 Database</h2>
 
-          <p className="mt-3">Status: {databaseInfo?.status || "Loading"}</p>
+          <p className="mt-3">
+            Status:{" "}
+            {databaseInfo?.status === "Connected"
+              ? "🟢 Connected"
+              : "🔴 Database Offline - Retrying"}
+          </p>
 
-          <p>Engine: {databaseInfo?.database || "Loading"}</p>
+          <p>Engine: {databaseInfo?.database || "Waiting..."}</p>
 
           <p>Targets: {targets.length}</p>
         </div>
