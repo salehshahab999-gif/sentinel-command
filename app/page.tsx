@@ -18,6 +18,37 @@ type ApiInfo = {
   time?: string;
 };
 
+function formatBackupAge(latestBackupTime: number | null): string {
+  if (!latestBackupTime) {
+    return "Unknown";
+  }
+
+  const ageInSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - latestBackupTime) / 1000),
+  );
+
+  if (ageInSeconds < 60) {
+    return `${ageInSeconds}s ago`;
+  }
+
+  const ageInMinutes = Math.floor(ageInSeconds / 60);
+
+  if (ageInMinutes < 60) {
+    return `${ageInMinutes}m ago`;
+  }
+
+  const ageInHours = Math.floor(ageInMinutes / 60);
+
+  if (ageInHours < 24) {
+    return `${ageInHours}h ago`;
+  }
+
+  const ageInDays = Math.floor(ageInHours / 24);
+
+  return `${ageInDays}d ago`;
+}
+
 export default function Home() {
   const [time, setTime] = useState("");
   const [isClient, setIsClient] = useState(false);
@@ -67,6 +98,8 @@ export default function Home() {
         setLatestBackup("");
       });
   }, []);
+
+  const backupAge = formatBackupAge(latestBackupTime);
 
   const logs =
     "[INFO] System started successfully\n[INFO] Database connected\n[INFO] API Gateway ready";
@@ -248,7 +281,7 @@ export default function Home() {
                 </span>
               </p>
               <p className="text-gray-400">
-                Backup Age: <span className="text-gray-300">Fresh</span>
+                Backup Age: <span className="text-gray-300">{backupAge}</span>
               </p>
             </div>
           </div>
