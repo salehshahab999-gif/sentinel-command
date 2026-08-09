@@ -10,7 +10,6 @@ export async function GET() {
       message: "Logger Core used",
       time: new Date().toISOString(),
     });
-
   } catch (error) {
     return NextResponse.json(
       {
@@ -20,7 +19,7 @@ export async function GET() {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

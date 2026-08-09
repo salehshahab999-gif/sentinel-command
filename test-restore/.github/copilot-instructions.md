@@ -1,6 +1,5 @@
 # GitHub Copilot instructions
 
-
 <!-- github-copilot-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (GitHub Copilot Toolbox)

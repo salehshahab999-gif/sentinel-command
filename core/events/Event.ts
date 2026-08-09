@@ -1,13 +1,6 @@
-export type EventSeverity =
-  | "INFO"
-  | "WARNING"
-  | "ERROR"
-  | "CRITICAL";
+export type EventSeverity = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
 
-export type EventStatus =
-  | "NEW"
-  | "PROCESSING"
-  | "RESOLVED";
+export type EventStatus = "NEW" | "PROCESSING" | "RESOLVED";
 
 export interface SentinelEvent {
   id: string;

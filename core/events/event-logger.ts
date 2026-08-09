@@ -9,8 +9,5 @@ export async function writeEventLog(event: SentinelEvent) {
 
   const line = `${JSON.stringify(event)}\n`;
 
-  await appendFile(
-    logFile,
-    line
-  );
+  await appendFile(logFile, line);
 }

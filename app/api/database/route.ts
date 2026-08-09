@@ -19,7 +19,6 @@ export async function GET() {
       database: "CockroachDB",
       targets,
     });
-
   } catch (error) {
     return NextResponse.json({
       status: "Error",
