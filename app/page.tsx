@@ -9,6 +9,7 @@ type NetworkInfo = {
   latency: string;
   api: string;
   database: string;
+  time: string;
 };
 type DatabaseInfo = { status?: string; database?: string; targets?: Target[] };
 type ApiInfo = {
@@ -17,6 +18,23 @@ type ApiInfo = {
   database: string;
   time: string;
 };
+
+function isNetworkInfo(data: unknown): data is NetworkInfo {
+  if (!data || typeof data !== "object") {
+    return false;
+  }
+
+  const networkData = data as Record<string, unknown>;
+
+  return (
+    typeof networkData.internet === "string" &&
+    typeof networkData.vpn === "string" &&
+    typeof networkData.latency === "string" &&
+    typeof networkData.api === "string" &&
+    typeof networkData.database === "string" &&
+    typeof networkData.time === "string"
+  );
+}
 
 function isApiInfo(data: unknown): data is ApiInfo {
   if (!data || typeof data !== "object") {
@@ -68,13 +86,43 @@ export default function Home() {
   const [time, setTime] = useState("");
   const [isClient, setIsClient] = useState(false);
 
-  const [networkInfo] = useState<NetworkInfo>({
-    internet: "Connected",
-    vpn: "Connected",
-    latency: "12ms",
-    api: "Online",
-    database: "Connected",
+  const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({
+    internet: "Checking...",
+    vpn: "Checking...",
+    latency: "Checking...",
+    api: "Checking...",
+    database: "Checking...",
+    time: "Syncing...",
   });
+  useEffect(() => {
+    fetch("/api/network")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: unknown) => {
+        if (isNetworkInfo(data)) {
+          setNetworkInfo(data);
+          return;
+        }
+
+        setNetworkInfo({
+          internet: "Unavailable",
+          vpn: "Unavailable",
+          latency: "Unavailable",
+          api: "Unavailable",
+          database: "Unavailable",
+          time: "Unavailable",
+        });
+      })
+      .catch(() => {
+        setNetworkInfo({
+          internet: "Unavailable",
+          vpn: "Unavailable",
+          latency: "Unavailable",
+          api: "Unavailable",
+          database: "Unavailable",
+          time: "Unavailable",
+        });
+      });
+  }, []);
   const [targets, setTargets] = useState<Target[]>([]);
   useEffect(() => {
     fetch("/api/database")
@@ -337,7 +385,7 @@ export default function Home() {
               </div>
             </div>
             <p className="mt-2 text-xs text-gray-500">
-              Last Check: {isClient ? time : "..."}
+              Last Check: {isClient ? networkInfo.time : "..."}
             </p>
           </div>
         </div>
