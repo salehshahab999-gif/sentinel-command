@@ -12,11 +12,26 @@ type NetworkInfo = {
 };
 type DatabaseInfo = { status?: string; database?: string; targets?: Target[] };
 type ApiInfo = {
-  status?: string;
-  service?: string;
-  database?: string;
-  time?: string;
+  status: string;
+  service: string;
+  database: string;
+  time: string;
 };
+
+function isApiInfo(data: unknown): data is ApiInfo {
+  if (!data || typeof data !== "object") {
+    return false;
+  }
+
+  const apiData = data as Record<string, unknown>;
+
+  return (
+    typeof apiData.status === "string" &&
+    typeof apiData.service === "string" &&
+    typeof apiData.database === "string" &&
+    typeof apiData.time === "string"
+  );
+}
 
 function formatBackupAge(latestBackupTime: number | null): string {
   if (!latestBackupTime) {
@@ -75,12 +90,19 @@ export default function Home() {
     targets: targets,
   };
 
-  const [apiInfo] = useState<ApiInfo | null>({
-    status: "Online",
-    service: "REST API",
-    database: "Connected",
-    time: new Date().toISOString(),
-  });
+  const [apiInfo, setApiInfo] = useState<ApiInfo | null>(null);
+  useEffect(() => {
+    fetch("/api/status")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: unknown) => {
+        if (isApiInfo(data)) {
+          setApiInfo(data);
+        }
+      })
+      .catch(() => {
+        setApiInfo(null);
+      });
+  }, []);
 
   const [backupInfo, setBackupInfo] = useState("Checking...");
   const [latestBackup, setLatestBackup] = useState("");
@@ -217,18 +239,18 @@ export default function Home() {
             <div className="mt-3 space-y-1 text-sm">
               <p>
                 Status:{" "}
-                <span className="text-green-400">{apiInfo?.status}</span>
+                <span className="text-green-400">{apiInfo?.status || "Checking..."}</span>
               </p>
               <p>
                 Service:{" "}
-                <span className="text-gray-300">{apiInfo?.service}</span>
+                <span className="text-gray-300">{apiInfo?.service || "Checking..."}</span>
               </p>
               <p>
                 Database:{" "}
-                <span className="text-gray-300">{apiInfo?.database}</span>
+                <span className="text-gray-300">{apiInfo?.database || "Checking..."}</span>
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                Last Check: {isClient ? apiInfo?.time : "Syncing..."}
+                Last Check: {isClient ? apiInfo?.time || "Syncing..." : "Syncing..."}
               </p>
             </div>
           </div>
