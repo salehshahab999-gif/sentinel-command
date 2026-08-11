@@ -3,10 +3,39 @@ import { dirname } from "path";
 
 const logFile = "logs/database/database.log";
 
-export async function writeDatabaseLog(message: string) {
+type LogLevel = "INFO" | "WARN" | "ERROR" | "DEBUG" | "TEST";
+
+interface DatabaseLogOptions {
+  level?: LogLevel;
+  event?: string;
+  status?: string;
+  details?: unknown;
+}
+
+export async function writeDatabaseLog(
+  message: string,
+  options: DatabaseLogOptions = {},
+) {
   await mkdir(dirname(logFile), { recursive: true });
 
-  const line = `${new Date().toISOString()} ${message}\n`;
+  const timestamp = new Date().toISOString();
+  const level = options.level ?? "INFO";
+  const event = options.event ?? "DATABASE_EVENT";
+  const status = options.status ?? "INFO";
 
-  await appendFile(logFile, line);
+  let details = "";
+
+  if (options.details !== undefined) {
+    try {
+      details = ` | DETAILS=${JSON.stringify(options.details)}`;
+    } catch {
+      details = " | DETAILS=[UNSERIALIZABLE]";
+    }
+  }
+
+  const line =
+    `${timestamp} | ${level} | DATABASE | ${event} | ` +
+    `STATUS=${status} | ${message}${details}\n`;
+
+  await appendFile(logFile, line, "utf-8");
 }
