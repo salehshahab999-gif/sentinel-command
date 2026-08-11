@@ -10,6 +10,16 @@ type NetworkInfo = {
   api: string;
   database: string;
   time: string;
+  send: number;
+  receive: number;
+  sessionUsed: number;
+  totalUsed: number;
+  publicIP: string;
+  country: string;
+  region: string;
+  city: string;
+  isp: string;
+  asn: string;
 };
 type DatabaseInfo = { status?: string; database?: string; targets?: Target[] };
 type ApiInfo = {
@@ -93,35 +103,74 @@ export default function Home() {
     api: "Checking...",
     database: "Checking...",
     time: "Syncing...",
+    send: 0,
+    receive: 0,
+    sessionUsed: 0,
+    totalUsed: 0,
+    publicIP: "Checking...",
+    country: "Checking...",
+    region: "Checking...",
+    city: "Checking...",
+    isp: "Checking...",
+    asn: "Checking...",
   });
-  useEffect(() => {
-    fetch("/api/network")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: unknown) => {
-        if (isNetworkInfo(data)) {
-          setNetworkInfo(data);
-          return;
-        }
 
-        setNetworkInfo({
-          internet: "Unavailable",
-          vpn: "Unavailable",
-          latency: "Unavailable",
-          api: "Unavailable",
-          database: "Unavailable",
-          time: "Unavailable",
+  useEffect(() => {
+    const loadNetwork = () => {
+      fetch("/api/network")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: unknown) => {
+          if (isNetworkInfo(data)) {
+            setNetworkInfo(data);
+            return;
+          }
+
+          setNetworkInfo({
+            internet: "Unavailable",
+            vpn: "Unavailable",
+            latency: "Unavailable",
+            api: "Unavailable",
+            database: "Unavailable",
+            time: "Unavailable",
+            send: 0,
+            receive: 0,
+            sessionUsed: 0,
+            totalUsed: 0,
+            publicIP: "Unavailable",
+            country: "Unavailable",
+            region: "Unavailable",
+            city: "Unavailable",
+            isp: "Unavailable",
+            asn: "Unavailable",
+          });
+        })
+        .catch(() => {
+          setNetworkInfo({
+            internet: "Unavailable",
+            vpn: "Unavailable",
+            latency: "Unavailable",
+            api: "Unavailable",
+            database: "Unavailable",
+            time: "Unavailable",
+            send: 0,
+            receive: 0,
+            sessionUsed: 0,
+            totalUsed: 0,
+            publicIP: "Unavailable",
+            country: "Unavailable",
+            region: "Unavailable",
+            city: "Unavailable",
+            isp: "Unavailable",
+            asn: "Unavailable",
+          });
         });
-      })
-      .catch(() => {
-        setNetworkInfo({
-          internet: "Unavailable",
-          vpn: "Unavailable",
-          latency: "Unavailable",
-          api: "Unavailable",
-          database: "Unavailable",
-          time: "Unavailable",
-        });
-      });
+    };
+
+    loadNetwork();
+
+    const interval = setInterval(loadNetwork, 2000);
+
+    return () => clearInterval(interval);
   }, []);
   const [targets, setTargets] = useState<Target[]>([]);
   useEffect(() => {
@@ -287,18 +336,25 @@ export default function Home() {
             <div className="mt-3 space-y-1 text-sm">
               <p>
                 Status:{" "}
-                <span className="text-green-400">{apiInfo?.status || "Checking..."}</span>
+                <span className="text-green-400">
+                  {apiInfo?.status || "Checking..."}
+                </span>
               </p>
               <p>
                 Service:{" "}
-                <span className="text-gray-300">{apiInfo?.service || "Checking..."}</span>
+                <span className="text-gray-300">
+                  {apiInfo?.service || "Checking..."}
+                </span>
               </p>
               <p>
                 Database:{" "}
-                <span className="text-gray-300">{apiInfo?.database || "Checking..."}</span>
+                <span className="text-gray-300">
+                  {apiInfo?.database || "Checking..."}
+                </span>
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                Last Check: {isClient ? apiInfo?.time || "Syncing..." : "Syncing..."}
+                Last Check:{" "}
+                {isClient ? apiInfo?.time || "Syncing..." : "Syncing..."}
               </p>
             </div>
           </div>
@@ -384,9 +440,41 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Last Check: {isClient ? networkInfo.time : "..."}
-            </p>
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              <div className="bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-400">IP Address</p>
+                <p className="text-cyan-400 font-bold">
+                  {networkInfo.publicIP}
+                </p>
+              </div>
+
+              <div className="bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-400">Country</p>
+                <p className="text-gray-300">{networkInfo.country}</p>
+              </div>
+
+              <div className="bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-400">City</p>
+                <p className="text-gray-300">{networkInfo.city}</p>
+              </div>
+
+              <div className="bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-400">ISP</p>
+                <p className="text-gray-300">{networkInfo.isp}</p>
+              </div>
+
+              <div className="bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-400">ASN</p>
+                <p className="text-gray-300">{networkInfo.asn}</p>
+              </div>
+
+              <div className="bg-gray-800 p-3 rounded-lg">
+                <p className="text-gray-400">Last Check</p>
+                <p className="text-gray-500">
+                  {isClient ? networkInfo.time : "..."}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
