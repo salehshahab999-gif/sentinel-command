@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "../../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { writeDatabaseLog } from "../../../core/database/database-log";
+import { writeApiLog } from "../../../core/api/api-log";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -31,6 +32,15 @@ export async function GET() {
       databaseWasDown = false;
     }
 
+    await writeApiLog("GET", "/api/database", "200", {
+      level: "INFO",
+      event: "API_REQUEST_SUCCESS",
+      details: {
+        database: "CockroachDB",
+        targets: targets.length,
+      },
+    });
+
     return NextResponse.json({
       status: "Connected",
       database: "CockroachDB",
@@ -50,6 +60,14 @@ export async function GET() {
 
       databaseWasDown = true;
     }
+
+    await writeApiLog("GET", "/api/database", "500", {
+      level: "ERROR",
+      event: "API_REQUEST_FAILED",
+      details: {
+        error: String(error),
+      },
+    });
 
     return NextResponse.json(
       {
