@@ -122,15 +122,19 @@ async function checkInternet() {
 
 async function getLatency() {
   try {
-    const start = Date.now();
+    const { stdout } = await execFileAsync(
+      "ping.exe",
+      ["1.1.1.1", "-n", "1", "-w", "2000"],
+      { windowsHide: true },
+    );
 
-    await fetch("https://1.1.1.1", {
-      method: "HEAD",
-      signal: AbortSignal.timeout(3000),
-      cache: "no-store",
-    });
+    const match = stdout.match(/time[=<](\d+)ms/i);
 
-    return `${Date.now() - start} ms`;
+    if (!match) {
+      return "Unavailable";
+    }
+
+    return `${match[1]} ms`;
   } catch {
     return "Unavailable";
   }
