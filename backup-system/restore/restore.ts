@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
 
-export function restoreBackup(fileName: string) {
+const BACKUP_FILE = "sentinel-backup-checkpoint.txt";
+
+export function restoreBackup(fileName: string = BACKUP_FILE) {
   const backupDir = path.join(process.cwd(), "backups");
   const filePath = path.join(backupDir, fileName);
 
@@ -20,32 +22,22 @@ export function restoreBackup(fileName: string) {
 
 export function getLatestBackup() {
   const backupDir = path.join(process.cwd(), "backups");
+  const filePath = path.join(backupDir, BACKUP_FILE);
 
-  if (!fs.existsSync(backupDir)) {
-    throw new Error("Backup directory not found");
+  if (!fs.existsSync(filePath)) {
+    throw new Error("No backup file found");
   }
 
-  const files = fs
-    .readdirSync(backupDir)
-    .filter((file) => file.startsWith("sentinel-backup-"))
-    .map((file) => ({
-      file,
-      time: fs.statSync(path.join(backupDir, file)).mtime.getTime(),
-    }))
-    .sort((a, b) => b.time - a.time);
-
-  if (files.length === 0) {
-    throw new Error("No backup files found");
-  }
-
-  return files[0].file;
+  return BACKUP_FILE;
 }
 
 export function getLatestBackupTime() {
   const backupDir = path.join(process.cwd(), "backups");
+  const filePath = path.join(backupDir, BACKUP_FILE);
 
-  const latestBackup = getLatestBackup();
-  const filePath = path.join(backupDir, latestBackup);
+  if (!fs.existsSync(filePath)) {
+    throw new Error("No backup file found");
+  }
 
   return fs.statSync(filePath).mtime.getTime();
 }
