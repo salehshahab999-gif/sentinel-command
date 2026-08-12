@@ -1,6 +1,7 @@
 import { collectSystemStatus } from "./system-collector";
 import { collectCpuLoad } from "./system-metrics-collector";
 import { collectMemoryUsage } from "./memory-metrics-collector";
+import { collectDiskUsage } from "./disk-metrics-collector";
 import type { CollectorResult } from "./collector-types";
 
 export function runCollectors(): CollectorResult[] {
@@ -8,5 +9,6 @@ export function runCollectors(): CollectorResult[] {
     collectSystemStatus(),
     collectCpuLoad(),
     collectMemoryUsage(),
+    collectDiskUsage(),
   ];
 }
