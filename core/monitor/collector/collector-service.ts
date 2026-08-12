@@ -2,6 +2,7 @@ import { collectSystemStatus } from "./system-collector";
 import { collectCpuLoad } from "./system-metrics-collector";
 import { collectMemoryUsage } from "./memory-metrics-collector";
 import { collectDiskUsage } from "./disk-metrics-collector";
+import { collectNetworkInfo } from "./network-metrics-collector";
 import type { CollectorResult } from "./collector-types";
 
 export function runCollectors(): CollectorResult[] {
@@ -10,5 +11,6 @@ export function runCollectors(): CollectorResult[] {
     collectCpuLoad(),
     collectMemoryUsage(),
     collectDiskUsage(),
+    collectNetworkInfo(),
   ];
 }
