@@ -1,4 +1,3 @@
-import { getMonitorCount, getMonitorState } from "./monitor-engine";
+import { getMonitorSnapshot } from "./monitor-service";
 
-console.log("Monitor Count:", getMonitorCount());
-console.log("Monitor State:", getMonitorState());
+console.log("Monitor Snapshot:", getMonitorSnapshot());
