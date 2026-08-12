@@ -1,3 +1,3 @@
-import { collectSystemStatus } from "./system-collector";
+import { runCollectors } from "./collector-service";
 
-console.log("Collector Result:", collectSystemStatus());
+console.log("Collectors:", runCollectors());
