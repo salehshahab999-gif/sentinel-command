@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import SystemMetrics from "./components/SystemMetrics";
 import MonitorCard from "./components/MonitorCard";
@@ -315,7 +316,7 @@ export default function Home() {
           </div>
 
           <SystemMetrics />
-          <MonitorCard /> 
+          <MonitorCard />
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
             <h2 className="text-xl font-bold text-green-400">
               🟢 System Status

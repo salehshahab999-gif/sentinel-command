@@ -19,6 +19,14 @@ export function updateCoreState(update: Partial<CoreState>): void {
   CORE_STATE.lastUpdate = Date.now();
 }
 
+export function updateModuleStatus(
+  moduleName: string,
+  status: boolean
+): void {
+  CORE_STATE.modules[moduleName] = status;
+  CORE_STATE.lastUpdate = Date.now();
+}
+
 export function getCoreState(): CoreState {
   return CORE_STATE;
 }

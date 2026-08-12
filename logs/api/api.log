@@ -1,1 +1,36 @@
 2026-08-02T17:40:35.129Z GET /api/status 200 OK
+2026-08-12T08:51:53.354Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T08:52:15.372Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T08:52:19.984Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T08:52:22.222Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T09:04:43.573Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T09:04:45.754Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T13:20:04.955Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T13:20:07.790Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T13:20:10.168Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T13:20:10.261Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T17:45:54.557Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T17:45:58.591Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T17:45:59.821Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T17:45:59.822Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T17:46:07.993Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T17:46:08.050Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T18:04:21.170Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:04:27.627Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:04:31.139Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T18:04:31.201Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T18:04:54.295Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:05:00.051Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:05:02.702Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T18:05:03.072Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T18:05:47.107Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:05:51.712Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T18:16:53.692Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:18:15.437Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:18:15.443Z | ERROR | API | API_REQUEST_FAILED | METHOD=GET | PATH=/api/database | STATUS=500 | DETAILS={"error":"Error: Connection terminated unexpectedly"}
+2026-08-12T18:19:02.910Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:20:13.789Z | ERROR | API | API_REQUEST_FAILED | METHOD=GET | PATH=/api/database | STATUS=500 | DETAILS={"error":"Error: Connection terminated unexpectedly"}
+2026-08-12T18:21:05.792Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T18:21:10.984Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
+2026-08-12T20:51:24.603Z | INFO | API | BACKUP_STATUS | METHOD=GET | PATH=/api/backup | STATUS=200 | DETAILS={"latestBackup":"sentinel-backup-checkpoint.txt","latestBackupTime":1786468843037}
+2026-08-12T20:51:27.466Z | INFO | API | API_REQUEST_SUCCESS | METHOD=GET | PATH=/api/database | STATUS=200 | DETAILS={"database":"CockroachDB","targets":1}
