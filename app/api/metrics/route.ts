@@ -1,5 +1,6 @@
 import os from "os";
 import { execSync } from "child_process";
+import { getMetricsCache, setMetricsCache } from "../../../core/metrics/cache";
 
 function getCpuUsage(): string {
   try {
@@ -36,7 +37,7 @@ function getGpuUsage(): string {
 function getDiskC(): string {
   try {
     const output = execSync(
-      'powershell -NoProfile -Command "(Get-PSDrive C).Free"',
+      'powershell -NoProfile -Command "(Get-Volume -DriveLetter C).SizeRemaining"',
       { encoding: "utf8" },
     );
 
@@ -55,6 +56,12 @@ function getDiskC(): string {
 }
 
 export async function GET() {
+  const cached = getMetricsCache();
+
+  if (cached) {
+    return Response.json(cached);
+  }
+
   const totalMemory = os.totalmem();
   const freeMemory = os.freemem();
   const usedMemory = totalMemory - freeMemory;
@@ -70,7 +77,7 @@ export async function GET() {
   const minutes = Math.floor((uptimeSeconds % 3600) / 60);
   const seconds = uptimeSeconds % 60;
 
-  return Response.json({
+  const metrics = {
     cpu: getCpuUsage(),
     memory: `${usedMemoryGB.toFixed(1)} GB / ${totalMemoryGB.toFixed(0)} GB`,
     ram: `${ramPercent}%`,
@@ -78,5 +85,9 @@ export async function GET() {
     diskC: getDiskC(),
     uptime: `${hours}h ${minutes}m ${seconds}s`,
     timestamp: new Date().toISOString(),
-  });
+  };
+
+  setMetricsCache(metrics);
+
+  return Response.json(metrics);
 }
