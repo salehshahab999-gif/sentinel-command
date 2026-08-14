@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -50,14 +50,14 @@ export default function SystemMetrics() {
 
     loadMetrics();
 
-    const interval = setInterval(loadMetrics, 5000);
+    const interval = setInterval(loadMetrics, 30000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-      <h2 className="text-xl font-bold text-indigo-400">📊 System Metrics</h2>
+      <h2 className="text-xl font-bold text-indigo-400">?? System Metrics</h2>
 
       <div className="mt-3 space-y-2 text-sm">
         <p>
