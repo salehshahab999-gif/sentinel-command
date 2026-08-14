@@ -120,6 +120,23 @@ async function checkInternet() {
   }
 }
 
+async function getVPNStatus() {
+  try {
+    const { stdout } = await execFileAsync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-Command",
+        '$a=Get-NetAdapter | Where-Object { $_.Name -match "xray|Wintun|TUN|VPN" -and $_.Status -eq "Up" }; if($a){"Connected"}else{"Disconnected"}',
+      ],
+      { windowsHide: true },
+    );
+
+    return stdout.trim() || "Unknown";
+  } catch {
+    return "Unknown";
+  }
+}
 async function getLatency() {
   try {
     const { stdout } = await execFileAsync(
@@ -165,7 +182,7 @@ export async function GET() {
     isp: publicIP.isp,
     asn: publicIP.asn,
 
-    vpn: "Unknown",
+    vpn: await getVPNStatus(),
     latency,
 
     api: "Online",
@@ -174,3 +191,4 @@ export async function GET() {
     time: new Date().toLocaleTimeString(),
   });
 }
+

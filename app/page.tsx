@@ -437,7 +437,7 @@ export default function Home() {
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">API / DB</p>
                 <p className="text-green-400 font-bold">
-                  🟢 {networkInfo.api} / {networkInfo.database}
+                  🟢 {apiInfo?.status || "Checking..."} / {apiInfo?.database || "Checking..."}
                 </p>
               </div>
             </div>
@@ -482,3 +482,4 @@ export default function Home() {
     </main>
   );
 }
+
