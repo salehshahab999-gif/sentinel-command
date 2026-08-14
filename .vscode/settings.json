@@ -1,4 +1,11 @@
 {
   "js/ts.experimental.useTsgo": false,
-  "js/ts.tsdk.path": "node_modules\\typescript\\lib"
+  "js/ts.tsdk.path": "node_modules\\typescript\\lib",
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/logs/**": true,
+    "**/backups/**": true
+  }
 }
