@@ -7,6 +7,7 @@ type Metrics = {
   memory: string;
   gpu: string;
   diskC: string;
+  timestamp: string;
 };
 
 const INITIAL_METRICS: Metrics = {
@@ -14,6 +15,7 @@ const INITIAL_METRICS: Metrics = {
   memory: "Checking...",
   gpu: "Checking...",
   diskC: "Checking...",
+  timestamp: "",
 };
 
 export default function SystemMetrics() {
@@ -37,6 +39,7 @@ export default function SystemMetrics() {
           memory: data.memory || "N/A",
           gpu: data.gpu || "N/A",
           diskC: data.diskC || "N/A",
+          timestamp: data.timestamp || "",
         });
       } catch {
         setMetrics({
@@ -44,6 +47,7 @@ export default function SystemMetrics() {
           memory: "N/A",
           gpu: "N/A",
           diskC: "N/A",
+          timestamp: "",
         });
       }
     };
@@ -57,7 +61,7 @@ export default function SystemMetrics() {
 
   return (
     <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-      <h2 className="text-xl font-bold text-indigo-400">?? System Metrics</h2>
+      <h2 className="text-xl font-bold text-indigo-400">??? System Metrics</h2>
 
       <div className="mt-3 space-y-2 text-sm">
         <p>
@@ -75,6 +79,13 @@ export default function SystemMetrics() {
         <p>
           Disk C: <span className="text-gray-300">{metrics.diskC}</span>
         </p>
+
+        {metrics.timestamp && (
+          <p className="pt-2 text-xs text-gray-500">
+            Last Update: {new Date(metrics.timestamp).toLocaleTimeString()}
+          </p>
+        )}
+
       </div>
     </div>
   );

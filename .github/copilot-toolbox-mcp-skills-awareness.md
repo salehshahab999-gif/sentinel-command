@@ -1,6 +1,6 @@
 # GitHub Copilot Toolbox — MCP & Skills awareness
 
-_Generated: 2026-08-12T23:19:31.865Z_
+_Generated: 2026-08-14T21:12:11.088Z_
 
 ## How to use this report
 
@@ -35,6 +35,9 @@ _None found (or no workspace open)._
 
 - **microsoft-foundry** — `C:\Users\Saleh Shahab\.agents\skills\microsoft-foundry`
   - Deploy, evaluate, fine-tune, and manage Foundry agents end-to-end with azd: hosted agent scaffold/run/deploy, prompt agent create, batch eval, continuous eval, prompt optimizer, Agent Optimizer scaffold, agent.yaml, data
+
+- **use-tinyfish** — `C:\Users\Saleh Shahab\.agents\skills\use-tinyfish`
+  - Use TinyFish for web search, fetching URLs, reading pages, current information, source-backed answers, research, docs, pricing/product pages, extraction, scraping, and browser automation. Use whenever the user asks to se
 
 ---
 
