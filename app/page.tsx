@@ -169,7 +169,7 @@ export default function Home() {
 
     loadNetwork();
 
-    const interval = setInterval(loadNetwork, 2000);
+    const interval = setInterval(loadNetwork, 30000);
 
     return () => clearInterval(interval);
   }, []);
