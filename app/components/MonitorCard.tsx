@@ -39,7 +39,8 @@ export default function MonitorCard() {
             {monitor?.health?.filter(
               (item: any) => item.status === "HEALTHY"
             ).length || 0}
-            /5
+            /
+            {monitor?.health?.length || 0}
           </span>
         </p>
       </div>
