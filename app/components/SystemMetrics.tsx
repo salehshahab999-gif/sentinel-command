@@ -61,7 +61,9 @@ export default function SystemMetrics() {
 
   return (
     <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-      <h2 className="text-xl font-bold text-indigo-400">??? System Metrics</h2>
+      <h2 className="text-xl font-bold text-indigo-400">
+        📊 System Metrics
+      </h2>
 
       <div className="mt-3 space-y-2 text-sm">
         <p>
@@ -85,7 +87,6 @@ export default function SystemMetrics() {
             Last Update: {new Date(metrics.timestamp).toLocaleTimeString()}
           </p>
         )}
-
       </div>
     </div>
   );
