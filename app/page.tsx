@@ -96,7 +96,8 @@ function formatBackupAge(latestBackupTime: number | null): string {
 export default function Home() {
   const [time, setTime] = useState("");
   const [isClient, setIsClient] = useState(false);
-
+  const [logs, setLogs] = useState("");
+  
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({
     internet: "Checking...",
     vpn: "Checking...",
@@ -221,8 +222,7 @@ export default function Home() {
 
   const backupAge = formatBackupAge(latestBackupTime);
 
-  const logs =
-    "[INFO] System started successfully\n[INFO] Database connected\n[INFO] API Gateway ready";
+  
 
   useEffect(() => {
     const timer = setInterval(
@@ -238,6 +238,17 @@ export default function Home() {
     }, 10);
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+  fetch("/api/logs")
+    .then((res) => res.json())
+    .then((data) => {
+      setLogs(data.logs || "");
+    })
+    .catch(() => {
+      setLogs("");
+    });
+}, []);
 
   return (
     <main className="min-h-screen bg-black text-white p-10 font-mono">
@@ -374,15 +385,17 @@ export default function Home() {
             </h2>
             <div className="mt-3 text-sm">
               <p>
-                Total Logs:{" "}
-                <span className="text-gray-300">
-                  {isClient ? logs.split("\n").length : 0}
-                </span>
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Last entry:{" "}
-                {isClient ? new Date().toLocaleTimeString() : "..."}{" "}
-              </p>
+  Total Logs:{" "}
+  <span className="text-gray-300">
+    {isClient ? logs.split("\n").filter(Boolean).length : 0}
+  </span>
+</p>
+<p className="text-xs text-gray-500 mt-1">
+  Last entry:{" "}
+  {isClient
+    ? logs.split("\n").filter(Boolean).slice(-1)[0] || "No logs"
+    : "..."}
+</p>
             </div>
           </div>
 
