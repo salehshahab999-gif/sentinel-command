@@ -7,13 +7,13 @@ export interface CollectorHealth {
   error?: string;
 }
 
-export function checkCollectorHealth(
-  collector: () => CollectorResult
-): CollectorHealth {
+export async function checkCollectorHealth(
+  collector: () => CollectorResult | Promise<CollectorResult>
+): Promise<CollectorHealth> {
   const start = Date.now();
 
   try {
-    const result = collector();
+    const result = await collector();
 
     return {
       name: result.name,

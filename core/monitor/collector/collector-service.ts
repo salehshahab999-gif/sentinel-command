@@ -1,8 +1,12 @@
 import { COLLECTOR_REGISTRY } from "./collector-registry";
 import type { CollectorResult } from "./collector-types";
 
-export function runCollectors(): CollectorResult[] {
-  return COLLECTOR_REGISTRY.map(
-    (collector) => collector()
+export async function runCollectors(): Promise<CollectorResult[]> {
+  const results = await Promise.all(
+    COLLECTOR_REGISTRY.map(
+      async (collector) => await collector()
+    )
   );
+
+  return results;
 }
