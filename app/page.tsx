@@ -96,6 +96,7 @@ function formatBackupAge(latestBackupTime: number | null): string {
 export default function Home() {
   const [time, setTime] = useState("");
   const [isClient, setIsClient] = useState(false);
+  const [persianDate, setPersianDate] = useState("");
   const [logs, setLogs] = useState("");
   
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({
@@ -308,23 +309,25 @@ export default function Home() {
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <h2 className="text-xl font-bold text-purple-400">
-              🕒 System Time
-            </h2>
-            <p className="mt-3 text-3xl font-light text-white tracking-wider">
-              {isClient ? time : "--:--:--"}
-            </p>
-            <p className="mt-2 text-sm text-gray-400">
-              {isClient
-                ? new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })
-                : "Loading..."}
-            </p>
-          </div>
+  <h2 className="text-xl font-bold text-purple-400">
+    🕒 System Time
+  </h2>
+
+  <p className="mt-3 text-3xl font-light text-white tracking-wider">
+    {isClient ? time : "--:--:--"}
+  </p>
+
+  <p className="mt-2 text-sm text-gray-400">
+    {isClient
+      ? new Date().toLocaleDateString("en-US", {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
+      : "Loading..."}
+  </p>
+  </div>
 
           <SystemMetrics />
           <MonitorCard />
