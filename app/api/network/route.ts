@@ -93,6 +93,7 @@ async function getPublicIP() {
       city: data.city || "Unknown",
       isp: data.connection?.isp || "Unknown",
       asn: data.connection?.asn ? `AS${data.connection.asn}` : "Unknown",
+      timezone: data.timezone?.id || "UTC",
     };
   } catch {
     return {
@@ -102,6 +103,7 @@ async function getPublicIP() {
       city: "Unavailable",
       isp: "Unavailable",
       asn: "Unavailable",
+      timezone: "UTC",
     };
   }
 }
@@ -137,6 +139,7 @@ async function getVPNStatus() {
     return "Unknown";
   }
 }
+
 async function getLatency() {
   try {
     const { stdout } = await execFileAsync(
@@ -183,6 +186,9 @@ export async function GET() {
     asn: publicIP.asn,
 
     vpn: await getVPNStatus(),
+
+    timezone: publicIP.timezone,
+
     latency,
 
     api: "Online",
@@ -191,4 +197,3 @@ export async function GET() {
     time: new Date().toLocaleTimeString(),
   });
 }
-

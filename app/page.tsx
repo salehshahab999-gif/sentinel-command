@@ -21,6 +21,7 @@ type NetworkInfo = {
   city: string;
   isp: string;
   asn: string;
+  timezone: string;
 };
 type DatabaseInfo = { status?: string; database?: string; targets?: Target[] };
 type ApiInfo = {
@@ -116,6 +117,7 @@ export default function Home() {
     city: "Checking...",
     isp: "Checking...",
     asn: "Checking...",
+    timezone: "UTC",
   });
 
   useEffect(() => {
@@ -145,6 +147,7 @@ export default function Home() {
             city: "Unavailable",
             isp: "Unavailable",
             asn: "Unavailable",
+            timezone: "UTC",
           });
         })
         .catch(() => {
@@ -165,6 +168,7 @@ export default function Home() {
             city: "Unavailable",
             isp: "Unavailable",
             asn: "Unavailable",
+            timezone: "UTC",
           });
         });
     };
@@ -234,7 +238,23 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
-    const timeout = setTimeout(() => {
+const parts = new Intl.DateTimeFormat("en-US-u-ca-persian", {
+  year: "numeric",
+  month: "long",
+  day: "2-digit",
+}).formatToParts(new Date());
+
+const year = parts.find((part) => part.type === "year")?.value ?? "";
+const month = new Intl.DateTimeFormat("en-US-u-ca-persian", {
+  month: "2-digit",
+}).format(new Date());
+const day = parts.find((part) => part.type === "day")?.value ?? "";
+
+setPersianDate(`${year}/${month}/${day}`);
+}, []);
+
+  useEffect(() => {
+        const timeout = setTimeout(() => {
       setIsClient(true);
     }, 10);
     return () => clearTimeout(timeout);
@@ -317,17 +337,27 @@ export default function Home() {
     {isClient ? time : "--:--:--"}
   </p>
 
-  <p className="mt-2 text-sm text-gray-400">
-    {isClient
-      ? new Date().toLocaleDateString("en-US", {
-          weekday: "long",
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })
-      : "Loading..."}
+  <p className="text-xs text-gray-400">
+  {persianDate || "Loading..."}
+</p>
+
+
+
+<p className="mt-1 text-xs text-gray-400">
+  {isClient
+    ? `${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, "0")}/${String(new Date().getDate()).padStart(2, "0")}`
+    : "Loading..."}
+</p>
+{networkInfo.vpn === "Connected" && (
+  <p className="text-xs text-gray-500">
+    {new Date().toLocaleTimeString("en-GB", {
+      timeZone: networkInfo.timezone,
+    })}
+    <br />
+    {networkInfo.country} - {networkInfo.city}
   </p>
-  </div>
+)}
+</div>
 
           <SystemMetrics />
           <MonitorCard />
