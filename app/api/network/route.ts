@@ -110,13 +110,13 @@ async function getPublicIP() {
 
 async function checkInternet() {
   try {
-    const response = await fetch("https://1.1.1.1", {
-      method: "HEAD",
-      signal: AbortSignal.timeout(3000),
-      cache: "no-store",
-    });
+    const { stdout } = await execFileAsync(
+      "ping.exe",
+      ["1.1.1.1", "-n", "1", "-w", "2000"],
+      { windowsHide: true },
+    );
 
-    return response.ok || response.status < 500;
+    return /Reply from/i.test(stdout);
   } catch {
     return false;
   }

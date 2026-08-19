@@ -175,24 +175,23 @@ export default function Home() {
 
     loadNetwork();
 
-    const interval = setInterval(loadNetwork, 30000);
-
+    const interval = setInterval(loadNetwork, 3000);
+    
     return () => clearInterval(interval);
   }, []);
-  const [targets, setTargets] = useState<Target[]>([]);
-  useEffect(() => {
-    fetch("/api/database")
-      .then((res) => res.json())
-      .then((data) => {
-        setTargets(data.targets || []);
-      });
-  }, []);
+const [targets, setTargets] = useState<Target[]>([]);
+const [databaseInfo, setDatabaseInfo] = useState<DatabaseInfo | null>(null);
 
-  const databaseInfo: DatabaseInfo = {
-    status: "Connected",
-    database: "CockroachDB",
-    targets: targets,
-  };
+useEffect(() => {
+  fetch("/api/database")
+    .then((res) => res.json())
+    .then((data) => {
+      setTargets(data.targets || []);
+      setDatabaseInfo(data);
+    });
+}, []);
+
+
 
   const [apiInfo, setApiInfo] = useState<ApiInfo | null>(null);
   useEffect(() => {
