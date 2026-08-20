@@ -10,6 +10,8 @@ import { checkCollectorHealth } from "./collector/collector-health";
 
 import { evaluateCollectors } from "./monitor-evaluation";
 
+import { evaluateMonitorRules } from "./monitor-rules";
+
 import { processEventPipeline } from "../events/event-pipeline";
 
 export async function getMonitorSnapshot() {
@@ -17,7 +19,14 @@ export async function getMonitorSnapshot() {
 
   const collectors = await runCollectors();
 
-  const events = evaluateCollectors(collectors);
+  const evaluationEvents = evaluateCollectors(collectors);
+
+  const ruleEvents = evaluateMonitorRules(collectors);
+
+  const events = [
+    ...evaluationEvents,
+    ...ruleEvents,
+  ];
 
   const pipeline = await processEventPipeline(events);
 
