@@ -1,10 +1,13 @@
 import { prisma } from "../database/prisma-client";
 import type { Prisma } from "../../app/generated/prisma/client";
 import type { SentinelAlert } from "./alert-types";
+import { markAlertEngineActivity } from "./alert-status";
 
 export async function saveAlert(
   alert: SentinelAlert,
 ): Promise<void> {
+  markAlertEngineActivity();
+
   const existingAlert = await prisma.alert.findFirst({
     where: {
       source: alert.source,
@@ -51,6 +54,8 @@ export async function resolveAlert(
   source: string,
   type: string,
 ): Promise<void> {
+  markAlertEngineActivity();
+
   const activeAlert = await prisma.alert.findFirst({
     where: {
       source,
