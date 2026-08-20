@@ -27,3 +27,31 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 }
+
+model Alert {
+  id          String         @id
+  eventId     String
+  severity    String
+  status      String
+  source      String
+  type        String
+  title       String
+  description String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  resolvedAt  DateTime?
+  history     AlertHistory[]
+}
+
+model AlertHistory {
+  id        String   @id
+  alertId   String
+  action    String
+  timestamp DateTime @default(now())
+  severity  String
+  status    String
+  source    String
+  message   String
+  data      Json?
+  alert     Alert    @relation(fields: [alertId], references: [id])
+}
