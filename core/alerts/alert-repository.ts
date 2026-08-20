@@ -46,3 +46,45 @@ export async function saveAlert(
     },
   });
 }
+
+export async function resolveAlert(
+  source: string,
+  type: string,
+): Promise<void> {
+  const activeAlert = await prisma.alert.findFirst({
+    where: {
+      source,
+      type,
+      status: "NEW",
+      resolvedAt: null,
+    },
+  });
+
+  if (!activeAlert) {
+    return;
+  }
+
+  const resolvedAt = new Date();
+
+  await prisma.alert.update({
+    where: {
+      id: activeAlert.id,
+    },
+    data: {
+      status: "RESOLVED",
+      resolvedAt,
+    },
+  });
+
+  await prisma.alertHistory.create({
+    data: {
+      id: `HISTORY-RESOLVED-${activeAlert.id}`,
+      alertId: activeAlert.id,
+      action: "RESOLVED",
+      severity: activeAlert.severity,
+      status: "RESOLVED",
+      source: activeAlert.source,
+      message: `Alert resolved: ${activeAlert.type}`,
+    },
+  });
+}
