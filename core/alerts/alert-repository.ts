@@ -5,6 +5,19 @@ import type { SentinelAlert } from "./alert-types";
 export async function saveAlert(
   alert: SentinelAlert,
 ): Promise<void> {
+  const existingAlert = await prisma.alert.findFirst({
+    where: {
+      source: alert.source,
+      type: alert.type,
+      status: "NEW",
+      resolvedAt: null,
+    },
+  });
+
+  if (existingAlert) {
+    return;
+  }
+
   await prisma.alert.create({
     data: {
       id: alert.id,
