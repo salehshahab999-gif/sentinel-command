@@ -3,16 +3,19 @@ import { MONITOR_RUNTIME } from "./monitor-runtime";
 import { runCollectors } from "./collector/collector-service";
 import { COLLECTOR_REGISTRY } from "./collector/collector-registry";
 import { checkCollectorHealth } from "./collector/collector-health";
+import { evaluateCollectors } from "./monitor-evaluation";
 
 export async function getMonitorSnapshot() {
   MONITOR_RUNTIME.lastCheck = new Date().toISOString();
 
   const collectors = await runCollectors();
 
+  const events = evaluateCollectors(collectors);
+
   const health = await Promise.all(
     COLLECTOR_REGISTRY.map((collector) =>
-      checkCollectorHealth(collector)
-    )
+      checkCollectorHealth(collector),
+    ),
   );
 
   return {
@@ -20,5 +23,6 @@ export async function getMonitorSnapshot() {
     runtime: MONITOR_RUNTIME,
     collectors,
     health,
+    events,
   };
 }
