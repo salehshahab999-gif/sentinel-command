@@ -110,7 +110,7 @@ export const MONITOR_RULES: MonitorRule[] = [
 
       return (
         typeof value.freeGB === "number" &&
-        value.freeGB <= 15
+        value.freeGB <= 10
       );
     },
   },
@@ -133,7 +133,7 @@ export const MONITOR_RULES: MonitorRule[] = [
 
       return (
         typeof value.freeGB === "number" &&
-        value.freeGB <= 10
+        value.freeGB < 2
       );
     },
   },
