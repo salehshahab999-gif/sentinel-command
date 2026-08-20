@@ -9,6 +9,13 @@ export interface MonitorRule {
   evaluate: (result: CollectorResult) => boolean;
 }
 
+const SEVERITY_PRIORITY: Record<EventSeverity, number> = {
+  INFO: 1,
+  WARNING: 2,
+  ERROR: 3,
+  CRITICAL: 4,
+};
+
 export const MONITOR_RULES: MonitorRule[] = [
   {
     name: "CPU Warning",
@@ -52,7 +59,7 @@ export const MONITOR_RULES: MonitorRule[] = [
         return false;
       }
 
-      return value.usedGB / value.totalGB >= 0.80;
+      return value.usedGB / value.totalGB >= 0.8;
     },
   },
   {
@@ -138,29 +145,34 @@ export function evaluateMonitorRules(
   const events: SentinelEvent[] = [];
 
   for (const result of results) {
-    const rules = MONITOR_RULES.filter(
-      (rule) => rule.collector === result.name,
-    );
+    const matchedRules = MONITOR_RULES
+      .filter((rule) => rule.collector === result.name)
+      .filter((rule) => rule.evaluate(result))
+      .sort(
+        (a, b) =>
+          SEVERITY_PRIORITY[b.severity] -
+          SEVERITY_PRIORITY[a.severity],
+      );
 
-    for (const rule of rules) {
-      if (!rule.evaluate(result)) {
-        continue;
-      }
+    const rule = matchedRules[0];
 
-      events.push({
-        id: `EVENT-${Date.now()}-${events.length}`,
-        timestamp: result.timestamp,
-        type: rule.name,
-        source: result.name,
-        severity: rule.severity,
-        status: "NEW",
-        description: rule.description,
-        data: {
-          value: result.value,
-          rule: rule.name,
-        },
-      });
+    if (!rule) {
+      continue;
     }
+
+    events.push({
+      id: `EVENT-${Date.now()}-${events.length}`,
+      timestamp: result.timestamp,
+      type: rule.name,
+      source: result.name,
+      severity: rule.severity,
+      status: "NEW",
+      description: rule.description,
+      data: {
+        value: result.value,
+        rule: rule.name,
+      },
+    });
   }
 
   return events;
