@@ -7,12 +7,18 @@ export async function GET() {
   const system = getCoreSystem();
   const alertEngine = getAlertEngineStatus();
 
-  const activeAlerts = await prisma.alert.count({
+  const activeAlertsData = await prisma.alert.findMany({
     where: {
       status: "NEW",
       resolvedAt: null,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 10,
   });
+
+  const activeAlerts = activeAlertsData.length;
 
   return Response.json({
     status: system.state.status,
@@ -26,6 +32,7 @@ export async function GET() {
     alertEngineLastActivity: alertEngine.lastActivity,
     alertState: activeAlerts > 0 ? "ALARM" : "ACTIVE",
     activeAlerts,
+    alerts: activeAlertsData,
     time: health.checkedAt,
   });
 }
