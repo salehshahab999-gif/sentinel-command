@@ -14,6 +14,11 @@ import { evaluateMonitorRules } from "./monitor-rules";
 
 import { processEventPipeline } from "../events/event-pipeline";
 
+import {
+  reportAlertSignal,
+  clearAlertSignal,
+} from "../alerts/alert-signal";
+
 export async function getMonitorSnapshot() {
   MONITOR_RUNTIME.lastCheck = new Date().toISOString();
 
@@ -27,6 +32,37 @@ export async function getMonitorSnapshot() {
     ...evaluationEvents,
     ...ruleEvents,
   ];
+
+  for (const event of ruleEvents) {
+    reportAlertSignal({
+      source: "MONITOR",
+      severity: event.severity,
+      type: event.type,
+      message: event.description,
+      timestamp: event.timestamp,
+      active: true,
+      data: event.data,
+    });
+  }
+
+  const monitorRuleTypes = [
+    "CPU Warning",
+    "CPU Critical",
+    "Memory Warning",
+    "Memory Critical",
+    "Disk Warning",
+    "Disk Critical",
+  ];
+
+  for (const type of monitorRuleTypes) {
+    const active = ruleEvents.some(
+      (event) => event.type === type,
+    );
+
+    if (!active) {
+      clearAlertSignal("MONITOR", type);
+    }
+  }
 
   const pipeline = await processEventPipeline(events);
 
