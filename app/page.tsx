@@ -3,7 +3,23 @@
 import { useState, useEffect } from "react";
 import SystemMetrics from "./components/SystemMetrics";
 import MonitorCard from "./components/MonitorCard";
+
 type Target = { id: string; name: string; address: string };
+
+type Alert = {
+  id: string;
+  eventId: string;
+  severity: string;
+  status: string;
+  source: string;
+  type: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+};
+
 type NetworkInfo = {
   internet: string;
   vpn: string;
@@ -23,12 +39,21 @@ type NetworkInfo = {
   asn: string;
   timezone: string;
 };
-type DatabaseInfo = { status?: string; database?: string; targets?: Target[] };
+
+type DatabaseInfo = {
+  status?: string;
+  database?: string;
+  targets?: Target[];
+};
+
 type ApiInfo = {
   status: string;
   service: string;
   database: string;
   time: string;
+  alertState?: string;
+  activeAlerts?: number;
+  alerts?: Alert[];
 };
 
 function isNetworkInfo(data: unknown): data is NetworkInfo {
@@ -59,6 +84,8 @@ function isApiInfo(data: unknown): data is ApiInfo {
     typeof apiData.status === "string" &&
     typeof apiData.service === "string" &&
     typeof apiData.database === "string" &&
+    typeof apiData.alertState === "string" &&
+    typeof apiData.activeAlerts === "number" &&
     typeof apiData.time === "string"
   );
 }
@@ -99,7 +126,11 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [persianDate, setPersianDate] = useState("");
   const [logs, setLogs] = useState("");
-  
+
+  const [alertState, setAlertState] = useState("ACTIVE");
+  const [activeAlerts, setActiveAlerts] = useState(0);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({
     internet: "Checking...",
     vpn: "Checking...",
@@ -176,40 +207,46 @@ export default function Home() {
     loadNetwork();
 
     const interval = setInterval(loadNetwork, 10000);
-    
+
     return () => clearInterval(interval);
   }, []);
-const [targets, setTargets] = useState<Target[]>([]);
-const [databaseInfo, setDatabaseInfo] = useState<DatabaseInfo | null>(null);
 
-useEffect(() => {
-  fetch("/api/database")
-    .then((res) => res.json())
-    .then((data) => {
-      setTargets(data.targets || []);
-      setDatabaseInfo(data);
-    });
-}, []);
+  const [targets, setTargets] = useState<Target[]>([]);
+  const [databaseInfo, setDatabaseInfo] =
+    useState<DatabaseInfo | null>(null);
 
-
+  useEffect(() => {
+    fetch("/api/database")
+      .then((res) => res.json())
+      .then((data) => {
+        setTargets(data.targets || []);
+        setDatabaseInfo(data);
+      });
+  }, []);
 
   const [apiInfo, setApiInfo] = useState<ApiInfo | null>(null);
+
   useEffect(() => {
     fetch("/api/status")
       .then((res) => (res.ok ? res.json() : null))
       .then((data: unknown) => {
         if (isApiInfo(data)) {
           setApiInfo(data);
+          setAlertState(data.alertState || "ACTIVE");
+          setActiveAlerts(data.activeAlerts || 0);
+          setAlerts(data.alerts || []);
         }
       })
       .catch(() => {
         setApiInfo(null);
+        setAlerts([]);
       });
   }, []);
 
   const [backupInfo, setBackupInfo] = useState("Checking...");
   const [latestBackup, setLatestBackup] = useState("");
   const [latestBackupTime, setLatestBackupTime] = useState<number | null>(null);
+
   useEffect(() => {
     fetch("/api/backup")
       .then((res) => res.json())
@@ -226,8 +263,6 @@ useEffect(() => {
 
   const backupAge = formatBackupAge(latestBackupTime);
 
-  
-
   useEffect(() => {
     const timer = setInterval(
       () => setTime(new Date().toLocaleTimeString("en-GB")),
@@ -236,39 +271,45 @@ useEffect(() => {
 
     return () => clearInterval(timer);
   }, []);
-  useEffect(() => {
-const parts = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-  year: "numeric",
-  month: "long",
-  day: "2-digit",
-}).formatToParts(new Date());
-
-const year = parts.find((part) => part.type === "year")?.value ?? "";
-const month = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-  month: "2-digit",
-}).format(new Date());
-const day = parts.find((part) => part.type === "day")?.value ?? "";
-
-setPersianDate(`${year}/${month}/${day}`);
-}, []);
 
   useEffect(() => {
-        const timeout = setTimeout(() => {
+    const parts = new Intl.DateTimeFormat("en-US-u-ca-persian", {
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+    }).formatToParts(new Date());
+
+    const year =
+      parts.find((part) => part.type === "year")?.value ?? "";
+
+    const month = new Intl.DateTimeFormat("en-US-u-ca-persian", {
+      month: "2-digit",
+    }).format(new Date());
+
+    const day =
+      parts.find((part) => part.type === "day")?.value ?? "";
+
+    setPersianDate(`${year}/${month}/${day}`);
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
       setIsClient(true);
     }, 10);
+
     return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
-  fetch("/api/logs")
-    .then((res) => res.json())
-    .then((data) => {
-      setLogs(data.logs || "");
-    })
-    .catch(() => {
-      setLogs("");
-    });
-}, []);
+    fetch("/api/logs")
+      .then((res) => res.json())
+      .then((data) => {
+        setLogs(data.logs || "");
+      })
+      .catch(() => {
+        setLogs("");
+      });
+  }, []);
 
   return (
     <main className="min-h-screen bg-black text-white p-10 font-mono">
@@ -285,7 +326,9 @@ setPersianDate(`${year}/${month}/${day}`);
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <h2 className="text-xl font-bold text-cyan-400">🟢 Database</h2>
+            <h2 className="text-xl font-bold text-cyan-400">
+              🟢 Database
+            </h2>
             <div className="mt-3 space-y-1 text-sm">
               <p>
                 Status:{" "}
@@ -300,7 +343,10 @@ setPersianDate(`${year}/${month}/${day}`);
                 </span>
               </p>
               <p>
-                Targets: <span className="text-gray-300">{targets.length}</span>
+                Targets:{" "}
+                <span className="text-gray-300">
+                  {targets.length}
+                </span>
               </p>
             </div>
           </div>
@@ -318,7 +364,9 @@ setPersianDate(`${year}/${month}/${day}`);
                   <p className="text-sm font-semibold text-gray-200">
                     Name: {target.name}
                   </p>
-                  <p className="text-xs text-gray-500">ID: {target.id}</p>
+                  <p className="text-xs text-gray-500">
+                    ID: {target.id}
+                  </p>
                   <p className="text-xs text-gray-500">
                     Address: {target.address}
                   </p>
@@ -328,42 +376,48 @@ setPersianDate(`${year}/${month}/${day}`);
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-  <h2 className="text-xl font-bold text-purple-400">
-    🕒 System Time
-  </h2>
+            <h2 className="text-xl font-bold text-purple-400">
+              🕒 System Time
+            </h2>
 
-  <p className="mt-3 text-3xl font-light text-white tracking-wider">
-    {isClient ? time : "--:--:--"}
-  </p>
+            <p className="mt-3 text-3xl font-light text-white tracking-wider">
+              {isClient ? time : "--:--:--"}
+            </p>
 
-  <p className="text-xs text-gray-400">
-  {persianDate || "Loading..."}
-</p>
+            <p className="text-xs text-gray-400">
+              {persianDate || "Loading..."}
+            </p>
 
+            <p className="mt-1 text-xs text-gray-400">
+              {isClient
+                ? `${new Date().getFullYear()}/${String(
+                    new Date().getMonth() + 1,
+                  ).padStart(2, "0")}/${String(
+                    new Date().getDate(),
+                  ).padStart(2, "0")}`
+                : "Loading..."}
+            </p>
 
-
-<p className="mt-1 text-xs text-gray-400">
-  {isClient
-    ? `${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, "0")}/${String(new Date().getDate()).padStart(2, "0")}`
-    : "Loading..."}
-</p>
-{networkInfo.vpn === "Connected" && (
-  <p className="text-xs text-gray-500">
-    {new Date().toLocaleTimeString("en-GB", {
-      timeZone: networkInfo.timezone,
-    })}
-    <br />
-    {networkInfo.country} - {networkInfo.city}
-  </p>
-)}
-</div>
+            {networkInfo.vpn === "Connected" && (
+              <p className="text-xs text-gray-500">
+                {new Date().toLocaleTimeString("en-GB", {
+                  timeZone: networkInfo.timezone,
+                })}
+                <br />
+                {networkInfo.country} - {networkInfo.city}
+              </p>
+            )}
+          </div>
 
           <SystemMetrics />
+
           <MonitorCard />
+
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
             <h2 className="text-xl font-bold text-green-400">
               🟢 System Status
             </h2>
+
             <div className="mt-3">
               <div className="w-full bg-gray-800 rounded-full h-2.5 mb-2">
                 <div
@@ -371,12 +425,18 @@ setPersianDate(`${year}/${month}/${day}`);
                   style={{ width: "100%" }}
                 ></div>
               </div>
-              <p className="text-sm text-gray-300">All systems operational</p>
+
+              <p className="text-sm text-gray-300">
+                All systems operational
+              </p>
             </div>
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <h2 className="text-xl font-bold text-blue-400">🟢 API Gateway</h2>
+            <h2 className="text-xl font-bold text-blue-400">
+              🟢 API Gateway
+            </h2>
+
             <div className="mt-3 space-y-1 text-sm">
               <p>
                 Status:{" "}
@@ -384,30 +444,40 @@ setPersianDate(`${year}/${month}/${day}`);
                   {apiInfo?.status || "Checking..."}
                 </span>
               </p>
+
               <p>
                 Service:{" "}
                 <span className="text-gray-300">
                   {apiInfo?.service || "Checking..."}
                 </span>
               </p>
+
               <p>
                 Database:{" "}
                 <span className="text-gray-300">
                   {apiInfo?.database || "Checking..."}
                 </span>
               </p>
+
               <p className="text-xs text-gray-500 mt-2">
                 Last Check:{" "}
-                {isClient ? apiInfo?.time || "Syncing..." : "Syncing..."}
+                {isClient
+                  ? apiInfo?.time || "Syncing..."
+                  : "Syncing..."}
               </p>
             </div>
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <h2 className="text-xl font-bold text-pink-400">🤖 AI Core</h2>
+            <h2 className="text-xl font-bold text-pink-400">
+              🤖 AI Core
+            </h2>
+
             <div className="mt-3 flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-300">Active & Monitoring</span>
+              <span className="text-sm text-gray-300">
+                Active & Monitoring
+              </span>
             </div>
           </div>
 
@@ -415,26 +485,79 @@ setPersianDate(`${year}/${month}/${day}`);
             <h2 className="text-xl font-bold text-orange-400">
               📝 Logger Center
             </h2>
+
             <div className="mt-3 text-sm">
               <p>
-  Total Logs:{" "}
-  <span className="text-gray-300">
-    {isClient ? logs.split("\n").filter(Boolean).length : 0}
-  </span>
-</p>
-<p className="text-xs text-gray-500 mt-1">
-  Last entry:{" "}
-  {isClient
-    ? logs.split("\n").filter(Boolean).slice(-1)[0] || "No logs"
-    : "..."}
-</p>
+                Total Logs:{" "}
+                <span className="text-gray-300">
+                  {isClient
+                    ? logs.split("\n").filter(Boolean).length
+                    : 0}
+                </span>
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Last entry:{" "}
+                {isClient
+                  ? logs.split("\n").filter(Boolean).slice(-1)[0] ||
+                    "No logs"
+                  : "..."}
+              </p>
             </div>
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <h2 className="text-xl font-bold text-red-400">🔔 Alert Center</h2>
-            <div className="mt-3 flex items-center gap-2 text-sm text-gray-300">
-              <span>✅ No Active Alerts</span>
+            <h2 className="text-xl font-bold text-red-400">
+              🔔 Alert Center
+            </h2>
+
+            <div className="mt-3 text-sm">
+              {alertState === "ALARM" ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-400">
+                      🔴 ALARM ({activeAlerts})
+                    </span>
+                  </div>
+
+                  <div className="mt-3 space-y-2">
+                    {alerts.map((alert) => (
+                      <div
+                        key={alert.id}
+                        className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={
+                              alert.severity === "CRITICAL"
+                                ? "text-red-400 font-bold"
+                                : "text-yellow-400 font-bold"
+                            }
+                          >
+                            {alert.severity}
+                          </span>
+
+                          <span className="text-xs text-gray-500">
+                            {alert.source}
+                          </span>
+                        </div>
+
+                        <p className="mt-1 text-sm text-gray-200">
+                          {alert.title}
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-400">
+                          {alert.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <span className="text-green-400">
+                  🟢 ACTIVE
+                </span>
+              )}
             </div>
           </div>
 
@@ -442,18 +565,27 @@ setPersianDate(`${year}/${month}/${day}`);
             <h2 className="text-xl font-bold text-emerald-400">
               💾 Backup & Restore
             </h2>
+
             <div className="mt-3 space-y-1 text-sm">
               <p>
-                Status: <span className="text-green-400">🟢 {backupInfo}</span>
+                Status:{" "}
+                <span className="text-green-400">
+                  🟢 {backupInfo}
+                </span>
               </p>
+
               <p className="text-gray-400">
                 Last Backup:{" "}
                 <span className="text-gray-300">
                   {latestBackup || "No Backup Found"}
                 </span>
               </p>
+
               <p className="text-gray-400">
-                Backup Age: <span className="text-gray-300">{backupAge}</span>
+                Backup Age:{" "}
+                <span className="text-gray-300">
+                  {backupAge}
+                </span>
               </p>
             </div>
           </div>
@@ -462,6 +594,7 @@ setPersianDate(`${year}/${month}/${day}`);
             <h2 className="text-xl font-bold text-teal-400">
               📡 Network Monitor
             </h2>
+
             <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">Internet</p>
@@ -469,23 +602,30 @@ setPersianDate(`${year}/${month}/${day}`);
                   🟢 {networkInfo.internet}
                 </p>
               </div>
+
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">VPN</p>
-                <p className="text-green-400 font-bold">🟢 {networkInfo.vpn}</p>
+                <p className="text-green-400 font-bold">
+                  🟢 {networkInfo.vpn}
+                </p>
               </div>
+
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">Latency</p>
                 <p className="text-yellow-400 font-bold">
                   {networkInfo.latency}
                 </p>
               </div>
+
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">API / DB</p>
                 <p className="text-green-400 font-bold">
-                  🟢 {apiInfo?.status || "Checking..."} / {apiInfo?.database || "Checking..."}
+                  🟢 {apiInfo?.status || "Checking..."} /{" "}
+                  {apiInfo?.database || "Checking..."}
                 </p>
               </div>
             </div>
+
             <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">IP Address</p>
@@ -496,22 +636,30 @@ setPersianDate(`${year}/${month}/${day}`);
 
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">Country</p>
-                <p className="text-gray-300">{networkInfo.country}</p>
+                <p className="text-gray-300">
+                  {networkInfo.country}
+                </p>
               </div>
 
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">City</p>
-                <p className="text-gray-300">{networkInfo.city}</p>
+                <p className="text-gray-300">
+                  {networkInfo.city}
+                </p>
               </div>
 
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">ISP</p>
-                <p className="text-gray-300">{networkInfo.isp}</p>
+                <p className="text-gray-300">
+                  {networkInfo.isp}
+                </p>
               </div>
 
               <div className="bg-gray-800 p-3 rounded-lg">
                 <p className="text-gray-400">ASN</p>
-                <p className="text-gray-300">{networkInfo.asn}</p>
+                <p className="text-gray-300">
+                  {networkInfo.asn}
+                </p>
               </div>
 
               <div className="bg-gray-800 p-3 rounded-lg">
@@ -527,4 +675,3 @@ setPersianDate(`${year}/${month}/${day}`);
     </main>
   );
 }
-
