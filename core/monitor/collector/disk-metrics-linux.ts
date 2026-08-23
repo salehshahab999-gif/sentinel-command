@@ -7,15 +7,13 @@ export function collectLinuxDisk(): CollectorResult {
 
   try {
     const output = execSync(
-      "df -k /",
+      "df -kP /",
       { encoding: "utf8" }
     );
 
-    console.log("DISK DEBUG:", output);
-
     const lines = output.trim().split("\n");
 
-    const dataLine = lines[lines.length - 1];
+    const dataLine = lines[1];
 
     const parts = dataLine.trim().split(/\s+/);
 
@@ -30,8 +28,7 @@ export function collectLinuxDisk(): CollectorResult {
       (availableKB / 1024 / 1024).toFixed(2)
     );
 
-  } catch (error) {
-    console.log("DISK ERROR:", String(error));
+  } catch {
     totalGB = 0;
     freeGB = 0;
   }
