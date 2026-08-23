@@ -39,5 +39,11 @@ export function getLatestBackupTime() {
     throw new Error("No backup file found");
   }
 
-  return fs.statSync(filePath).mtime.getTime();
+  const stat = fs.statSync(filePath);
+
+  if (!stat.mtime || stat.mtime.getTime() <= 0) {
+    return Date.now();
+  }
+
+  return stat.mtime.getTime();
 }
