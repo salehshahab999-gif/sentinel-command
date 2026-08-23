@@ -47,11 +47,34 @@ export function getLatestBackupTime() {
     return Date.now();
   }
 
-  const date = new Date(match[1]);
+  const rawDate = match[1].trim();
 
-  if (isNaN(date.getTime())) {
+  const dateMatch = rawDate.match(
+    /(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}):(\d{2}):(\d{2})/
+  );
+
+  if (!dateMatch) {
     return Date.now();
   }
+
+  const [
+    ,
+    day,
+    month,
+    year,
+    hour,
+    minute,
+    second,
+  ] = dateMatch;
+
+  const date = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
 
   return date.getTime();
 }
