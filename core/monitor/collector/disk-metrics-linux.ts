@@ -8,23 +8,22 @@ export function collectLinuxDisk(): CollectorResult {
   try {
     const output = execSync(
       "df -k / | tail -1",
-      {
-        encoding: "utf8",
-      },
+      { encoding: "utf8" }
     );
 
     const parts = output.trim().split(/\s+/);
 
-    const totalKB = Number(parts[1] || 0);
-    const freeKB = Number(parts[3] || 0);
+    const totalKB = Number(parts[1]);
+    const freeKB = Number(parts[3]);
 
     totalGB = Number(
-      (totalKB / 1024 / 1024).toFixed(2),
+      (totalKB / 1024 / 1024).toFixed(2)
     );
 
     freeGB = Number(
-      (freeKB / 1024 / 1024).toFixed(2),
+      (freeKB / 1024 / 1024).toFixed(2)
     );
+
   } catch {
     totalGB = 0;
     freeGB = 0;
