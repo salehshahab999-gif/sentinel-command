@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "../../generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { prisma } from "../../../core/database/prisma-client";
 import { writeDatabaseLog } from "../../../core/database/database-log";
 import { writeApiLog } from "../../../core/api/api-log";
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
-
-const prisma = new PrismaClient({
-  adapter,
-});
 
 let databaseWasDown = false;
 
