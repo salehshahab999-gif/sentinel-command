@@ -35,18 +35,18 @@ export default function SystemMetrics() {
         const data = await response.json();
 
         setMetrics({
-          cpu: data.cpu || "N/A",
-          memory: data.memory || "N/A",
-          gpu: data.gpu || "N/A",
-          diskC: data.diskC || "N/A",
+          cpu: data.cpu || "Server Runtime",
+          memory: data.memory || "Runtime Managed",
+          gpu: data.gpu || "Not Available",
+          diskC: data.diskC || "Agent Required",
           timestamp: data.timestamp || "",
         });
       } catch {
         setMetrics({
-          cpu: "N/A",
-          memory: "N/A",
-          gpu: "N/A",
-          diskC: "N/A",
+          cpu: "Server Runtime",
+          memory: "Runtime Managed",
+          gpu: "Not Available",
+          diskC: "Agent Required",
           timestamp: "",
         });
       }
@@ -61,7 +61,7 @@ export default function SystemMetrics() {
 
   return (
     <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-      <h2 className="text-xl font-bold text-indigo-400">
+      <h2 className="text-xl bold text-indigo-400">
         📊 System Metrics
       </h2>
 
