@@ -1,7 +1,9 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ==========================================
+# Sentinel Command Center - Git Ignore
+# ==========================================
 
-# dependencies
-/node_modules
+# Dependencies
+/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -10,32 +12,64 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# Next.js
 /.next/
 /out/
+/build/
 
-# production
-/build
+# Runtime / Application Logs
+/logs/**/*.log
+/logs/**/latest*
+/logs/**/runtime*
 
-# misc
-.DS_Store
-*.pem
+# Temporary / Runtime data
+*.tmp
+*.temp
+*.cache
+*.pid
+*.lock
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Environment / Secrets
+.env
+.env.*
+!.env.example
 
-# vercel
-.vercel
+# Testing / Coverage
+/coverage/
+/.nyc_output/
+/test-results/
+/playwright-report/
+/blob-report/
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE / Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Vercel
+.vercel/
+
+# Temporary editor files
+*.swp
+*.swo
+*.bak
+*.old
+
+# Local development artifacts
+*.local

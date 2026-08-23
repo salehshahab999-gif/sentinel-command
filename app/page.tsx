@@ -315,7 +315,7 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white p-10 font-mono">
       <div className="max-w-7xl mx-auto">
         <header className="mb-10 pb-4 text-center">
-          <h1 className="relative left-[1cm] text-4xl font-bold tracking-tighter text-green-400">
+          <h1 className="text-4xl font-bold tracking-tighter text-green-400 translate-x-[1cm]">
             Sentinel Command Center
           </h1>
 
@@ -329,6 +329,7 @@ export default function Home() {
             <h2 className="text-xl font-bold text-cyan-400">
               🟢 Database
             </h2>
+
             <div className="mt-3 space-y-1 text-sm">
               <p>
                 Status:{" "}
@@ -336,12 +337,14 @@ export default function Home() {
                   🟢 {databaseInfo?.status}
                 </span>
               </p>
+
               <p>
                 Engine:{" "}
                 <span className="text-gray-300">
                   {databaseInfo?.database || "Waiting..."}
                 </span>
               </p>
+
               <p>
                 Targets:{" "}
                 <span className="text-gray-300">
@@ -355,6 +358,7 @@ export default function Home() {
             <h2 className="text-xl font-bold text-yellow-400">
               🎯 Target Intelligence
             </h2>
+
             <div className="mt-3 space-y-3 max-h-48 overflow-y-auto pr-2">
               {targets.map((target) => (
                 <div
@@ -364,9 +368,11 @@ export default function Home() {
                   <p className="text-sm font-semibold text-gray-200">
                     Name: {target.name}
                   </p>
+
                   <p className="text-xs text-gray-500">
                     ID: {target.id}
                   </p>
+
                   <p className="text-xs text-gray-500">
                     Address: {target.address}
                   </p>
@@ -475,6 +481,7 @@ export default function Home() {
 
             <div className="mt-3 flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+
               <span className="text-sm text-gray-300">
                 Active & Monitoring
               </span>
