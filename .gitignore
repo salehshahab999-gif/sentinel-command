@@ -73,3 +73,5 @@ desktop.ini
 
 # Local development artifacts
 *.local
+.vercel
+.env*
