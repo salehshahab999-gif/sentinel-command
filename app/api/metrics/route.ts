@@ -35,6 +35,10 @@ function getCpuUsage(): string {
 
 function getGpuUsage(): string {
   try {
+    if (process.platform !== "win32") {
+      return "N/A";
+    }
+
     const output = execSync(
       "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits",
       { encoding: "utf8" },
