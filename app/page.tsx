@@ -314,13 +314,13 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white p-10 font-mono">
       <div className="max-w-7xl mx-auto">
-        <header className="mb-10 border-b border-gray-800 pb-4">
-          <h1 className="text-4xl font-bold tracking-tighter text-green-400">
-            Sentinel Command Center{" "}
-            <span className="text-sm text-gray-500 font-normal">v1.6</span>
+        <header className="mb-10 pb-4 text-center">
+          <h1 className="relative left-[1cm] text-4xl font-bold tracking-tighter text-green-400">
+            Sentinel Command Center
           </h1>
-          <p className="mt-2 text-gray-400">
-            Global Monitoring & Intelligence Dashboard
+
+          <p className="mt-2 text-sm text-amber-100">
+            Global Intelligence & Operations Center
           </p>
         </header>
 
@@ -508,16 +508,16 @@ export default function Home() {
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
             <h2
-  className={`text-xl font-bold ${
-    alerts.some((alert) => alert.severity === "CRITICAL")
-      ? "text-red-400"
-      : alerts.some((alert) => alert.severity === "WARNING")
-        ? "text-yellow-400"
-        : "text-green-400"
-  }`}
->
-  🔔 Alert Center
-</h2>
+              className={`text-xl font-bold ${
+                alerts.some((alert) => alert.severity === "CRITICAL")
+                  ? "text-red-400"
+                  : alerts.some((alert) => alert.severity === "WARNING")
+                    ? "text-yellow-400"
+                    : "text-green-400"
+              }`}
+            >
+              🔔 Alert Center
+            </h2>
 
             <div className="mt-3 text-sm">
               {alertState === "ALARM" ? (
@@ -569,7 +569,7 @@ export default function Home() {
             </div>
           </div>
 
-            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg self-start">
+          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg self-start">
             <h2 className="text-xl font-bold text-emerald-400">
               💾 Backup & Restore
             </h2>
