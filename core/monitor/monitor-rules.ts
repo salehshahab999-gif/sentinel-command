@@ -23,7 +23,8 @@ export const MONITOR_RULES: MonitorRule[] = [
     severity: "WARNING",
     description: "CPU load is above warning threshold",
     evaluate: (result) =>
-      typeof result.value === "number" && result.value >= 80,
+      typeof result.value === "number" &&
+      result.value >= 80,
   },
   {
     name: "CPU Critical",
@@ -31,7 +32,8 @@ export const MONITOR_RULES: MonitorRule[] = [
     severity: "CRITICAL",
     description: "CPU load is above critical threshold",
     evaluate: (result) =>
-      typeof result.value === "number" && result.value >= 95,
+      typeof result.value === "number" &&
+      result.value >= 95,
   },
   {
     name: "Memory Warning",
@@ -106,15 +108,13 @@ export const MONITOR_RULES: MonitorRule[] = [
 
       const value = result.value as {
         freeGB?: unknown;
-        totalGB?: unknown;
       };
 
-      return (
-        typeof value.freeGB === "number" &&
-        typeof value.totalGB === "number" &&
-        value.totalGB > 0 &&
-        value.freeGB <= 10
-      );
+      if (typeof value.freeGB !== "number") {
+        return false;
+      }
+
+      return value.freeGB <= 10;
     },
   },
   {
@@ -132,15 +132,13 @@ export const MONITOR_RULES: MonitorRule[] = [
 
       const value = result.value as {
         freeGB?: unknown;
-        totalGB?: unknown;
       };
 
-      return (
-        typeof value.freeGB === "number" &&
-        typeof value.totalGB === "number" &&
-        value.totalGB > 0 &&
-        value.freeGB < 2
-      );
+      if (typeof value.freeGB !== "number") {
+        return false;
+      }
+
+      return value.freeGB < 2;
     },
   },
 ];
