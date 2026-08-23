@@ -106,10 +106,13 @@ export const MONITOR_RULES: MonitorRule[] = [
 
       const value = result.value as {
         freeGB?: unknown;
+        totalGB?: unknown;
       };
 
       return (
         typeof value.freeGB === "number" &&
+        typeof value.totalGB === "number" &&
+        value.totalGB > 0 &&
         value.freeGB <= 10
       );
     },
@@ -129,10 +132,13 @@ export const MONITOR_RULES: MonitorRule[] = [
 
       const value = result.value as {
         freeGB?: unknown;
+        totalGB?: unknown;
       };
 
       return (
         typeof value.freeGB === "number" &&
+        typeof value.totalGB === "number" &&
+        value.totalGB > 0 &&
         value.freeGB < 2
       );
     },
