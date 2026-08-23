@@ -19,6 +19,8 @@ import {
   clearAlertSignal,
 } from "../alerts/alert-signal";
 
+import { resolveAlert } from "../alerts/alert-repository";
+
 export async function getMonitorSnapshot() {
   MONITOR_RUNTIME.lastCheck = new Date().toISOString();
 
@@ -45,22 +47,23 @@ export async function getMonitorSnapshot() {
     });
   }
 
-  const monitorRuleTypes = [
-    "CPU Warning",
-    "CPU Critical",
-    "Memory Warning",
-    "Memory Critical",
-    "Disk Warning",
-    "Disk Critical",
+  const monitorRules = [
+    { source: "CPU Load", type: "CPU Warning" },
+    { source: "CPU Load", type: "CPU Critical" },
+    { source: "Memory Usage", type: "Memory Warning" },
+    { source: "Memory Usage", type: "Memory Critical" },
+    { source: "Disk Usage", type: "Disk Warning" },
+    { source: "Disk Usage", type: "Disk Critical" },
   ];
 
-  for (const type of monitorRuleTypes) {
+  for (const rule of monitorRules) {
     const active = ruleEvents.some(
-      (event) => event.type === type,
+      (event) => event.type === rule.type,
     );
 
     if (!active) {
-      clearAlertSignal("MONITOR", type);
+      clearAlertSignal("MONITOR", rule.type);
+      await resolveAlert(rule.source, rule.type);
     }
   }
 

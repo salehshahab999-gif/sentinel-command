@@ -359,7 +359,7 @@ export default function Home() {
               {targets.map((target) => (
                 <div
                   key={target.id}
-                  className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                  className="py-2 border-b border-gray-800 last:border-b-0"
                 >
                   <p className="text-sm font-semibold text-gray-200">
                     Name: {target.name}
@@ -507,16 +507,24 @@ export default function Home() {
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <h2 className="text-xl font-bold text-red-400">
-              🔔 Alert Center
-            </h2>
+            <h2
+  className={`text-xl font-bold ${
+    alerts.some((alert) => alert.severity === "CRITICAL")
+      ? "text-red-400"
+      : alerts.some((alert) => alert.severity === "WARNING")
+        ? "text-yellow-400"
+        : "text-green-400"
+  }`}
+>
+  🔔 Alert Center
+</h2>
 
             <div className="mt-3 text-sm">
               {alertState === "ALARM" ? (
                 <>
                   <div className="flex items-center gap-2">
                     <span className="text-red-400">
-                      🔴 ALARM ({activeAlerts})
+                      🔴 ALARM {activeAlerts}
                     </span>
                   </div>
 
@@ -524,7 +532,7 @@ export default function Home() {
                     {alerts.map((alert) => (
                       <div
                         key={alert.id}
-                        className="bg-gray-800 p-3 rounded-lg border border-gray-700"
+                        className="py-2 border-b border-gray-800 last:border-b-0"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span
@@ -561,7 +569,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
+            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg self-start">
             <h2 className="text-xl font-bold text-emerald-400">
               💾 Backup & Restore
             </h2>
