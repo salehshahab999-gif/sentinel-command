@@ -39,11 +39,19 @@ export function getLatestBackupTime() {
     throw new Error("No backup file found");
   }
 
-  const stat = fs.statSync(filePath);
+  const content = fs.readFileSync(filePath, "utf-8");
 
-  if (!stat.mtime || stat.mtime.getTime() <= 0) {
+  const match = content.match(/Created:\s*(.+)/);
+
+  if (!match) {
     return Date.now();
   }
 
-  return stat.mtime.getTime();
+  const date = new Date(match[1]);
+
+  if (isNaN(date.getTime())) {
+    return Date.now();
+  }
+
+  return date.getTime();
 }
