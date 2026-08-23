@@ -17,26 +17,34 @@ export async function writeApiLog(
   status: string,
   options: ApiLogOptions = {},
 ) {
-  await mkdir(dirname(logFile), { recursive: true });
+  try {
+    await mkdir(dirname(logFile), { recursive: true });
 
-  const timestamp = new Date().toISOString();
-  const level = options.level ?? "INFO";
-  const event = options.event ?? "API_REQUEST";
+    const timestamp = new Date().toISOString();
+    const level = options.level ?? "INFO";
+    const event = options.event ?? "API_REQUEST";
 
-  let details = "";
+    let details = "";
 
-  if (options.details !== undefined) {
-    try {
-      details = ` | DETAILS=${JSON.stringify(options.details)}`;
-    } catch {
-      details = " | DETAILS=[UNSERIALIZABLE]";
+    if (options.details !== undefined) {
+      try {
+        details = ` | DETAILS=${JSON.stringify(options.details)}`;
+      } catch {
+        details = " | DETAILS=[UNSERIALIZABLE]";
+      }
     }
+
+    const line =
+      `${timestamp} | ${level} | API | ${event} | ` +
+      `METHOD=${method} | PATH=${path} | STATUS=${status}` +
+      `${details}\n`;
+
+    await appendFile(logFile, line, "utf-8");
+
+  } catch {
+    // لاگ خراب شد، API نباید خراب شود
+    console.log(
+      `[API LOG FAILED] ${method} ${path} ${status}`
+    );
   }
-
-  const line =
-    `${timestamp} | ${level} | API | ${event} | ` +
-    `METHOD=${method} | PATH=${path} | STATUS=${status}` +
-    `${details}\n`;
-
-  await appendFile(logFile, line, "utf-8");
 }
