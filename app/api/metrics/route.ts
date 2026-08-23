@@ -4,16 +4,30 @@ import { getMetricsCache, setMetricsCache } from "../../../core/metrics/cache";
 
 function getCpuUsage(): string {
   try {
-    const output = execSync("wmic cpu get loadpercentage", {
-      encoding: "utf8",
-    });
+    if (process.platform === "win32") {
+      const output = execSync(
+        "wmic cpu get loadpercentage",
+        {
+          encoding: "utf8",
+          windowsHide: true,
+        }
+      );
 
-    const value = output
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)[1];
+      const value = output
+        .split("\n")
+        .map((line: string) => line.trim())
+        .filter(Boolean)[1];
 
-    return value ? `${value}%` : "N/A";
+      return value ? `${value}%` : "N/A";
+    }
+
+    const load = os.loadavg()[0];
+    const cores = os.cpus().length;
+
+    const cpu = Math.round((load / cores) * 100);
+
+    return `${cpu}%`;
+
   } catch {
     return "N/A";
   }
@@ -36,6 +50,10 @@ function getGpuUsage(): string {
 
 function getDiskC(): string {
   try {
+    if (process.platform !== "win32") {
+      return "N/A";
+    }
+
     const output = execSync(
       'powershell -NoProfile -Command "(Get-Volume -DriveLetter C).SizeRemaining"',
       { encoding: "utf8" },
