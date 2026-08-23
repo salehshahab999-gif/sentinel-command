@@ -7,22 +7,31 @@ export function collectLinuxDisk(): CollectorResult {
 
   try {
     const output = execSync(
-      "df -k / | tail -1",
+      "df -k /",
       { encoding: "utf8" }
     );
 
-    const parts = output.trim().split(/\s+/);
+    const lines = output.trim().split("\n");
+
+    const dataLine = lines[lines.length - 1];
+
+    const parts = dataLine.trim().split(/\s+/);
 
     const totalKB = Number(parts[1]);
-    const freeKB = Number(parts[3]);
+    const availableKB = Number(parts[3]);
 
-    totalGB = Number(
-      (totalKB / 1024 / 1024).toFixed(2)
-    );
+    if (
+      Number.isFinite(totalKB) &&
+      Number.isFinite(availableKB)
+    ) {
+      totalGB = Number(
+        (totalKB / 1024 / 1024).toFixed(2)
+      );
 
-    freeGB = Number(
-      (freeKB / 1024 / 1024).toFixed(2)
-    );
+      freeGB = Number(
+        (availableKB / 1024 / 1024).toFixed(2)
+      );
+    }
 
   } catch {
     totalGB = 0;
