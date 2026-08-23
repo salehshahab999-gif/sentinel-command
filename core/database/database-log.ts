@@ -16,8 +16,6 @@ export async function writeDatabaseLog(
   message: string,
   options: DatabaseLogOptions = {},
 ) {
-  await mkdir(dirname(logFile), { recursive: true });
-
   const timestamp = new Date().toISOString();
   const level = options.level ?? "INFO";
   const event = options.event ?? "DATABASE_EVENT";
@@ -37,5 +35,12 @@ export async function writeDatabaseLog(
     `${timestamp} | ${level} | DATABASE | ${event} | ` +
     `STATUS=${status} | ${message}${details}\n`;
 
-  await appendFile(logFile, line, "utf-8");
+  // Vercel serverless file system is temporary
+  // Keep file logging only for local environment
+  if (!process.env.VERCEL) {
+    await mkdir(dirname(logFile), { recursive: true });
+    await appendFile(logFile, line, "utf-8");
+  } else {
+    console.log(line.trim());
+  }
 }
