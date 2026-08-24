@@ -127,8 +127,6 @@ export default function Home() {
   const [persianDate, setPersianDate] = useState("");
   const [logs, setLogs] = useState("");
 
-  const [prompt, setPrompt] = useState("");
-  const [answer, setAnswer] = useState("");
   const [alertState, setAlertState] = useState("ACTIVE");
   const [activeAlerts, setActiveAlerts] = useState(0);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -312,16 +310,6 @@ export default function Home() {
         setLogs("");
       });
   }, []);
-
-  async function askAI() {
-    if (!prompt) return;
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-    });
-    const text = await response.text();
-    setAnswer(text);
-  }
 
   return (
     <main className="min-h-screen bg-black text-white p-10 font-mono">
@@ -695,30 +683,6 @@ export default function Home() {
                   {isClient ? networkInfo.time : "..."}
                 </p>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg col-span-1 lg:col-span-3">
-            <h2 className="text-xl font-bold text-green-400">🤖 Ask AI</h2>
-            <div className="mt-3 space-y-3">
-              <input
-                type="text"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700"
-                placeholder="Ask me anything..."
-              />
-              <button
-                onClick={askAI}
-                className="bg-green-500 text-black p-3 rounded-lg w-full font-bold"
-              >
-                Ask
-              </button>
-              {answer && (
-                <div className="bg-gray-800 p-3 rounded-lg text-white">
-                  <p>{answer}</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
