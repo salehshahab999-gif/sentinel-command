@@ -78,3 +78,7 @@ desktop.ini
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Sentinel local database and generated Prisma clients
+/app/generated/
+*.db
