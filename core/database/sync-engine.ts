@@ -172,8 +172,21 @@ async function syncAlertHistoryCreate(
 ): Promise<void> {
   const id = requireString(payload, "id");
 
-  await remotePrisma.alertHistory.create({
-    data: {
+  await remotePrisma.alertHistory.upsert({
+    where: { id },
+    update: {
+      alertId: requireString(payload, "alertId"),
+      action: requireString(payload, "action"),
+      timestamp: payload.timestamp
+        ? new Date(requireString(payload, "timestamp"))
+        : undefined,
+      severity: requireString(payload, "severity"),
+      status: requireString(payload, "status"),
+      source: requireString(payload, "source"),
+      message: requireString(payload, "message"),
+      data: payload.data ?? undefined,
+    },
+    create: {
       id,
       alertId: requireString(payload, "alertId"),
       action: requireString(payload, "action"),

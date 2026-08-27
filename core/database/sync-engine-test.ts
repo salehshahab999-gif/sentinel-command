@@ -1,81 +1,188 @@
 import "dotenv/config";
 
 import { prisma } from "./prisma-client";
-import { retryFailedSyncQueue } from "./sync-engine";
+import { remotePrisma } from "./remote-prisma-client";
+import { processSyncQueue } from "./sync-engine";
 
 async function main() {
-  const testId = "RETRY-TEST-001";
+  const eventId = "IDEMPOTENCY-TEST-EVENT-001";
+  const alertId = `ALERT-${eventId}`;
+  const historyId = `HISTORY-${alertId}`;
 
   try {
+    await remotePrisma.alertHistory.deleteMany({
+      where: {
+        alertId,
+      },
+    });
+
+    await remotePrisma.alert.deleteMany({
+      where: {
+        id: alertId,
+      },
+    });
+
     await prisma.syncQueue.deleteMany({
       where: {
-        id: testId,
+        OR: [
+          {
+            payload: {
+              contains: alertId,
+            },
+          },
+          {
+            payload: {
+              contains: historyId,
+            },
+          },
+        ],
       },
     });
 
-    await prisma.syncQueue.create({
+    const createdAt = new Date();
+
+    const alertPayload = {
+      id: alertId,
+      eventId,
+      createdAt: createdAt.toISOString(),
+      severity: "WARNING",
+      status: "NEW",
+      source: "Idempotency Test",
+      type: "IDEMPOTENCY_TEST",
+      title: "IDEMPOTENCY_TEST",
+      description: "Idempotency verification",
+      resolvedAt: null,
+    };
+
+    const historyPayload = {
+      id: historyId,
+      alertId,
+      action: "CREATED",
+      timestamp: createdAt.toISOString(),
+      severity: "WARNING",
+      status: "NEW",
+      source: "Idempotency Test",
+      message: "Idempotency verification",
       data: {
-        id: testId,
-        entity: "RetryTest",
-        operation: "CREATE",
-        payload: JSON.stringify({
-          test: true,
-        }),
-        status: "FAILED",
-        attempts: 1,
-        lastError: "Simulated sync failure",
+        test: true,
       },
+    };
+
+    await prisma.syncQueue.createMany({
+      data: [
+        {
+          id: crypto.randomUUID(),
+          entity: "Alert",
+          operation: "CREATE",
+          payload: JSON.stringify(alertPayload),
+        },
+        {
+          id: crypto.randomUUID(),
+          entity: "AlertHistory",
+          operation: "CREATE",
+          payload: JSON.stringify(historyPayload),
+        },
+      ],
     });
 
-    console.log("FAILED ITEM CREATED ✅");
+    console.log("FIRST SYNC QUEUE CREATED ✅");
 
-    const before = await prisma.syncQueue.findUnique({
+    const firstSync = await processSyncQueue();
+
+    console.log("FIRST SYNC RESULT ✅");
+    console.log(firstSync);
+
+    await prisma.syncQueue.createMany({
+      data: [
+        {
+          id: crypto.randomUUID(),
+          entity: "Alert",
+          operation: "CREATE",
+          payload: JSON.stringify(alertPayload),
+        },
+        {
+          id: crypto.randomUUID(),
+          entity: "AlertHistory",
+          operation: "CREATE",
+          payload: JSON.stringify(historyPayload),
+        },
+      ],
+    });
+
+    console.log("DUPLICATE SYNC QUEUE CREATED ✅");
+
+    const secondSync = await processSyncQueue();
+
+    console.log("SECOND SYNC RESULT ✅");
+    console.log(secondSync);
+
+    const remoteAlerts = await remotePrisma.alert.count({
       where: {
-        id: testId,
+        id: alertId,
       },
     });
 
-    console.log("BEFORE RETRY ✅");
-    console.log(before);
-
-    const retryResult = await retryFailedSyncQueue();
-
-    console.log("RETRY EXECUTED ✅");
-    console.log(retryResult);
-
-    const after = await prisma.syncQueue.findUnique({
+    const remoteHistories = await remotePrisma.alertHistory.count({
       where: {
-        id: testId,
+        id: historyId,
       },
     });
 
-    console.log("AFTER RETRY ✅");
-    console.log(after);
+    console.log("REMOTE COUNTS AFTER SECOND SYNC ✅");
+    console.log({
+      alerts: remoteAlerts,
+      histories: remoteHistories,
+    });
 
     if (
-      !after ||
-      after.status !== "PENDING" ||
-      after.lastError !== "Retry scheduled"
+      remoteAlerts !== 1 ||
+      remoteHistories !== 1 ||
+      firstSync.completed !== 2 ||
+      secondSync.completed !== 2
     ) {
-      throw new Error("FAILED → PENDING retry verification failed");
+      throw new Error("Idempotency verification failed");
     }
 
-    console.log("FAILED TO PENDING RETRY VERIFIED ✅");
+    console.log("IDEMPOTENCY VERIFIED ✅");
   } finally {
     await prisma.syncQueue.deleteMany({
       where: {
-        id: testId,
+        OR: [
+          {
+            payload: {
+              contains: alertId,
+            },
+          },
+          {
+            payload: {
+              contains: historyId,
+            },
+          },
+        ],
+      },
+    });
+
+    await remotePrisma.alertHistory.deleteMany({
+      where: {
+        alertId,
+      },
+    });
+
+    await remotePrisma.alert.deleteMany({
+      where: {
+        id: alertId,
       },
     });
 
     await prisma.$disconnect();
+    await remotePrisma.$disconnect();
 
-    console.log("RETRY TEST DATA CLEANED ✅");
+    console.log("IDEMPOTENCY TEST DATA CLEANED ✅");
   }
 }
 
 main().catch((error) => {
-  console.error("RETRY TEST FAILED ❌");
+  console.error("IDEMPOTENCY TEST FAILED ❌");
   console.error(error);
   process.exitCode = 1;
 });
