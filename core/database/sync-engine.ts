@@ -20,7 +20,13 @@ export interface SyncProcessResult {
   skipped: boolean;
 }
 
+export interface SyncRetryResult {
+  retried: number;
+  skipped: boolean;
+}
+
 const STALE_PROCESSING_MS = 5 * 60 * 1000;
+const MAX_SYNC_ATTEMPTS = 3;
 
 function parsePayload(payload: string): Record<string, unknown> {
   const parsed: unknown = JSON.parse(payload);
@@ -77,6 +83,35 @@ export async function recoverStaleSyncQueue(): Promise<number> {
   });
 
   return result.count;
+}
+
+export async function retryFailedSyncQueue(): Promise<SyncRetryResult> {
+  const connectivity = await checkRemoteConnectivity();
+
+  if (!connectivity.available) {
+    return {
+      retried: 0,
+      skipped: true,
+    };
+  }
+
+  const result = await prisma.syncQueue.updateMany({
+    where: {
+      status: "FAILED",
+      attempts: {
+        lt: MAX_SYNC_ATTEMPTS,
+      },
+    },
+    data: {
+      status: "PENDING",
+      lastError: "Retry scheduled",
+    },
+  });
+
+  return {
+    retried: result.count,
+    skipped: false,
+  };
 }
 
 async function syncAlertCreate(
@@ -195,6 +230,7 @@ export async function processSyncQueue(): Promise<SyncProcessResult> {
   }
 
   await recoverStaleSyncQueue();
+  await retryFailedSyncQueue();
 
   const items = await prisma.syncQueue.findMany({
     where: {

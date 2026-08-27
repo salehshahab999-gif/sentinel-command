@@ -1,10 +1,10 @@
 import "dotenv/config";
 
 import { prisma } from "./prisma-client";
-import { recoverStaleSyncQueue } from "./sync-engine";
+import { retryFailedSyncQueue } from "./sync-engine";
 
 async function main() {
-  const testId = "RECOVERY-TEST-001";
+  const testId = "RETRY-TEST-001";
 
   try {
     await prisma.syncQueue.deleteMany({
@@ -13,25 +13,21 @@ async function main() {
       },
     });
 
-    const staleTime = new Date(Date.now() - 10 * 60 * 1000);
-
     await prisma.syncQueue.create({
       data: {
         id: testId,
-        entity: "RecoveryTest",
+        entity: "RetryTest",
         operation: "CREATE",
         payload: JSON.stringify({
           test: true,
         }),
-        status: "PROCESSING",
+        status: "FAILED",
         attempts: 1,
-        lastError: null,
-        createdAt: staleTime,
-        updatedAt: staleTime,
+        lastError: "Simulated sync failure",
       },
     });
 
-    console.log("STALE PROCESSING ITEM CREATED ✅");
+    console.log("FAILED ITEM CREATED ✅");
 
     const before = await prisma.syncQueue.findUnique({
       where: {
@@ -39,13 +35,13 @@ async function main() {
       },
     });
 
-    console.log("BEFORE RECOVERY ✅");
+    console.log("BEFORE RETRY ✅");
     console.log(before);
 
-    const recoveredCount = await recoverStaleSyncQueue();
+    const retryResult = await retryFailedSyncQueue();
 
-    console.log("RECOVERY EXECUTED ✅");
-    console.log("Recovered:", recoveredCount);
+    console.log("RETRY EXECUTED ✅");
+    console.log(retryResult);
 
     const after = await prisma.syncQueue.findUnique({
       where: {
@@ -53,18 +49,18 @@ async function main() {
       },
     });
 
-    console.log("AFTER RECOVERY ✅");
+    console.log("AFTER RETRY ✅");
     console.log(after);
 
     if (
       !after ||
       after.status !== "PENDING" ||
-      after.lastError !== "Recovered stale PROCESSING item"
+      after.lastError !== "Retry scheduled"
     ) {
-      throw new Error("Stale PROCESSING recovery verification failed");
+      throw new Error("FAILED → PENDING retry verification failed");
     }
 
-    console.log("STALE PROCESSING RECOVERY VERIFIED ✅");
+    console.log("FAILED TO PENDING RETRY VERIFIED ✅");
   } finally {
     await prisma.syncQueue.deleteMany({
       where: {
@@ -74,12 +70,12 @@ async function main() {
 
     await prisma.$disconnect();
 
-    console.log("RECOVERY TEST DATA CLEANED ✅");
+    console.log("RETRY TEST DATA CLEANED ✅");
   }
 }
 
 main().catch((error) => {
-  console.error("RECOVERY TEST FAILED ❌");
+  console.error("RETRY TEST FAILED ❌");
   console.error(error);
   process.exitCode = 1;
 });
