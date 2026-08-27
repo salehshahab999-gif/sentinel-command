@@ -1,11 +1,4 @@
-import { PrismaClient } from "../../app/generated/prisma-local/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-
-const adapter = new PrismaBetterSqlite3({
-  url: "file:./app/prisma/sentinel-local.db",
-});
-
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "./prisma-client";
 
 export type SyncQueueOperation = "CREATE" | "UPDATE" | "DELETE";
 
@@ -41,8 +34,4 @@ export async function getPendingSyncQueue() {
       createdAt: "asc",
     },
   });
-}
-
-export async function closeSyncQueue() {
-  await prisma.$disconnect();
 }
