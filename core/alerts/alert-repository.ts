@@ -37,9 +37,11 @@ export async function saveAlert(
       },
     });
 
+    const historyId = `HISTORY-${alert.id}`;
+
     await tx.alertHistory.create({
       data: {
-        id: `HISTORY-${alert.id}`,
+        id: historyId,
         alertId: alert.id,
         action: "CREATED",
         severity: alert.severity,
@@ -50,13 +52,31 @@ export async function saveAlert(
       },
     });
 
-    await tx.syncQueue.create({
-      data: {
-        id: crypto.randomUUID(),
-        entity: "Alert",
-        operation: "CREATE",
-        payload: JSON.stringify(alert),
-      },
+    await tx.syncQueue.createMany({
+      data: [
+        {
+          id: crypto.randomUUID(),
+          entity: "Alert",
+          operation: "CREATE",
+          payload: JSON.stringify(alert),
+        },
+        {
+          id: crypto.randomUUID(),
+          entity: "AlertHistory",
+          operation: "CREATE",
+          payload: JSON.stringify({
+            id: historyId,
+            alertId: alert.id,
+            action: "CREATED",
+            timestamp: new Date().toISOString(),
+            severity: alert.severity,
+            status: alert.status,
+            source: alert.source,
+            message: alert.description,
+            data: alert.data,
+          }),
+        },
+      ],
     });
   });
 }
@@ -82,6 +102,7 @@ export async function resolveAlert(
     }
 
     const resolvedAt = new Date();
+    const historyId = `HISTORY-RESOLVED-${activeAlert.id}`;
 
     await tx.alert.update({
       where: {
@@ -95,7 +116,7 @@ export async function resolveAlert(
 
     await tx.alertHistory.create({
       data: {
-        id: `HISTORY-RESOLVED-${activeAlert.id}`,
+        id: historyId,
         alertId: activeAlert.id,
         action: "RESOLVED",
         severity: activeAlert.severity,
@@ -105,17 +126,34 @@ export async function resolveAlert(
       },
     });
 
-    await tx.syncQueue.create({
-      data: {
-        id: crypto.randomUUID(),
-        entity: "Alert",
-        operation: "UPDATE",
-        payload: JSON.stringify({
-          id: activeAlert.id,
-          status: "RESOLVED",
-          resolvedAt,
-        }),
-      },
+    await tx.syncQueue.createMany({
+      data: [
+        {
+          id: crypto.randomUUID(),
+          entity: "Alert",
+          operation: "UPDATE",
+          payload: JSON.stringify({
+            id: activeAlert.id,
+            status: "RESOLVED",
+            resolvedAt,
+          }),
+        },
+        {
+          id: crypto.randomUUID(),
+          entity: "AlertHistory",
+          operation: "CREATE",
+          payload: JSON.stringify({
+            id: historyId,
+            alertId: activeAlert.id,
+            action: "RESOLVED",
+            timestamp: new Date().toISOString(),
+            severity: activeAlert.severity,
+            status: "RESOLVED",
+            source: activeAlert.source,
+            message: `Alert resolved: ${activeAlert.type}`,
+          }),
+        },
+      ],
     });
   });
 }

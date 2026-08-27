@@ -40,12 +40,24 @@ async function runPipelineTest() {
 
     const queue = await prisma.syncQueue.findMany({
       where: {
-        entity: "Alert",
+        OR: [
+          {
+            entity: "Alert",
+            payload: {
+              contains: eventId,
+            },
+          },
+          {
+            entity: "AlertHistory",
+            payload: {
+              contains: alertId,
+            },
+          },
+        ],
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
-      take: 1,
     });
 
     console.log("LOCAL ALERT ✅");
@@ -57,12 +69,24 @@ async function runPipelineTest() {
     console.log("SYNC QUEUE ✅");
     console.log(queue);
 
+    console.log("SYNC QUEUE COUNT:", queue.length);
+
     await prisma.syncQueue.deleteMany({
       where: {
-        entity: "Alert",
-        payload: {
-          contains: eventId,
-        },
+        OR: [
+          {
+            entity: "Alert",
+            payload: {
+              contains: eventId,
+            },
+          },
+          {
+            entity: "AlertHistory",
+            payload: {
+              contains: alertId,
+            },
+          },
+        ],
       },
     });
 

@@ -1,4 +1,5 @@
 import { prisma } from "./prisma-client";
+import { remotePrisma } from "./remote-prisma-client";
 import { checkRemoteConnectivity } from "./remote-connectivity";
 
 export type SyncQueueStatus =
@@ -19,6 +20,31 @@ export interface SyncProcessResult {
   skipped: boolean;
 }
 
+const STALE_PROCESSING_MS = 5 * 60 * 1000;
+
+function parsePayload(payload: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(payload);
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Sync payload must be a JSON object");
+  }
+
+  return parsed as Record<string, unknown>;
+}
+
+function requireString(
+  payload: Record<string, unknown>,
+  field: string,
+): string {
+  const value = payload[field];
+
+  if (typeof value !== "string") {
+    throw new Error(`Missing or invalid string field: ${field}`);
+  }
+
+  return value;
+}
+
 export async function inspectSyncQueue(): Promise<SyncEngineResult> {
   const pendingCount = await prisma.syncQueue.count({
     where: {
@@ -34,6 +60,128 @@ export async function inspectSyncQueue(): Promise<SyncEngineResult> {
   };
 }
 
+export async function recoverStaleSyncQueue(): Promise<number> {
+  const staleBefore = new Date(Date.now() - STALE_PROCESSING_MS);
+
+  const result = await prisma.syncQueue.updateMany({
+    where: {
+      status: "PROCESSING",
+      updatedAt: {
+        lt: staleBefore,
+      },
+    },
+    data: {
+      status: "PENDING",
+      lastError: "Recovered stale PROCESSING item",
+    },
+  });
+
+  return result.count;
+}
+
+async function syncAlertCreate(
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const id = requireString(payload, "id");
+
+  await remotePrisma.alert.upsert({
+    where: { id },
+    update: {
+      eventId: requireString(payload, "eventId"),
+      severity: requireString(payload, "severity"),
+      status: requireString(payload, "status"),
+      source: requireString(payload, "source"),
+      type: requireString(payload, "type"),
+      title: requireString(payload, "title"),
+      description: requireString(payload, "description"),
+      createdAt: new Date(requireString(payload, "createdAt")),
+      resolvedAt: payload.resolvedAt
+        ? new Date(requireString(payload, "resolvedAt"))
+        : null,
+    },
+    create: {
+      id,
+      eventId: requireString(payload, "eventId"),
+      severity: requireString(payload, "severity"),
+      status: requireString(payload, "status"),
+      source: requireString(payload, "source"),
+      type: requireString(payload, "type"),
+      title: requireString(payload, "title"),
+      description: requireString(payload, "description"),
+      createdAt: new Date(requireString(payload, "createdAt")),
+      resolvedAt: payload.resolvedAt
+        ? new Date(requireString(payload, "resolvedAt"))
+        : null,
+    },
+  });
+}
+
+async function syncAlertUpdate(
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const id = requireString(payload, "id");
+
+  await remotePrisma.alert.update({
+    where: { id },
+    data: {
+      status: requireString(payload, "status"),
+      resolvedAt: payload.resolvedAt
+        ? new Date(requireString(payload, "resolvedAt"))
+        : null,
+    },
+  });
+}
+
+async function syncAlertHistoryCreate(
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const id = requireString(payload, "id");
+
+  await remotePrisma.alertHistory.create({
+    data: {
+      id,
+      alertId: requireString(payload, "alertId"),
+      action: requireString(payload, "action"),
+      timestamp: payload.timestamp
+        ? new Date(requireString(payload, "timestamp"))
+        : undefined,
+      severity: requireString(payload, "severity"),
+      status: requireString(payload, "status"),
+      source: requireString(payload, "source"),
+      message: requireString(payload, "message"),
+      data: payload.data ?? undefined,
+    },
+  });
+}
+
+async function syncQueueItem(
+  item: Awaited<ReturnType<typeof prisma.syncQueue.findFirstOrThrow>>,
+): Promise<void> {
+  const payload = parsePayload(item.payload);
+
+  if (item.entity === "Alert" && item.operation === "CREATE") {
+    await syncAlertCreate(payload);
+    return;
+  }
+
+  if (item.entity === "Alert" && item.operation === "UPDATE") {
+    await syncAlertUpdate(payload);
+    return;
+  }
+
+  if (
+    item.entity === "AlertHistory" &&
+    item.operation === "CREATE"
+  ) {
+    await syncAlertHistoryCreate(payload);
+    return;
+  }
+
+  throw new Error(
+    `Unsupported sync operation: ${item.entity}/${item.operation}`,
+  );
+}
+
 export async function processSyncQueue(): Promise<SyncProcessResult> {
   const connectivity = await checkRemoteConnectivity();
 
@@ -45,6 +193,8 @@ export async function processSyncQueue(): Promise<SyncProcessResult> {
       skipped: true,
     };
   }
+
+  await recoverStaleSyncQueue();
 
   const items = await prisma.syncQueue.findMany({
     where: {
@@ -59,24 +209,38 @@ export async function processSyncQueue(): Promise<SyncProcessResult> {
   let failed = 0;
 
   for (const item of items) {
-    await prisma.syncQueue.update({
+    const claimed = await prisma.syncQueue.updateMany({
       where: {
         id: item.id,
+        status: "PENDING",
       },
       data: {
         status: "PROCESSING",
         attempts: {
           increment: 1,
         },
+        lastError: null,
       },
     });
 
-    try {
-      // Remote sync will be implemented in the next step.
-      // For now, leave the item in PROCESSING so no fake
-      // success is reported before the actual remote write exists.
+    if (claimed.count !== 1) {
+      continue;
+    }
 
-      completed += 0;
+    try {
+      await syncQueueItem(item);
+
+      await prisma.syncQueue.update({
+        where: {
+          id: item.id,
+        },
+        data: {
+          status: "COMPLETED",
+          lastError: null,
+        },
+      });
+
+      completed += 1;
     } catch (error) {
       failed += 1;
 
