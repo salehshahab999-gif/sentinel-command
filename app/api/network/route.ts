@@ -1,7 +1,8 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
 
-const execFileAsync = promisify(execFile);
+const execFileAsync =
+  promisify(execFile);
 
 let previousSent = 0;
 let previousReceived = 0;
@@ -9,41 +10,64 @@ let totalUsed = 0;
 
 async function getNetworkStats() {
   try {
-    const { stdout } = await execFileAsync(
-      "powershell.exe",
-      [
-        "-NoProfile",
-        "-Command",
-        `
-        Get-NetAdapterStatistics |
-        Where-Object {
-          $_.ReceivedBytes -gt 0 -or $_.SentBytes -gt 0
-        } |
-        Select-Object Name, ReceivedBytes, SentBytes |
-        ConvertTo-Json -Compress
-        `,
-      ],
-      { windowsHide: true },
-    );
+    const { stdout } =
+      await execFileAsync(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-Command",
+          `
+          Get-NetAdapterStatistics |
+          Where-Object {
+            $_.ReceivedBytes -gt 0 -or $_.SentBytes -gt 0
+          } |
+          Select-Object Name, ReceivedBytes, SentBytes |
+          ConvertTo-Json -Compress
+          `,
+        ],
+        {
+          windowsHide: true,
+        },
+      );
 
     if (!stdout.trim()) {
-      throw new Error("No network data");
+      throw new Error(
+        "No network data",
+      );
     }
 
-    const data = JSON.parse(stdout);
-    const adapters = Array.isArray(data) ? data : [data];
+    const data =
+      JSON.parse(
+        stdout,
+      );
+
+    const adapters =
+      Array.isArray(data)
+        ? data
+        : [data];
 
     let sent = 0;
     let received = 0;
 
-    for (const adapter of adapters) {
-      sent += Number(adapter.SentBytes || 0);
-      received += Number(adapter.ReceivedBytes || 0);
+    for (
+      const adapter of adapters
+    ) {
+      sent += Number(
+        adapter.SentBytes || 0,
+      );
+
+      received += Number(
+        adapter.ReceivedBytes || 0,
+      );
     }
 
-    if (previousSent === 0 && previousReceived === 0) {
+    if (
+      previousSent === 0 &&
+      previousReceived === 0
+    ) {
       previousSent = sent;
-      previousReceived = received;
+      previousReceived =
+        received;
 
       return {
         sentDelta: 0,
@@ -52,13 +76,26 @@ async function getNetworkStats() {
       };
     }
 
-    const sentDelta = Math.max(0, sent - previousSent);
-    const receivedDelta = Math.max(0, received - previousReceived);
+    const sentDelta =
+      Math.max(
+        0,
+        sent - previousSent,
+      );
+
+    const receivedDelta =
+      Math.max(
+        0,
+        received -
+          previousReceived,
+      );
 
     previousSent = sent;
-    previousReceived = received;
+    previousReceived =
+      received;
 
-    totalUsed += sentDelta + receivedDelta;
+    totalUsed +=
+      sentDelta +
+      receivedDelta;
 
     return {
       sentDelta,
@@ -75,25 +112,66 @@ async function getNetworkStats() {
 }
 
 async function getPublicIP() {
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () => {
+        controller.abort();
+      },
+      2500,
+    );
+
   try {
-    const response = await fetch("https://ipwho.is/", {
-      cache: "no-store",
-    });
+    const response =
+      await fetch(
+        "https://ipwho.is/",
+        {
+          cache: "no-store",
+          signal:
+            controller.signal,
+        },
+      );
 
     if (!response.ok) {
-      throw new Error("IP lookup failed");
+      throw new Error(
+        "IP lookup failed",
+      );
     }
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     return {
-      ip: data.ip || "Unknown",
-      country: data.country || "Unknown",
-      region: data.region || "Unknown",
-      city: data.city || "Unknown",
-      isp: data.connection?.isp || "Unknown",
-      asn: data.connection?.asn ? `AS${data.connection.asn}` : "Unknown",
-      timezone: data.timezone?.id || "UTC",
+      ip:
+        data.ip ||
+        "Unknown",
+
+      country:
+        data.country ||
+        "Unknown",
+
+      region:
+        data.region ||
+        "Unknown",
+
+      city:
+        data.city ||
+        "Unknown",
+
+      isp:
+        data.connection?.isp ||
+        "Unknown",
+
+      asn:
+        data.connection?.asn
+          ? `AS${data.connection.asn}`
+          : "Unknown",
+
+      timezone:
+        data.timezone?.id ||
+        "UTC",
     };
   } catch {
     return {
@@ -105,95 +183,150 @@ async function getPublicIP() {
       asn: "Unavailable",
       timezone: "UTC",
     };
+  } finally {
+    clearTimeout(
+      timeout,
+    );
   }
 }
 
-async function checkInternet() {
+async function getPingResult() {
   try {
-    const { stdout } = await execFileAsync(
-      "ping.exe",
-      ["1.1.1.1", "-n", "1", "-w", "2000"],
-      { windowsHide: true },
-    );
+    const { stdout } =
+      await execFileAsync(
+        "ping.exe",
+        [
+          "1.1.1.1",
+          "-n",
+          "1",
+          "-w",
+          "1500",
+        ],
+        {
+          windowsHide: true,
+        },
+      );
 
-    return /Reply from/i.test(stdout);
+    const reachable =
+      /Reply from/i.test(
+        stdout,
+      );
+
+    const match =
+      stdout.match(
+        /time[=<](\d+)ms/i,
+      );
+
+    return {
+      internet:
+        reachable,
+
+      latency:
+        match
+          ? `${match[1]} ms`
+          : "Unavailable",
+    };
   } catch {
-    return false;
+    return {
+      internet:
+        false,
+
+      latency:
+        "Unavailable",
+    };
   }
 }
 
 async function getVPNStatus() {
   try {
-    const { stdout } = await execFileAsync(
-      "powershell.exe",
-      [
-        "-NoProfile",
-        "-Command",
-        '$a=Get-NetAdapter | Where-Object { $_.Name -match "xray|Wintun|TUN|VPN" -and $_.Status -eq "Up" }; if($a){"Connected"}else{"Disconnected"}',
-      ],
-      { windowsHide: true },
-    );
+    const { stdout } =
+      await execFileAsync(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-Command",
+          '$a=Get-NetAdapter | Where-Object { $_.Name -match "xray|Wintun|TUN|VPN" -and $_.Status -eq "Up" }; if($a){"Connected"}else{"Disconnected"}',
+        ],
+        {
+          windowsHide: true,
+        },
+      );
 
-    return stdout.trim() || "Unknown";
+    return (
+      stdout.trim() ||
+      "Unknown"
+    );
   } catch {
     return "Unknown";
   }
 }
 
-async function getLatency() {
-  try {
-    const { stdout } = await execFileAsync(
-      "ping.exe",
-      ["1.1.1.1", "-n", "1", "-w", "2000"],
-      { windowsHide: true },
-    );
-
-    const match = stdout.match(/time[=<](\d+)ms/i);
-
-    if (!match) {
-      return "Unavailable";
-    }
-
-    return `${match[1]} ms`;
-  } catch {
-    return "Unavailable";
-  }
-}
-
 export async function GET() {
-  const [network, publicIP, internet, latency] = await Promise.all([
-    getNetworkStats(),
-    getPublicIP(),
-    checkInternet(),
-    getLatency(),
-  ]);
+  const [
+    network,
+    publicIP,
+    ping,
+    vpn,
+  ] =
+    await Promise.all([
+      getNetworkStats(),
+      getPublicIP(),
+      getPingResult(),
+      getVPNStatus(),
+    ]);
 
   return Response.json({
-    internet: internet ? "Online" : "Offline",
+    internet:
+      ping.internet
+        ? "Online"
+        : "Offline",
 
-    send: network.sentDelta,
-    receive: network.receivedDelta,
+    send:
+      network.sentDelta,
 
-    sessionUsed: network.sentDelta + network.receivedDelta,
+    receive:
+      network.receivedDelta,
 
-    totalUsed: network.totalUsed,
+    sessionUsed:
+      network.sentDelta +
+      network.receivedDelta,
 
-    publicIP: publicIP.ip,
-    country: publicIP.country,
-    region: publicIP.region,
-    city: publicIP.city,
-    isp: publicIP.isp,
-    asn: publicIP.asn,
+    totalUsed:
+      network.totalUsed,
 
-    vpn: await getVPNStatus(),
+    publicIP:
+      publicIP.ip,
 
-    timezone: publicIP.timezone,
+    country:
+      publicIP.country,
 
-    latency,
+    region:
+      publicIP.region,
 
-    api: "Online",
-    database: "Online",
+    city:
+      publicIP.city,
 
-    time: new Date().toLocaleTimeString(),
+    isp:
+      publicIP.isp,
+
+    asn:
+      publicIP.asn,
+
+    vpn,
+
+    timezone:
+      publicIP.timezone,
+
+    latency:
+      ping.latency,
+
+    api:
+      "Online",
+
+    database:
+      "Online",
+
+    time:
+      new Date().toLocaleTimeString(),
   });
 }

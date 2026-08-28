@@ -1,12 +1,40 @@
 import { COLLECTOR_REGISTRY } from "./collector-registry";
+
 import type { CollectorResult } from "./collector-types";
 
-export async function runCollectors(): Promise<CollectorResult[]> {
-  const results = await Promise.all(
-    COLLECTOR_REGISTRY.map(
-      async (collector) => await collector()
-    )
-  );
+import {
+  runCollectorWithRuntime,
+  type CollectorRuntimeResult,
+} from "./collector-runtime";
 
-  return results;
+export async function runCollectors(): Promise<
+  CollectorResult[]
+> {
+  const runtimeResults =
+    await Promise.all(
+      COLLECTOR_REGISTRY.map(
+        (collector) =>
+          runCollectorWithRuntime(
+            collector,
+          ),
+      ),
+    );
+
+  return runtimeResults.map(
+    ({ result }) =>
+      result,
+  );
+}
+
+export async function runCollectorsWithRuntime(): Promise<
+  CollectorRuntimeResult[]
+> {
+  return Promise.all(
+    COLLECTOR_REGISTRY.map(
+      (collector) =>
+        runCollectorWithRuntime(
+          collector,
+        ),
+    ),
+  );
 }

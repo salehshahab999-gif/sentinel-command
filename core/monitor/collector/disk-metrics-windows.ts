@@ -1,43 +1,94 @@
-import { execSync } from "child_process";
+import { execFile } from "child_process";
+import { promisify } from "util";
+
 import type { CollectorResult } from "./collector-types";
 
-export function collectWindowsDisk(): CollectorResult {
+const execFileAsync =
+  promisify(execFile);
+
+export async function collectWindowsDisk(): Promise<CollectorResult> {
   try {
-    const output = execSync(
-      'powershell -Command "Get-PSDrive C | Select-Object Used,Free | ConvertTo-Json"',
+    const {
+      stdout,
+    } = await execFileAsync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-Command",
+        "(Get-PSDrive C).Used; (Get-PSDrive C).Free",
+      ],
       {
         encoding: "utf8",
         windowsHide: true,
       },
     );
 
-    const disk = JSON.parse(output);
+    const values =
+      stdout
+        .trim()
+        .split(/\r?\n/)
+        .map((value) =>
+          Number(value.trim()),
+        )
+        .filter((value) =>
+          Number.isFinite(value),
+        );
 
-    const free = Number(disk.Free);
-    const used = Number(disk.Used);
+    const used =
+      values[0];
 
-    if (!Number.isFinite(free) || !Number.isFinite(used)) {
+    const free =
+      values[1];
+
+    if (
+      !Number.isFinite(used) ||
+      !Number.isFinite(free)
+    ) {
       return unavailableDisk();
     }
 
-    const freeGB = Number(
-      (free / 1024 / 1024 / 1024).toFixed(2),
-    );
+    const freeGB =
+      Number(
+        (
+          free /
+          1024 /
+          1024 /
+          1024
+        ).toFixed(2),
+      );
 
-    const usedGB = Number(
-      (used / 1024 / 1024 / 1024).toFixed(2),
-    );
+    const usedGB =
+      Number(
+        (
+          used /
+          1024 /
+          1024 /
+          1024
+        ).toFixed(2),
+      );
 
     return {
-      name: "Disk Usage",
-      status: "READY",
+      name:
+        "Disk Usage",
+
+      status:
+        "READY",
+
       value: {
-        totalGB: Number((usedGB + freeGB).toFixed(2)),
+        totalGB:
+          Number(
+            (
+              usedGB +
+              freeGB
+            ).toFixed(2),
+          ),
+
         freeGB,
       },
-      timestamp: new Date().toISOString(),
-    };
 
+      timestamp:
+        new Date().toISOString(),
+    };
   } catch {
     return unavailableDisk();
   }
@@ -45,13 +96,24 @@ export function collectWindowsDisk(): CollectorResult {
 
 function unavailableDisk(): CollectorResult {
   return {
-    name: "Disk Usage",
-    status: "READY",
+    name:
+      "Disk Usage",
+
+    status:
+      "READY",
+
     value: {
-      totalGB: null,
-      freeGB: null,
-      note: "Disk metrics unavailable on current runtime",
+      totalGB:
+        null,
+
+      freeGB:
+        null,
+
+      note:
+        "Disk metrics unavailable on current runtime",
     },
-    timestamp: new Date().toISOString(),
+
+    timestamp:
+      new Date().toISOString(),
   };
 }

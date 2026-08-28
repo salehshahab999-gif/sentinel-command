@@ -43,7 +43,7 @@ export interface NetworkProbeResult {
   measuredAt: string;
 }
 
-const DEFAULT_TIMEOUT_MS = 3_000;
+const DEFAULT_TIMEOUT_MS = 800;
 
 function classifyLatency(
   latencyMs: number | null,
@@ -63,7 +63,8 @@ export class NetworkProbe {
   public async probe(
     target: NetworkProbeTarget,
   ): Promise<NetworkProbeResult> {
-    const startedAt = Date.now();
+    const startedAt =
+      Date.now();
 
     const timeoutMs =
       target.timeoutMs ??
@@ -72,31 +73,47 @@ export class NetworkProbe {
     const measuredAt =
       new Date().toISOString();
 
-    let resolvedAddress: string | null = null;
+    let resolvedAddress:
+      string | null =
+      null;
 
     let addressFamily:
       | "IPv4"
       | "IPv6"
-      | null = null;
+      | null =
+      null;
 
-    let dnsStatus: ProbeStatus = "UNKNOWN";
-    let tcpStatus: ProbeStatus = "UNKNOWN";
+    let dnsStatus:
+      ProbeStatus =
+      "UNKNOWN";
 
-    let latencyMs: number | null = null;
+    let tcpStatus:
+      ProbeStatus =
+      "UNKNOWN";
 
-    let failureStage: ProbeFailureStage = "NONE";
+    let latencyMs:
+      number | null =
+      null;
 
-    let error: string | null = null;
+    let failureStage:
+      ProbeFailureStage =
+      "NONE";
+
+    let error:
+      string | null =
+      null;
 
     try {
-      const dnsStarted = Date.now();
+      const dnsStarted =
+        Date.now();
 
-      const resolved = await lookup(
-        target.host,
-        {
-          all: false,
-        },
-      );
+      const resolved =
+        await lookup(
+          target.host,
+          {
+            all: false,
+          },
+        );
 
       resolvedAddress =
         resolved.address;
@@ -107,33 +124,61 @@ export class NetworkProbe {
           : "IPv4";
 
       const dnsLatency =
-        Date.now() - dnsStarted;
+        Date.now() -
+        dnsStarted;
 
       dnsStatus =
         dnsLatency >= 1_000
           ? "DEGRADED"
           : "UP";
     } catch (cause) {
-      dnsStatus = "DOWN";
-      tcpStatus = "UNKNOWN";
-      failureStage = "DNS";
+      dnsStatus =
+        "DOWN";
+
+      tcpStatus =
+        "UNKNOWN";
+
+      failureStage =
+        "DNS";
 
       error =
-        this.normalizeError(cause);
+        this.normalizeError(
+          cause,
+        );
 
       return {
-        targetId: target.id,
-        targetName: target.name,
-        host: target.host,
-        port: target.port,
+        targetId:
+          target.id,
+
+        targetName:
+          target.name,
+
+        host:
+          target.host,
+
+        port:
+          target.port,
+
         dnsStatus,
+
         tcpStatus,
-        resolvedAddress: null,
-        addressFamily: null,
-        latencyMs: null,
-        overallStatus: "DOWN",
+
+        resolvedAddress:
+          null,
+
+        addressFamily:
+          null,
+
+        latencyMs:
+          null,
+
+        overallStatus:
+          "DOWN",
+
         failureStage,
+
         error,
+
         measuredAt,
       };
     }
@@ -147,59 +192,102 @@ export class NetworkProbe {
         );
 
       tcpStatus =
-        classifyLatency(latencyMs);
+        classifyLatency(
+          latencyMs,
+        );
     } catch (cause) {
       const message =
-        this.normalizeError(cause);
+        this.normalizeError(
+          cause,
+        );
 
-      tcpStatus = "DOWN";
+      tcpStatus =
+        "DOWN";
+
       failureStage =
-        message === "TIMEOUT"
+        message ===
+        "TIMEOUT"
           ? "TIMEOUT"
           : "TCP";
 
-      error = message;
+      error =
+        message;
     }
 
-    let overallStatus: ProbeStatus;
+    let overallStatus:
+      ProbeStatus;
 
-    if (tcpStatus === "DOWN") {
-      overallStatus = "DOWN";
-    } else if (
-      tcpStatus === "DEGRADED"
+    if (
+      tcpStatus ===
+      "DOWN"
     ) {
-      overallStatus = "DEGRADED";
-    } else if (tcpStatus === "UP") {
-      overallStatus = "UP";
+      overallStatus =
+        "DOWN";
+    } else if (
+      tcpStatus ===
+      "DEGRADED"
+    ) {
+      overallStatus =
+        "DEGRADED";
+    } else if (
+      tcpStatus ===
+      "UP"
+    ) {
+      overallStatus =
+        "UP";
     } else {
-      overallStatus = "UNKNOWN";
+      overallStatus =
+        "UNKNOWN";
     }
 
     if (
-      failureStage === "NONE" &&
-      overallStatus === "UP"
+      failureStage ===
+        "NONE" &&
+      overallStatus ===
+        "UP"
     ) {
       const totalLatency =
-        Date.now() - startedAt;
+        Date.now() -
+        startedAt;
 
-      if (totalLatency >= 1_000) {
-        overallStatus = "DEGRADED";
+      if (
+        totalLatency >=
+        1_000
+      ) {
+        overallStatus =
+          "DEGRADED";
       }
     }
 
     return {
-      targetId: target.id,
-      targetName: target.name,
-      host: target.host,
-      port: target.port,
+      targetId:
+        target.id,
+
+      targetName:
+        target.name,
+
+      host:
+        target.host,
+
+      port:
+        target.port,
+
       dnsStatus,
+
       tcpStatus,
+
       resolvedAddress,
+
       addressFamily,
+
       latencyMs,
+
       overallStatus,
+
       failureStage,
+
       error,
+
       measuredAt,
     };
   }
@@ -210,12 +298,18 @@ export class NetworkProbe {
     timeoutMs: number,
   ): Promise<number> {
     return new Promise(
-      (resolve, reject) => {
-        const socket = new Socket();
+      (
+        resolve,
+        reject,
+      ) => {
+        const socket =
+          new Socket();
 
-        let settled = false;
+        let settled =
+          false;
 
-        const startedAt = Date.now();
+        const startedAt =
+          Date.now();
 
         const finish = (
           callback: () => void,
@@ -224,7 +318,12 @@ export class NetworkProbe {
             return;
           }
 
-          settled = true;
+          settled =
+            true;
+
+          clearTimeout(
+            timeoutHandle,
+          );
 
           socket.destroy();
 
@@ -235,7 +334,9 @@ export class NetworkProbe {
           setTimeout(() => {
             finish(() =>
               reject(
-                new Error("TIMEOUT"),
+                new Error(
+                  "TIMEOUT",
+                ),
               ),
             );
           }, timeoutMs);
@@ -243,15 +344,14 @@ export class NetworkProbe {
         socket.once(
           "connect",
           () => {
-            clearTimeout(
-              timeoutHandle,
-            );
-
             const latency =
-              Date.now() - startedAt;
+              Date.now() -
+              startedAt;
 
             finish(() =>
-              resolve(latency),
+              resolve(
+                latency,
+              ),
             );
           },
         );
@@ -259,12 +359,10 @@ export class NetworkProbe {
         socket.once(
           "error",
           (cause) => {
-            clearTimeout(
-              timeoutHandle,
-            );
-
             finish(() =>
-              reject(cause),
+              reject(
+                cause,
+              ),
             );
           },
         );
@@ -280,10 +378,14 @@ export class NetworkProbe {
   private normalizeError(
     cause: unknown,
   ): string {
-    if (cause instanceof Error) {
+    if (
+      cause instanceof Error
+    ) {
       return cause.message;
     }
 
-    return String(cause);
+    return String(
+      cause,
+    );
   }
 }
