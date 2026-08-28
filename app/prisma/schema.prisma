@@ -55,3 +55,24 @@ model AlertHistory {
   data      Json?
   alert     Alert    @relation(fields: [alertId], references: [id])
 }
+
+model NetworkIncident {
+  id                         String   @id
+  name                       String
+  startedAt                  DateTime
+  endedAt                    DateTime?
+  phase                      String
+  severity                   String
+
+  globalReachabilityPercent  Float?
+  domesticReachabilityPercent Float?
+
+  affectedTargets            Int
+  criticalFailures           Int
+
+  signals                    Json
+  notes                      Json
+
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
