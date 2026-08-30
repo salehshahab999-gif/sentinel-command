@@ -34,6 +34,14 @@ import {
   type ResourceSnapshot,
 } from "./resource-governor";
 
+import {
+  publishResilienceDecision,
+} from "./resilience-alert-bridge";
+
+import {
+  resolveAlert,
+} from "../alerts/alert-repository";
+
 export interface LiveResilienceCycleResult {
   decision: ResilienceDecision;
 
@@ -45,6 +53,10 @@ export interface LiveResilienceCycleResult {
 
   assessmentsCount: number;
   criticalFailures: number;
+
+  alertId: string | null;
+
+  alertPublished: boolean;
 
   measuredAt: string;
 }
@@ -110,6 +122,25 @@ export class LiveResilienceCycle {
         resources,
       );
 
+    let alertId: string | null = null;
+    let alertPublished = false;
+
+    if (
+      decision.mode === "NORMAL"
+    ) {
+      await this.resolveResilienceAlerts();
+    } else {
+      const alert =
+        await publishResilienceDecision(
+          decision,
+        );
+
+      alertId =
+        alert.alertId;
+
+      alertPublished = true;
+    }
+
     return {
       decision,
 
@@ -132,9 +163,36 @@ export class LiveResilienceCycle {
         reachabilityResult
           .criticalFailures.length,
 
+      alertId,
+
+      alertPublished,
+
       measuredAt:
         reachabilityResult.measuredAt,
     };
+  }
+
+  private async resolveResilienceAlerts(): Promise<void> {
+    const resilienceModes: Array<
+      Exclude<
+        ResilienceDecision["mode"],
+        "NORMAL"
+      >
+    > = [
+      "WATCH",
+      "PRE_SURVIVAL",
+      "LOCAL_SURVIVAL",
+      "EMERGENCY",
+    ];
+
+    for (
+      const mode of resilienceModes
+    ) {
+      await resolveAlert(
+        "CORE",
+        `RESILIENCE_${mode}`,
+      );
+    }
   }
 
   private buildSignals(
