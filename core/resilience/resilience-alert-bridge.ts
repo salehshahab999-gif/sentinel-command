@@ -124,7 +124,7 @@ function mapDecisionSeverity(
       return "ERROR";
 
     case "LOCAL_SURVIVAL":
-      return "ERROR";
+      return "WARNING";
 
     case "EMERGENCY":
       return "CRITICAL";
