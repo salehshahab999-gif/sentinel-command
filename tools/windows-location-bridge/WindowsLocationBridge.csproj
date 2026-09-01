@@ -12,6 +12,5 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.1" />
-    <PackageReference Include="Microsoft.Windows.SDK.NET.Ref" Version="10.0.19041.86" />
   </ItemGroup>
 </Project>
