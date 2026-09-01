@@ -15,7 +15,6 @@ export type WindowsLocationBridgeResult = {
     observedAt: string;
   };
   satelliteData?: {
-    satelliteCount: number | null;
     horizontalDilutionOfPrecision: number | null;
     verticalDilutionOfPrecision: number | null;
     positionDilutionOfPrecision: number | null;
