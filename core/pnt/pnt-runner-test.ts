@@ -1,12 +1,14 @@
-import { runWindowsLocationPnt } from "./pnt-runner";
+import { runPnt } from "./pnt-runner";
 
 async function main() {
-  const observation = await runWindowsLocationPnt();
+  const observations = await runPnt();
+  const observation = observations[0];
 
   console.log("PNT RUNNER TEST:");
-  console.log(JSON.stringify(observation, null, 2));
+  console.log(JSON.stringify(observations, null, 2));
 
   if (
+    !observation ||
     observation.sourceId !== "WINDOWS_LOCATION" ||
     observation.sourceKind !== "WINDOWS" ||
     observation.position === null
