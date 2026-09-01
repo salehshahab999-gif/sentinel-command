@@ -15,7 +15,7 @@ export async function GET() {
         event: "DATABASE_CONNECTION",
         status: "RECOVERED",
         details: {
-          database: "CockroachDB",
+          database: "SQLite (Local)",
           targets: targets.length,
         },
       });
@@ -27,14 +27,14 @@ export async function GET() {
       level: "INFO",
       event: "API_REQUEST_SUCCESS",
       details: {
-        database: "CockroachDB",
+        database: "SQLite (Local)",
         targets: targets.length,
       },
     });
 
     return NextResponse.json({
       status: "Connected",
-      database: "CockroachDB",
+      database: "SQLite (Local)",
       targets,
     });
   } catch (error) {
@@ -44,7 +44,7 @@ export async function GET() {
         event: "DATABASE_CONNECTION",
         status: "DOWN",
         details: {
-          database: "CockroachDB",
+          database: "SQLite (Local)",
           error: String(error),
         },
       });

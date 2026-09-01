@@ -33,16 +33,13 @@ export interface RouterLogEvent {
   raw: string;
 }
 
-function extractPriority(
-  message: string,
-): {
+function extractPriority(message: string): {
   priority: number | null;
   message: string;
 } {
-  const match =
-    message.match(
-      /^<(\d+)>\s*(.*)$/,
-    );
+  const match = message.match(
+    /^<(\d+)>\s*(.*)$/,
+  );
 
   if (!match) {
     return {
@@ -52,28 +49,21 @@ function extractPriority(
   }
 
   return {
-    priority:
-      Number.parseInt(
-        match[1],
-        10,
-      ),
-    message:
-      match[2].trim(),
+    priority: Number.parseInt(
+      match[1],
+      10,
+    ),
+    message: match[2].trim(),
   };
 }
 
-function extractRouterTimestamp(
-  message: string,
-): {
-  routerTimestamp:
-    | string
-    | null;
+function extractRouterTimestamp(message: string): {
+  routerTimestamp: string | null;
   message: string;
 } {
-  const match =
-    message.match(
-      /^([A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+(.*)$/,
-    );
+  const match = message.match(
+    /^([A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+(.*)$/,
+  );
 
   if (!match) {
     return {
@@ -83,23 +73,18 @@ function extractRouterTimestamp(
   }
 
   return {
-    routerTimestamp:
-      match[1],
-    message:
-      match[2].trim(),
+    routerTimestamp: match[1],
+    message: match[2].trim(),
   };
 }
 
-function extractService(
-  message: string,
-): {
+function extractService(message: string): {
   service: string | null;
   message: string;
 } {
-  const match =
-    message.match(
-      /^([A-Za-z0-9_.-]+):\s+(.*)$/,
-    );
+  const match = message.match(
+    /^([A-Za-z0-9_.-]+):\s*(.*)$/,
+  );
 
   if (!match) {
     return {
@@ -109,18 +94,15 @@ function extractService(
   }
 
   return {
-    service:
-      match[1],
-    message:
-      match[2].trim(),
+    service: match[1],
+    message: match[2].trim(),
   };
 }
 
 function detectSeverity(
   message: string,
 ): RouterLogSeverity {
-  const text =
-    message.toLowerCase();
+  const text = message.toLowerCase();
 
   if (
     text.includes("panic") ||
@@ -152,8 +134,7 @@ function detectSeverity(
 function detectEventType(
   message: string,
 ): RouterLogEventType {
-  const text =
-    message.toLowerCase();
+  const text = message.toLowerCase();
 
   if (
     text.includes(
@@ -277,37 +258,29 @@ function detectEventType(
 function extractReceiverTimestamp(
   raw: string,
 ): string | null {
-  const match =
-    raw.match(
-      /^\[([^\]]+)\]/,
-    );
-
-  return (
-    match?.[1] ?? null
+  const match = raw.match(
+    /^\[([^\]]+)\]/,
   );
+
+  return match?.[1] ?? null;
 }
 
 function extractSource(
   raw: string,
 ): string {
-  const match =
-    raw.match(
-      /^\[[^\]]+\]\s+\[([^\]]+)\]/,
-    );
-
-  return (
-    match?.[1] ??
-    "unknown"
+  const match = raw.match(
+    /^\[[^\]]+\]\s+\[([^\]]+)\]/,
   );
+
+  return match?.[1] ?? "unknown";
 }
 
 function extractMessage(
   raw: string,
 ): string {
-  const match =
-    raw.match(
-      /^\[[^\]]+\]\s+\[[^\]]+\]\s+(.*)$/,
-    );
+  const match = raw.match(
+    /^\[[^\]]+\]\s+\[[^\]]+\]\s+(.*)$/,
+  );
 
   return (
     match?.[1]?.trim() ??
@@ -318,16 +291,23 @@ function extractMessage(
 export function parseRouterLogLine(
   raw: string,
 ): RouterLogEvent {
+  const trimmed =
+    raw.trim();
+
   const receiverTimestamp =
     extractReceiverTimestamp(
-      raw,
+      trimmed,
     );
 
   const source =
-    extractSource(raw);
+    extractSource(
+      trimmed,
+    );
 
   const outerMessage =
-    extractMessage(raw);
+    extractMessage(
+      trimmed,
+    );
 
   const priorityResult =
     extractPriority(
@@ -373,8 +353,7 @@ export function parseRouterLogLine(
 
     message,
 
-    raw:
-      raw.trim(),
+    raw: trimmed,
   };
 }
 
@@ -384,18 +363,14 @@ export function parseRouterLogs(
   return content
     .split(/\r?\n/)
     .map(
-      (line) =>
-        line.trim(),
+      (line) => line.trim(),
     )
     .filter(
-      (line) =>
-        line.length > 0,
+      (line) => line.length > 0,
     )
     .map(
       (line) =>
-        parseRouterLogLine(
-          line,
-        ),
+        parseRouterLogLine(line),
     );
 }
 
@@ -404,9 +379,7 @@ export function filterImportantRouterEvents(
 ): RouterLogEvent[] {
   return events.filter(
     (event) =>
-      event.type !==
-        "HEARTBEAT" &&
-      event.type !==
-        "UNKNOWN",
+      event.type !== "HEARTBEAT" &&
+      event.type !== "UNKNOWN",
   );
 }
