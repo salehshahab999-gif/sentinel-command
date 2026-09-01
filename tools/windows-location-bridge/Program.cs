@@ -5,6 +5,8 @@ namespace Sentinel.WindowsLocationBridge;
 
 internal static class Program
 {
+    private const uint RequestedAccuracyMeters = 10;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -17,7 +19,7 @@ internal static class Program
         {
             var locator = new Geolocator
             {
-                DesiredAccuracy = PositionAccuracy.Default,
+                DesiredAccuracyInMeters = RequestedAccuracyMeters,
                 MovementThreshold = 0,
             };
 
@@ -33,6 +35,7 @@ internal static class Program
                 ok = true,
                 status = "AVAILABLE",
                 provider = coordinate.PositionSource.ToString(),
+                requestedAccuracyMeters = RequestedAccuracyMeters,
                 position = new
                 {
                     latitude = coordinate.Point.Position.Latitude,
