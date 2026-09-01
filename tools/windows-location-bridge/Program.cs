@@ -15,21 +15,6 @@ internal static class Program
     {
         try
         {
-            var access = await Geolocator.RequestAccessAsync();
-
-            if (access is not (GeolocationAccessStatus.Allowed or GeolocationAccessStatus.Unspecified))
-            {
-                Write(new
-                {
-                    ok = false,
-                    status = "ACCESS_DENIED",
-                    access = access.ToString(),
-                    message = "Windows Location access is not available to this process.",
-                    observedAt = DateTimeOffset.UtcNow,
-                });
-                return 2;
-            }
-
             var locator = new Geolocator
             {
                 DesiredAccuracy = PositionAccuracy.Default,
@@ -41,14 +26,13 @@ internal static class Program
                 TimeSpan.FromSeconds(30));
 
             var coordinate = position.Coordinate;
-            var source = coordinate.PositionSource;
             var satellite = coordinate.SatelliteData;
 
             Write(new
             {
                 ok = true,
                 status = "AVAILABLE",
-                provider = source.Type.ToString(),
+                provider = coordinate.PositionSource.ToString(),
                 position = new
                 {
                     latitude = coordinate.Point.Position.Latitude,
@@ -70,6 +54,20 @@ internal static class Program
             });
 
             return 0;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Write(new
+            {
+                ok = false,
+                status = "ACCESS_DENIED",
+                error = ex.GetType().FullName,
+                message = ex.Message,
+                action = "Enable Windows Location and allow this application to access location.",
+                settingsUri = "ms-settings:privacy-location",
+                observedAt = DateTimeOffset.UtcNow,
+            });
+            return 2;
         }
         catch (Exception ex)
         {
