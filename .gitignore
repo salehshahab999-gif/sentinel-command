@@ -82,3 +82,6 @@ desktop.ini
 # Sentinel local database and generated Prisma clients
 /app/generated/
 *.db
+
+bin/
+obj/
