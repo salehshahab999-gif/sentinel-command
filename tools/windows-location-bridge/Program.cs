@@ -45,7 +45,6 @@ internal static class Program
                 },
                 satelliteData = satellite is null ? null : new
                 {
-                    satelliteCount = satellite.SatelliteCount,
                     horizontalDilutionOfPrecision = satellite.HorizontalDilutionOfPrecision,
                     verticalDilutionOfPrecision = satellite.VerticalDilutionOfPrecision,
                     positionDilutionOfPrecision = satellite.PositionDilutionOfPrecision,
