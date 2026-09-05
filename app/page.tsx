@@ -324,7 +324,7 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
             <h2 className="text-xl font-bold text-cyan-400">
               🟢 Database
@@ -418,6 +418,24 @@ export default function Home() {
           <SystemMetrics />
 
           <MonitorCard />
+
+          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-cyan-400">
+                🛰 SATELLITE INTELLIGENCE
+              </h2>
+
+              <span className="text-sm text-green-400 font-bold">
+                ● ACTIVE
+              </span>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <span className="text-sm text-gray-300 font-bold tracking-wider">
+                OPEN
+              </span>
+            </div>
+          </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
             <h2 className="text-xl font-bold text-green-400">
@@ -689,4 +707,5 @@ export default function Home() {
       </div>
     </main>
   );
-} 
+}
+
