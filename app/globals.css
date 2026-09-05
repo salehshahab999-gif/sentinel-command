@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+main > .max-w-7xl > .grid {
+  column-gap: 1.5rem;
+  row-gap: 1.5rem;
+  align-items: start;
+}
