@@ -243,10 +243,10 @@ export default function SatelliteIntelligence() {
       <div className="pointer-events-none absolute inset-0 border border-cyan-950/30" />
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-3 md:p-5">
-        <div className="rounded-xl border border-cyan-950/80 bg-black/70 px-3 py-2 backdrop-blur-xl md:px-4 md:py-3">
-          <div className="flex items-center gap-2 text-[9px] font-bold tracking-[0.32em] text-cyan-400"><span className="h-2 w-2 rounded-full bg-cyan-400" />SENTINEL COMMAND CENTER</div>
-          <h1 className="mt-1 text-lg font-semibold tracking-tight text-slate-100 md:text-2xl">GLOBAL INTELLIGENCE / SPACE</h1>
-          <p className="mt-1 text-[9px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • LOCAL-FIRST MAP • UNIVERSAL FILTER • LIVE COLLECTORS OFF</p>
+        <div className="rounded-xl border border-cyan-950/80 bg-black/70 px-4 py-3 backdrop-blur-xl md:px-5 md:py-4">
+          <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.32em] text-cyan-400"><span className="h-2 w-2 rounded-full bg-cyan-400" />SENTINEL COMMAND CENTER</div>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight text-slate-100 md:text-3xl">GLOBAL INTELLIGENCE / SPACE</h1>
+          <p className="mt-2 text-[10px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • LOCAL-FIRST MAP • UNIVERSAL FILTER • LIVE COLLECTORS OFF</p>
         </div>
         <div className="rounded-full border border-emerald-900/80 bg-black/70 px-3 py-2 text-[9px] font-bold tracking-[0.16em] text-emerald-300 backdrop-blur-xl">{runtimeStatus}</div>
       </header>
