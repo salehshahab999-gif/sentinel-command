@@ -1,7 +1,11 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { searchLocalPlaces } from "../../../../core/map/map-search";
-import type { MapSearchResult } from "../../../../core/map/map-search";
+import {
+  filterMapResults,
+  parseMapFilter,
+  searchLocalPlaces,
+  type MapSearchResult,
+} from "../../../../core/map/map-search";
 
 const CACHE_DIR = path.join(process.cwd(), "data", "map-search-cache");
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
@@ -74,28 +78,33 @@ async function searchOnline(query: string): Promise<MapSearchResult[]> {
 }
 
 export async function GET(request: Request) {
-  const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+  const url = new URL(request.url);
+  const query = url.searchParams.get("q")?.trim() ?? "";
   if (!query) return Response.json({ ok: false, error: "Missing q" }, { status: 400 });
 
-  const localResults = searchLocalPlaces(query);
+  const filter = parseMapFilter(url.searchParams);
+
+  const localResults = searchLocalPlaces(query, filter);
   if (localResults.length > 0) {
-    return Response.json({ ok: true, mode: "OFFLINE", results: localResults, onlineAvailable: true });
+    return Response.json({ ok: true, mode: "OFFLINE", results: localResults, filter, onlineAvailable: true });
   }
 
   const cached = await readCache(query);
   if (cached && cached.length > 0) {
-    return Response.json({ ok: true, mode: "CACHE", results: cached });
+    const filtered = filterMapResults(cached, filter);
+    return Response.json({ ok: true, mode: "CACHE", results: filtered, filter });
   }
 
   try {
-    const onlineResults = await searchOnline(query);
+    const onlineResults = filterMapResults(await searchOnline(query), filter);
     await writeCache(query, onlineResults);
-    return Response.json({ ok: true, mode: "ONLINE", results: onlineResults });
+    return Response.json({ ok: true, mode: "ONLINE", results: onlineResults, filter });
   } catch (error) {
     return Response.json({
       ok: true,
       mode: "OFFLINE",
       results: [],
+      filter,
       error: error instanceof Error ? error.message : "Map search unavailable",
     });
   }
