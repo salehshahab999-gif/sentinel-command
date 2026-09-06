@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SATELLITE_LAYERS, SKELETON_SATELLITES } from "../../core/satellite/satellite-catalog";
 import type { SatelliteLayerId, SatelliteRecord } from "../../core/satellite/satellite-contracts";
+import type { MapSearchResult } from "../../core/map/map-search";
 
 const CESIUM_VERSION = "1.145";
 const CESIUM_BASE = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium`;
@@ -104,17 +105,9 @@ export default function SatelliteIntelligence() {
     const viewer = viewerRef.current;
     if (!viewer) return;
 
-    if (baseLayerRef.current) {
-      baseLayerRef.current.show = layers.baseMap;
-    }
-
-    if (pointsRef.current) {
-      pointsRef.current.show = layers.satellites;
-    }
-
-    if (orbitCollectionRef.current) {
-      orbitCollectionRef.current.show = layers.orbits;
-    }
+    if (baseLayerRef.current) baseLayerRef.current.show = layers.baseMap;
+    if (pointsRef.current) pointsRef.current.show = layers.satellites;
+    if (orbitCollectionRef.current) orbitCollectionRef.current.show = layers.orbits;
 
     requestRender();
   }, [requestRender]);
@@ -127,7 +120,7 @@ export default function SatelliteIntelligence() {
     if (!cesiumReady || !containerRef.current || viewerRef.current || !window.Cesium) return;
 
     const Cesium = window.Cesium;
-    setRuntimeStatus("POWERING GLOBE / LIVE OFF");
+    setRuntimeStatus("POWERING GLOBE / MAP LOCAL-FIRST / LIVE OFF");
 
     const viewer = new Cesium.Viewer(containerRef.current, {
       baseLayerPicker: false,
@@ -157,10 +150,12 @@ export default function SatelliteIntelligence() {
     viewer.scene.postProcessStages.fxaa.enabled = true;
 
     if (enabledLayers.baseMap) {
-      const osmProvider = new Cesium.OpenStreetMapImageryProvider({
-        url: "https://tile.openstreetmap.org/",
+      const localFirstProvider = new Cesium.UrlTemplateImageryProvider({
+        url: "/api/map/tile/{z}/{x}/{y}.png",
+        maximumLevel: 19,
+        credit: "© OpenStreetMap contributors",
       });
-      baseLayerRef.current = viewer.imageryLayers.add(new Cesium.ImageryLayer(osmProvider));
+      baseLayerRef.current = viewer.imageryLayers.add(new Cesium.ImageryLayer(localFirstProvider));
     }
 
     const points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
@@ -202,9 +197,7 @@ export default function SatelliteIntelligence() {
     clickHandlerRef.current.setInputAction((movement: any) => {
       const picked = viewer.scene.pick(movement.position);
       const id = picked?.primitive?._sentinelSatelliteId ?? picked?.id;
-      if (typeof id === "string") {
-        setSelectedId(id);
-      }
+      if (typeof id === "string") setSelectedId(id);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     viewer.camera.setView({
@@ -217,7 +210,7 @@ export default function SatelliteIntelligence() {
     });
 
     viewer.scene.requestRender();
-    setRuntimeStatus("CESIUM 3D READY / LIVE OFF");
+    setRuntimeStatus("CESIUM 3D READY / MAP LOCAL-FIRST / LIVE OFF");
 
     return () => {
       clickHandlerRef.current?.destroy?.();
@@ -248,6 +241,23 @@ export default function SatelliteIntelligence() {
 
     requestRender();
   }, [enabledLayers.satellites, filteredSatellites, requestRender, selectedId]);
+
+  useEffect(() => {
+    const handleMapFocus = (event: Event) => {
+      const result = (event as CustomEvent<MapSearchResult>).detail;
+      const viewer = viewerRef.current;
+      const Cesium = window.Cesium;
+      if (!viewer || !Cesium || !result) return;
+
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(result.longitude, result.latitude, 1200000),
+        duration: 0.9,
+      });
+    };
+
+    window.addEventListener("sentinel-map-focus", handleMapFocus);
+    return () => window.removeEventListener("sentinel-map-focus", handleMapFocus);
+  }, []);
 
   const toggleLayer = (id: SatelliteLayerId) => {
     setEnabledLayers((current) => ({ ...current, [id]: !current[id] }));
@@ -291,7 +301,7 @@ export default function SatelliteIntelligence() {
             SENTINEL COMMAND CENTER
           </div>
           <h1 className="mt-1 text-lg font-semibold tracking-tight text-slate-100 md:text-2xl">GLOBAL INTELLIGENCE / SPACE</h1>
-          <p className="mt-1 text-[9px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • DATA WIRED • LIVE COLLECTORS OFF</p>
+          <p className="mt-1 text-[9px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • LOCAL-FIRST MAP • DATA WIRED • LIVE COLLECTORS OFF</p>
         </div>
         <div className="rounded-full border border-emerald-900/80 bg-black/70 px-3 py-2 text-[9px] font-bold tracking-[0.16em] text-emerald-300 backdrop-blur-xl">
           {runtimeStatus}
@@ -384,10 +394,11 @@ export default function SatelliteIntelligence() {
 
       <footer className="absolute inset-x-3 bottom-3 z-20 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-cyan-950/80 bg-black/70 px-3 py-2 text-[8px] font-bold tracking-[0.14em] backdrop-blur-xl md:inset-x-5">
         <span className="text-emerald-400">● CESIUM 3D READY</span>
-        <span className="text-cyan-400">● SATELLITE WIRING READY</span>
+        <span className="text-cyan-400">● MAP LOCAL-FIRST</span>
+        <span className="text-cyan-400">● GEO SEARCH WIRED</span>
         <span className="text-violet-400">● ORBIT ENGINE OFF</span>
         <span className="text-amber-400">● LIVE POWER OFF</span>
-        <span className="text-slate-600">● DB SINK RESERVED</span>
+        <span className="text-slate-500">● © OpenStreetMap contributors</span>
       </footer>
     </main>
   );
