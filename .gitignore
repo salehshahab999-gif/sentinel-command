@@ -85,3 +85,5 @@ desktop.ini
 
 bin/
 obj/
+
+database-backups/
