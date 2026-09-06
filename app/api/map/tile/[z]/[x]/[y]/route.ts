@@ -2,10 +2,15 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 const CACHE_DIR = path.join(process.cwd(), "data", "map-tile-cache");
-const TILE_HOSTS = ["a", "b", "c"];
+const TILE_HOST = "tile.openstreetmap.org";
 
 function isSafeTilePart(value: string): boolean {
-  return /^\d{1,3}$/.test(value);
+  return /^\d{1,6}$/.test(value);
+}
+
+function normalizeY(value: string): string | null {
+  const y = value.endsWith(".png") ? value.slice(0, -4) : value;
+  return isSafeTilePart(y) ? y : null;
 }
 
 function tilePath(z: string, x: string, y: string): string {
@@ -30,9 +35,10 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ z: string; x: string; y: string }> },
 ) {
-  const { z, x, y } = await params;
+  const { z, x, y: rawY } = await params;
+  const y = normalizeY(rawY);
 
-  if (!isSafeTilePart(z) || !isSafeTilePart(x) || !isSafeTilePart(y)) {
+  if (!isSafeTilePart(z) || !isSafeTilePart(x) || !y) {
     return new Response("Invalid tile", { status: 400 });
   }
 
@@ -47,21 +53,17 @@ export async function GET(
     });
   }
 
-  for (const host of TILE_HOSTS) {
-    try {
-      const upstream = await fetch(`https://${host}.tile.openstreetmap.org/${z}/${x}/${y}.png`, {
-        headers: {
-          Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
-          "User-Agent": process.env.SENTINEL_MAP_USER_AGENT ?? "Sentinel-Command-Center/1.0 local map tile cache",
-        },
-        cache: "no-store",
-      });
+  try {
+    const upstream = await fetch(`https://${TILE_HOST}/${z}/${x}/${y}.png`, {
+      headers: {
+        Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
+        "User-Agent": process.env.SENTINEL_MAP_USER_AGENT ?? "Sentinel-Command-Center/1.0 local map tile cache",
+      },
+    });
 
-      if (!upstream.ok) continue;
-
+    if (upstream.ok) {
       const body = await upstream.arrayBuffer();
       await writeCachedTile(z, x, y, body);
-
       return new Response(body, {
         headers: {
           "Content-Type": upstream.headers.get("content-type") ?? "image/png",
@@ -69,9 +71,9 @@ export async function GET(
           "X-Sentinel-Map": "ONLINE-CACHED",
         },
       });
-    } catch {
-      // Try the next public tile host, then fail cleanly for offline mode.
     }
+  } catch {
+    // Fall through to a clean offline miss.
   }
 
   return new Response("Map tile unavailable", {
