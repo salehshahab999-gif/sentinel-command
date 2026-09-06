@@ -48,7 +48,7 @@ export default function MaritimeSkeletonOverlay() {
         </div>
       </div>
 
-      <div className="absolute inset-x-[23%] bottom-[11%] top-[27%] z-20 pointer-events-none">
+      <div className="absolute inset-x-[23%] bottom-[11%] top-[27%] z-20 pointer-events-none hidden">
         {SHIPS.map((ship, index) => {
           const selectedShip = ship.id === selected;
           return (
