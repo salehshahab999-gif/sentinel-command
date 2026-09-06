@@ -24,12 +24,15 @@ export interface VesselRecord {
   latitude: number;
   longitude: number;
   speedKnots?: number;
+  speedKmh?: number;
+  speedKmS?: number;
   courseDeg?: number;
   headingDeg?: number;
   destination?: string;
   flag?: string;
   state: VesselState;
   lastUpdate: string;
+  positionAccuracyM?: number;
 }
 
 export interface MaritimeProviderDefinition {
