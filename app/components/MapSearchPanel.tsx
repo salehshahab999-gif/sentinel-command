@@ -98,7 +98,7 @@ export default function MapSearchPanel() {
   };
 
   return (
-    <section className="absolute left-3 top-[calc(6rem+19rem)] z-30 w-[270px] rounded-xl border border-cyan-950/80 bg-black/80 p-3 shadow-2xl backdrop-blur-xl md:left-5 md:w-[320px]">
+    <section className="absolute left-3 top-[32rem] z-30 w-[270px] rounded-xl border border-cyan-950/80 bg-black/80 p-3 shadow-2xl backdrop-blur-xl md:left-5 md:w-[320px]">
       <div className="flex items-center justify-between">
         <p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">UNIVERSAL MAP FILTER</p>
         <span className={`text-[8px] font-bold ${mode === "ONLINE" ? "text-amber-300" : mode === "CACHE" ? "text-violet-300" : "text-emerald-400"}`}>{loading ? "SEARCHING" : mode || "READY"}</span>
