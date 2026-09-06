@@ -1,0 +1,34 @@
+name: Precision Position Validation
+
+on:
+  pull_request:
+    paths:
+      - "core/position/**"
+      - "core/gnss/**"
+      - "core/astronomy/**"
+      - "core/weather/**"
+      - "scripts/test-precision-position.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/precision-position.yml"
+  push:
+    branches:
+      - "feat/pnt-multi-source-switch"
+
+jobs:
+  precision-position:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Precision smoke test
+        run: npm run test:precision
