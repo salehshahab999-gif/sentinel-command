@@ -7,7 +7,9 @@ on:
       - "core/gnss/**"
       - "core/astronomy/**"
       - "core/weather/**"
+      - "core/air/**"
       - "scripts/test-precision-position.mjs"
+      - "scripts/test-aircraft-target-engine.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/precision-position.yml"
@@ -32,3 +34,5 @@ jobs:
         run: npx tsc --noEmit
       - name: Precision smoke test
         run: npm run test:precision
+      - name: Aircraft target smoke test
+        run: node scripts/test-aircraft-target-engine.mjs
