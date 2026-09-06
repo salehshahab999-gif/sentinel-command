@@ -141,6 +141,10 @@ export default function SatelliteIntelligence() {
     });
     viewerRef.current = viewer;
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
+    viewer.scene.skyBox.show = false;
+    viewer.scene.skyAtmosphere.show = false;
+    viewer.scene.sun.show = false;
+    viewer.scene.moon.show = false;
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#061116");
     viewer.scene.globe.showGroundAtmosphere = true;
     viewer.scene.globe.enableLighting = false;
