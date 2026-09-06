@@ -1,5 +1,14 @@
 export type MapSearchSource = "LOCAL" | "ONLINE" | "CACHE";
 
+export type MapSearchFilter = {
+  type?: string;
+  minLatitude?: number;
+  maxLatitude?: number;
+  minLongitude?: number;
+  maxLongitude?: number;
+  source?: MapSearchSource;
+};
+
 export interface MapSearchResult {
   id: string;
   name: string;
@@ -58,13 +67,41 @@ export function parseCoordinates(query: string): { latitude: number; longitude: 
   return { latitude, longitude };
 }
 
-export function searchLocalPlaces(query: string): MapSearchResult[] {
+export function filterMapResults(results: MapSearchResult[], filter: MapSearchFilter = {}): MapSearchResult[] {
+  return results.filter((result) => {
+    if (filter.type && result.type.toLocaleLowerCase() !== filter.type.toLocaleLowerCase()) return false;
+    if (filter.source && result.source !== filter.source) return false;
+    if (filter.minLatitude !== undefined && result.latitude < filter.minLatitude) return false;
+    if (filter.maxLatitude !== undefined && result.latitude > filter.maxLatitude) return false;
+    if (filter.minLongitude !== undefined && result.longitude < filter.minLongitude) return false;
+    if (filter.maxLongitude !== undefined && result.longitude > filter.maxLongitude) return false;
+    return true;
+  });
+}
+
+export function parseMapFilter(input: URLSearchParams): MapSearchFilter {
+  const number = (key: string): number | undefined => {
+    const value = Number(input.get(key));
+    return Number.isFinite(value) ? value : undefined;
+  };
+
+  return {
+    type: input.get("type") || undefined,
+    minLatitude: number("latMin"),
+    maxLatitude: number("latMax"),
+    minLongitude: number("lonMin"),
+    maxLongitude: number("lonMax"),
+    source: (input.get("source") as MapSearchSource) || undefined,
+  };
+}
+
+export function searchLocalPlaces(query: string, filter: MapSearchFilter = {}): MapSearchResult[] {
   const q = query.trim().toLocaleLowerCase();
   if (!q) return [];
 
   const coordinates = parseCoordinates(query);
   if (coordinates) {
-    return [withGoogleMapsUrl({
+    return filterMapResults([withGoogleMapsUrl({
       id: `coord-${coordinates.latitude}-${coordinates.longitude}`,
       name: "Coordinates",
       displayName: `${coordinates.latitude}, ${coordinates.longitude}`,
@@ -72,13 +109,16 @@ export function searchLocalPlaces(query: string): MapSearchResult[] {
       longitude: coordinates.longitude,
       source: "LOCAL",
       type: "coordinate",
-    })];
+    })], filter);
   }
 
-  return LOCAL_PLACES
-    .filter((place) => `${place.name} ${place.displayName}`.toLocaleLowerCase().includes(q))
-    .slice(0, 8)
-    .map((place) => withGoogleMapsUrl({ ...place, source: "LOCAL" }));
+  return filterMapResults(
+    LOCAL_PLACES
+      .filter((place) => `${place.name} ${place.displayName}`.toLocaleLowerCase().includes(q))
+      .slice(0, 8)
+      .map((place) => withGoogleMapsUrl({ ...place, source: "LOCAL" })),
+    filter,
+  );
 }
 
 export function createCoordinateResult(latitude: number, longitude: number): MapSearchResult {
