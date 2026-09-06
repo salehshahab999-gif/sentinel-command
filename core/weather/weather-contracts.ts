@@ -1,0 +1,20 @@
+export type WeatherObservation = {
+  id: string;
+  timestamp: string;
+  latitude: number;
+  longitude: number;
+  altitudeM?: number;
+  temperatureC?: number;
+  dewPointC?: number;
+  relativeHumidityPct?: number;
+  pressureHpa?: number;
+  windSpeedMs?: number;
+  windDirectionDeg?: number;
+  precipitationMm?: number;
+  cloudCoverPct?: number;
+  visibilityKm?: number;
+  seaSurfaceTemperatureC?: number;
+  waveHeightM?: number;
+  quality: "OBSERVED" | "MODEL" | "ESTIMATED" | "UNKNOWN";
+  source: string;
+};
