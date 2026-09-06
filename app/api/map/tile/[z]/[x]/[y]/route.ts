@@ -1,7 +1,10 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { resolveStoragePath } from "../../../../../../../core/storage/storage-runtime";
 
-const CACHE_DIR = path.join(process.cwd(), "data", "map-tile-cache");
+const WORLD_DIR = resolveStoragePath("MAP");
+const CACHE_DIR = path.join(WORLD_DIR, "cache");
+const OFFLINE_TILE_DIR = path.join(WORLD_DIR, "tiles");
 const TILE_HOST = "tile.openstreetmap.org";
 
 function isSafeTilePart(value: string): boolean {
@@ -13,20 +16,20 @@ function normalizeY(value: string): string | null {
   return isSafeTilePart(y) ? y : null;
 }
 
-function tilePath(z: string, x: string, y: string): string {
-  return path.join(CACHE_DIR, z, x, `${y}.png`);
+function tilePath(root: string, z: string, x: string, y: string): string {
+  return path.join(root, z, x, `${y}.png`);
 }
 
-async function readCachedTile(z: string, x: string, y: string): Promise<Buffer | null> {
+async function readTile(root: string, z: string, x: string, y: string): Promise<Buffer | null> {
   try {
-    return await fs.readFile(tilePath(z, x, y));
+    return await fs.readFile(tilePath(root, z, x, y));
   } catch {
     return null;
   }
 }
 
 async function writeCachedTile(z: string, x: string, y: string, body: ArrayBuffer): Promise<void> {
-  const target = tilePath(z, x, y);
+  const target = tilePath(CACHE_DIR, z, x, y);
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.writeFile(target, Buffer.from(body));
 }
@@ -42,7 +45,18 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
-  const cached = await readCachedTile(z, x, y);
+  const offline = await readTile(OFFLINE_TILE_DIR, z, x, y);
+  if (offline) {
+    return new Response(offline, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Sentinel-Map": "OFFLINE-DATASET",
+      },
+    });
+  }
+
+  const cached = await readTile(CACHE_DIR, z, x, y);
   if (cached) {
     return new Response(cached, {
       headers: {
@@ -73,7 +87,7 @@ export async function GET(
       });
     }
   } catch {
-    // Fall through to a clean offline miss.
+    // Offline-first: an unavailable online provider must not break the globe.
   }
 
   return new Response("Map tile unavailable", {
