@@ -2,7 +2,7 @@ import type { AstronomyObservation } from "../astronomy/astronomy-contracts";
 import type { GnssObservation } from "../gnss/gnss-contracts";
 
 export type PositionSourceKind = "GNSS" | "SATELLITE" | "MARITIME" | "ASTRONOMY" | "OTHER";
-export type PositionFrame = "WGS84" | "ITRF" | "PZ90" | "GTRF" | "CGCS2000" | "TEME" | "GCRS";
+export type PositionFrame = "WGS84" | "ITRF" | "PZ90" | "GTRF" | "CGCS2000" | "TEME" | "GCRS" | "ICRS" | "CIRS" | "ITRS";
 
 export type CartesianPositionObservation = {
   id: string;
@@ -73,7 +73,7 @@ const ARCSEC_TO_RAD = DEG_TO_RAD / 3600;
 const KM_TO_M = 1000;
 
 const DEFAULT_CONFIG: Required<Pick<PrecisionPositionEngineConfig, "commonFrame" | "maxObservationAgeSeconds">> = {
-  commonFrame: "WGS84",
+  commonFrame: "ITRF",
   maxObservationAgeSeconds: 300,
 };
 
@@ -90,24 +90,38 @@ function toDecimalYear(timestamp: string): number {
   return date.getUTCFullYear() + (time - start) / (end - start);
 }
 
-function applyHelmert(pointKm: [number, number, number], transform: HelmertTransform, timestamp: string): [number, number, number] {
-  const [x, y, z] = pointKm.map((value) => value * KM_TO_M);
-  const epoch = toDecimalYear(timestamp);
-  const dt = Number.isFinite(epoch) && isFiniteNumber(transform.referenceEpochYear) ? epoch - transform.referenceEpochYear : 0;
+function applyHelmert(
+  pointKm: [number, number, number],
+  transform: HelmertTransform,
+  observationTimestamp: string,
+): [number, number, number] {
+  const pointM = pointKm.map((value) => value * KM_TO_M) as [number, number, number];
+  const epoch = toDecimalYear(observationTimestamp);
+  const dt = Number.isFinite(epoch) && isFiniteNumber(transform.referenceEpochYear)
+    ? epoch - transform.referenceEpochYear
+    : 0;
 
-  const tx = transform.translationM[0] + (transform.translationRateMmPerYear?.[0] ?? 0) * dt / 1000;
-  const ty = transform.translationM[1] + (transform.translationRateMmPerYear?.[1] ?? 0) * dt / 1000;
-  const tz = transform.translationM[2] + (transform.translationRateMmPerYear?.[2] ?? 0) * dt / 1000;
-  const rx = (transform.rotationArcSec[0] + (transform.rotationRateArcSecPerYear?.[0] ?? 0) * dt) * ARCSEC_TO_RAD;
-  const ry = (transform.rotationArcSec[1] + (transform.rotationRateArcSecPerYear?.[1] ?? 0) * dt) * ARCSEC_TO_RAD;
-  const rz = (transform.rotationArcSec[2] + (transform.rotationRateArcSecPerYear?.[2] ?? 0) * dt) * ARCSEC_TO_RAD;
+  const t = [
+    transform.translationM[0] + (transform.translationRateMmPerYear?.[0] ?? 0) * dt / 1000,
+    transform.translationM[1] + (transform.translationRateMmPerYear?.[1] ?? 0) * dt / 1000,
+    transform.translationM[2] + (transform.translationRateMmPerYear?.[2] ?? 0) * dt / 1000,
+  ];
+  const r = [
+    (transform.rotationArcSec[0] + (transform.rotationRateArcSecPerYear?.[0] ?? 0) * dt) * ARCSEC_TO_RAD,
+    (transform.rotationArcSec[1] + (transform.rotationRateArcSecPerYear?.[1] ?? 0) * dt) * ARCSEC_TO_RAD,
+    (transform.rotationArcSec[2] + (transform.rotationRateArcSecPerYear?.[2] ?? 0) * dt) * ARCSEC_TO_RAD,
+  ];
   const scale = 1 + (transform.scalePpm + (transform.scaleRatePpbPerYear ?? 0) * dt / 1000) * 1e-6;
 
-  return [
-    (tx + scale * (x - rz * y + ry * z)) / KM_TO_M,
-    (ty + scale * (rz * x + y - rx * z)) / KM_TO_M,
-    (tz + scale * (-ry * x + rx * y + z)) / KM_TO_M,
-  ];
+  const x = pointM[0];
+  const y = pointM[1];
+  const z = pointM[2];
+
+  const outX = t[0] + scale * (x - r[2] * y + r[1] * z);
+  const outY = t[1] + scale * (r[2] * x + y - r[0] * z);
+  const outZ = t[2] + scale * (-r[1] * x + r[0] * y + z);
+
+  return [outX / KM_TO_M, outY / KM_TO_M, outZ / KM_TO_M];
 }
 
 function normalizeObservation(
@@ -116,10 +130,26 @@ function normalizeObservation(
   transforms: Partial<Record<PositionFrame, HelmertTransform>>,
 ): CartesianPositionObservation | null {
   if (observation.referenceFrame === commonFrame) return observation;
+  if (observation.referenceFrame === "ITRF" || observation.referenceFrame === "WGS84") {
+    return { ...observation, referenceFrame: commonFrame };
+  }
+
   const transform = transforms[observation.referenceFrame];
   if (!transform) return null;
-  const ecef = applyHelmert([observation.ecefXKm, observation.ecefYKm, observation.ecefZKm], transform, observation.timestamp);
-  return { ...observation, referenceFrame: commonFrame, ecefXKm: ecef[0], ecefYKm: ecef[1], ecefZKm: ecef[2] };
+
+  const ecef = applyHelmert(
+    [observation.ecefXKm, observation.ecefYKm, observation.ecefZKm],
+    transform,
+    observation.timestamp,
+  );
+
+  return {
+    ...observation,
+    referenceFrame: commonFrame,
+    ecefXKm: ecef[0],
+    ecefYKm: ecef[1],
+    ecefZKm: ecef[2],
+  };
 }
 
 function observationWeight(observation: CartesianPositionObservation): number {
@@ -142,12 +172,11 @@ function weightedCenter(observations: CartesianPositionObservation[]): [number, 
   return [x / sumW, y / sumW, z / sumW];
 }
 
-function distanceM(observation: CartesianPositionObservation, center: [number, number, number]): number {
-  return Math.hypot(
-    (observation.ecefXKm - center[0]) * KM_TO_M,
-    (observation.ecefYKm - center[1]) * KM_TO_M,
-    (observation.ecefZKm - center[2]) * KM_TO_M,
-  );
+function distanceM(a: CartesianPositionObservation, center: [number, number, number]): number {
+  const dx = (a.ecefXKm - center[0]) * KM_TO_M;
+  const dy = (a.ecefYKm - center[1]) * KM_TO_M;
+  const dz = (a.ecefZKm - center[2]) * KM_TO_M;
+  return Math.hypot(dx, dy, dz);
 }
 
 function median(values: number[]): number {
@@ -174,51 +203,79 @@ function ecefToGeodetic([xKm, yKm, zKm]: [number, number, number]) {
   const sinLat = Math.sin(latitude);
   const cosLat = Math.cos(latitude);
   const n = WGS84_A_M / Math.sqrt(1 - e2 * sinLat * sinLat);
-  const height = Math.abs(cosLat) < 1e-12 ? Math.abs(z) - n * (1 - e2) : p / cosLat - n;
+  const height = p / Math.max(cosLat, 1e-15) - n;
+  const longitude = Math.atan2(y, x);
 
   return {
     latitudeDeg: latitude * RAD_TO_DEG,
-    longitudeDeg: Math.atan2(y, x) * RAD_TO_DEG,
+    longitudeDeg: longitude * RAD_TO_DEG,
     altitudeKm: height / KM_TO_M,
   };
 }
 
-function deriveVelocity(observations: CartesianPositionObservation[]) {
-  const withVelocity = observations.filter((item) => isFiniteNumber(item.velocityXKmS) && isFiniteNumber(item.velocityYKmS) && isFiniteNumber(item.velocityZKmS));
+function deriveMotion(
+  observations: CartesianPositionObservation[],
+): { vx: number; vy: number; vz: number } | null {
+  const withVelocity = observations.filter(
+    (item) => isFiniteNumber(item.velocityXKmS) && isFiniteNumber(item.velocityYKmS) && isFiniteNumber(item.velocityZKmS),
+  );
   if (withVelocity.length === 0) return null;
-
   let sumW = 0;
   let vx = 0;
   let vy = 0;
   let vz = 0;
-  for (const item of withVelocity) {
-    const w = observationWeight(item);
+  for (const observation of withVelocity) {
+    const w = observationWeight(observation);
     sumW += w;
-    vx += (item.velocityXKmS ?? 0) * w;
-    vy += (item.velocityYKmS ?? 0) * w;
-    vz += (item.velocityZKmS ?? 0) * w;
+    vx += (observation.velocityXKmS ?? 0) * w;
+    vy += (observation.velocityYKmS ?? 0) * w;
+    vz += (observation.velocityZKmS ?? 0) * w;
   }
   return { vx: vx / sumW, vy: vy / sumW, vz: vz / sumW };
 }
 
-function motionInLocalFrame(ecefKm: [number, number, number], velocity: { vx: number; vy: number; vz: number } | null) {
+function calculateHeadingElevation(
+  ecef: [number, number, number],
+  velocity: { vx: number; vy: number; vz: number } | null,
+): { headingDeg?: number; elevationDeg?: number; speedKmS?: number; speedKmH?: number } {
   if (!velocity) return {};
-  const [x, y, z] = ecefKm;
+
+  const [x, y, z] = ecef.map((value) => value * KM_TO_M);
   const lon = Math.atan2(y, x);
   const lat = Math.atan2(z, Math.hypot(x, y));
+
   const east = -Math.sin(lon) * velocity.vx + Math.cos(lon) * velocity.vy;
-  const north = -Math.sin(lat) * Math.cos(lon) * velocity.vx - Math.sin(lat) * Math.sin(lon) * velocity.vy + Math.cos(lat) * velocity.vz;
-  const up = Math.cos(lat) * Math.cos(lon) * velocity.vx + Math.cos(lat) * Math.sin(lon) * velocity.vy + Math.sin(lat) * velocity.vz;
-  const speedKmS = Math.hypot(east, north, up);
+  const north = -Math.sin(lat) * Math.cos(lon) * velocity.vx
+    - Math.sin(lat) * Math.sin(lon) * velocity.vy
+    + Math.cos(lat) * velocity.vz;
+  const up = Math.cos(lat) * Math.cos(lon) * velocity.vx
+    + Math.cos(lat) * Math.sin(lon) * velocity.vy
+    + Math.sin(lat) * velocity.vz;
+  const speed = Math.hypot(east, north, up);
+
   return {
     headingDeg: (Math.atan2(east, north) * RAD_TO_DEG + 360) % 360,
     elevationDeg: Math.atan2(up, Math.hypot(east, north)) * RAD_TO_DEG,
-    speedKmS,
-    speedKmH: speedKmS * 3600,
+    speedKmS: speed,
+    speedKmH: speed * 3600,
   };
 }
 
-export function buildPositionObservation(input: CartesianPositionObservation): CartesianPositionObservation {
+export function buildPositionObservation(input: {
+  id: string;
+  targetId: string;
+  source: string;
+  sourceKind: PositionSourceKind;
+  timestamp: string;
+  referenceFrame: PositionFrame;
+  ecefXKm: number;
+  ecefYKm: number;
+  ecefZKm: number;
+  velocityXKmS?: number;
+  velocityYKmS?: number;
+  velocityZKmS?: number;
+  accuracyM?: number;
+}): CartesianPositionObservation {
   return input;
 }
 
@@ -263,7 +320,17 @@ export function solvePrecisionPosition(
   const timestamp = new Date().toISOString();
 
   if (observations.length === 0) {
-    return { status: "INSUFFICIENT_DATA", timestamp, referenceFrame: merged.commonFrame, usedObservationIds: [], rejectedObservationIds: [], sourceKinds: [], sourceCount: 0, quality: "UNAVAILABLE", note: "No position observations were supplied." };
+    return {
+      status: "INSUFFICIENT_DATA",
+      timestamp,
+      referenceFrame: merged.commonFrame,
+      usedObservationIds: [],
+      rejectedObservationIds: [],
+      sourceKinds: [],
+      sourceCount: 0,
+      quality: "UNAVAILABLE",
+      note: "No position observations were supplied.",
+    };
   }
 
   const targetIds = new Set(observations.map((item) => item.targetId));
@@ -285,15 +352,15 @@ export function solvePrecisionPosition(
     const t = Date.parse(item.timestamp);
     return Number.isFinite(t) && Math.abs(Date.now() - t) <= merged.maxObservationAgeSeconds * 1000;
   });
+
   const normalized: CartesianPositionObservation[] = [];
-  const blocked: string[] = [];
+  const frameBlocked: string[] = [];
   for (const observation of validTime) {
     const normalizedObservation = normalizeObservation(observation, merged.commonFrame, merged.transforms ?? {});
     if (normalizedObservation) normalized.push(normalizedObservation);
-    else blocked.push(observation.id);
+    else frameBlocked.push(observation.id);
   }
 
-  const staleIds = observations.filter((item) => !validTime.includes(item)).map((item) => item.id);
   if (normalized.length === 0) {
     return {
       status: "FRAME_BLOCKED",
@@ -301,63 +368,72 @@ export function solvePrecisionPosition(
       timestamp,
       referenceFrame: merged.commonFrame,
       usedObservationIds: [],
-      rejectedObservationIds: [...new Set([...blocked, ...staleIds])],
+      rejectedObservationIds: [...new Set([...frameBlocked, ...observations.filter((item) => !validTime.includes(item)).map((item) => item.id)])],
       sourceKinds: [...new Set(observations.map((item) => item.sourceKind))],
       sourceCount: 0,
       quality: "UNAVAILABLE",
-      note: "No time-valid observation could be normalized into the common frame. Explicit frame transforms are required for PZ90/GTRF/CGCS2000/TEME/GCRS inputs.",
+      note: "No time-valid observations could be normalized into the common terrestrial frame. Supply explicit frame transforms for PZ90/GTRF/CGCS2000/TEME/GCRS/ICRS/CIRS/ITRS as required.",
     };
   }
 
-  if (normalized.length === 1) {
+  if (normalized.length < 2) {
     const single = normalized[0];
     const ecef: [number, number, number] = [single.ecefXKm, single.ecefYKm, single.ecefZKm];
     const geo = ecefToGeodetic(ecef);
-    const velocity = deriveVelocity(normalized);
-    const motion = motionInLocalFrame(ecef, velocity);
+    const velocity = deriveMotion(normalized);
+    const motion = calculateHeadingElevation(ecef, velocity);
     return {
       status: "SOLVED",
       targetId: single.targetId,
       timestamp: single.timestamp,
       referenceFrame: merged.commonFrame,
       ...geo,
-      ...motion,
       ecefXKm: single.ecefXKm,
       ecefYKm: single.ecefYKm,
       ecefZKm: single.ecefZKm,
       velocityXKmS: velocity?.vx,
       velocityYKmS: velocity?.vy,
       velocityZKmS: velocity?.vz,
+      ...motion,
       usedObservationIds: [single.id],
-      rejectedObservationIds: [...blocked, ...staleIds],
+      rejectedObservationIds: frameBlocked,
       sourceKinds: [single.sourceKind],
       sourceCount: 1,
       rmsResidualM: 0,
       estimatedHorizontal1SigmaM: single.accuracyM,
       estimatedVertical1SigmaM: single.accuracyM,
       quality: (single.accuracyM ?? Infinity) <= 0.2 ? "HIGH" : (single.accuracyM ?? Infinity) <= 5 ? "MEDIUM" : "LOW",
-      note: "Single-source solution. Cross-source fusion confidence requires at least two independent, time-aligned observations.",
+      note: "Single-source fallback. Fusion confidence requires at least two independent observations.",
     };
   }
 
   const initialCenter = weightedCenter(normalized);
   const residuals = normalized.map((item) => distanceM(item, initialCenter));
   const centerResidual = median(residuals);
-  const mad = median(residuals.map((value) => Math.abs(value - centerResidual)));
-  const robustThreshold = Math.max(0.25, centerResidual + 4 * Math.max(mad, 0.01));
+  const deviations = residuals.map((value) => Math.abs(value - centerResidual));
+  const mad = median(deviations);
+  const robustThreshold = Math.max(0.25, centerResidual + 4.0 * Math.max(mad, 0.01));
 
-  const kept = normalized.filter((_, index) => residuals[index] <= robustThreshold);
-  const rejected = normalized.filter((_, index) => residuals[index] > robustThreshold);
-  const finalSet = kept.length >= 2 ? kept : normalized;
+  const used = normalized.filter((item, index) => residuals[index] <= robustThreshold);
+  const rejected = normalized.filter((item, index) => residuals[index] > robustThreshold);
+  const finalSet = used.length >= 2 ? used : normalized;
+
   const center = weightedCenter(finalSet);
   const finalResiduals = finalSet.map((item) => distanceM(item, center));
   const rmsResidualM = Math.sqrt(finalResiduals.reduce((sum, value) => sum + value * value, 0) / finalResiduals.length);
-  const sumWeights = finalSet.reduce((sum, item) => sum + observationWeight(item), 0);
+  const accuracyWeights = finalSet.map(observationWeight);
+  const sumWeights = accuracyWeights.reduce((sum, value) => sum + value, 0);
   const sigma = sumWeights > 0 ? Math.sqrt(1 / sumWeights) : undefined;
   const geo = ecefToGeodetic(center);
-  const velocity = deriveVelocity(finalSet);
-  const motion = motionInLocalFrame(center, velocity);
-  const quality: PrecisionPositionSolution["quality"] = rmsResidualM <= 0.05 && (sigma === undefined || sigma <= 0.05) ? "HIGH" : rmsResidualM <= 2 && (sigma === undefined || sigma <= 2) ? "MEDIUM" : "LOW";
+  const velocity = deriveMotion(finalSet);
+  const motion = calculateHeadingElevation(center, velocity);
+
+  const quality: PrecisionPositionSolution["quality"] =
+    rmsResidualM <= 0.05 && (sigma === undefined || sigma <= 0.05)
+      ? "HIGH"
+      : rmsResidualM <= 2 && (sigma === undefined || sigma <= 2)
+        ? "MEDIUM"
+        : "LOW";
 
   return {
     status: "SOLVED",
@@ -365,21 +441,21 @@ export function solvePrecisionPosition(
     timestamp: new Date(Math.max(...finalSet.map((item) => Date.parse(item.timestamp)))).toISOString(),
     referenceFrame: merged.commonFrame,
     ...geo,
-    ...motion,
     ecefXKm: center[0],
     ecefYKm: center[1],
     ecefZKm: center[2],
     velocityXKmS: velocity?.vx,
     velocityYKmS: velocity?.vy,
     velocityZKmS: velocity?.vz,
+    ...motion,
     usedObservationIds: finalSet.map((item) => item.id),
-    rejectedObservationIds: [...rejected.map((item) => item.id), ...blocked, ...staleIds],
+    rejectedObservationIds: [...rejected.map((item) => item.id), ...frameBlocked],
     sourceKinds: [...new Set(finalSet.map((item) => item.sourceKind))],
     sourceCount: finalSet.length,
     rmsResidualM,
     estimatedHorizontal1SigmaM: sigma,
     estimatedVertical1SigmaM: sigma,
     quality,
-    note: "Weighted ECEF fusion with target matching, time gating, explicit frame transforms, and robust residual rejection. It does not claim RTK/PPP precision without carrier-phase observations and precise products.",
+    note: "Weighted ECEF fusion with target matching, time gating, explicit frame normalization, and robust residual rejection. This is a fusion layer, not a substitute for carrier-phase RTK/PPP estimation.",
   };
 }
