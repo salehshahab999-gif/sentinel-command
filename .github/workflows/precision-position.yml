@@ -8,8 +8,10 @@ on:
       - "core/astronomy/**"
       - "core/weather/**"
       - "core/air/**"
+      - "core/map/**"
       - "scripts/test-precision-position.mjs"
       - "scripts/test-aircraft-target-engine.mjs"
+      - "scripts/test-map-search.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/precision-position.yml"
@@ -36,3 +38,5 @@ jobs:
         run: npm run test:precision
       - name: Aircraft target smoke test
         run: node scripts/test-aircraft-target-engine.mjs
+      - name: Map search filter smoke test
+        run: node scripts/test-map-search.mjs
