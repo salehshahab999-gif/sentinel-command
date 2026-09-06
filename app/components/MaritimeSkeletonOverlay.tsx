@@ -18,7 +18,7 @@ export default function MaritimeSkeletonOverlay() {
     <>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44 bg-gradient-to-t from-[#020607] via-[#020607]/55 to-transparent" />
 
-      <div className="absolute right-4 top-[15rem] z-40 w-[250px] rounded-2xl border border-amber-950/80 bg-[#03090c]/85 p-3 shadow-2xl backdrop-blur-xl md:right-6">
+      <div className="absolute right-4 top-[35rem] z-40 w-[250px] rounded-2xl border border-amber-950/80 bg-[#03090c]/85 p-3 shadow-2xl backdrop-blur-xl md:right-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[8px] font-bold tracking-[0.28em] text-amber-500">MARITIME BUS</p>
