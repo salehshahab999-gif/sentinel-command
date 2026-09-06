@@ -63,12 +63,70 @@ function delay(
   );
 }
 
+async function getWindowsCpuUsage(): Promise<string> {
+  try {
+    const {
+      stdout,
+    } =
+      await execFileAsync(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-Command",
+          "(Get-Counter '\\Processor(_Total)\\% Processor Time').CounterSamples.CookedValue",
+        ],
+        {
+          windowsHide:
+            true,
+        },
+      );
+
+    const value =
+      Number(
+        stdout.trim(),
+      );
+
+    if (
+      !Number.isFinite(
+        value,
+      )
+    ) {
+      return "N/A";
+    }
+
+    return `${Math.max(
+      0,
+      Math.min(
+        100,
+        value,
+      ),
+    ).toFixed(1)}%`;
+  } catch {
+    return "N/A";
+  }
+}
+
 async function getCpuUsage(): Promise<string> {
   try {
+    if (
+      process.platform ===
+      "win32"
+    ) {
+      const windowsCpu =
+        await getWindowsCpuUsage();
+
+      if (
+        windowsCpu !==
+        "N/A"
+      ) {
+        return windowsCpu;
+      }
+    }
+
     const first =
       readCpuTimes();
 
-    await delay(100);
+    await delay(250);
 
     const second =
       readCpuTimes();
@@ -284,6 +342,7 @@ export async function GET() {
 
   const metrics = {
     cpu,
+
     memory: `${usedMemoryGB.toFixed(
       1,
     )} GB / ${totalMemoryGB.toFixed(
