@@ -146,7 +146,7 @@ export default function SatelliteIntelligence() {
     viewer.scene.sun.show = false;
     viewer.scene.moon.show = false;
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#061116");
-    viewer.scene.globe.showGroundAtmosphere = true;
+    viewer.scene.globe.showGroundAtmosphere = false;
     viewer.scene.globe.enableLighting = false;
     viewer.scene.fog.enabled = false;
     viewer.scene.postProcessStages.fxaa.enabled = true;
@@ -262,10 +262,15 @@ export default function SatelliteIntelligence() {
         <div className="mt-3 max-h-40 space-y-1 overflow-auto pr-1">{filteredSatellites.map((satellite) => <button key={satellite.id} type="button" onClick={() => focusSatellite(satellite)} className={`flex w-full items-center justify-between rounded-lg border px-2 py-2 text-left ${selectedId === satellite.id ? "border-cyan-700 bg-cyan-950/40" : "border-slate-900 bg-white/[0.015]"}`}><span className="min-w-0"><span className="block truncate text-[10px] font-medium text-slate-200">{satellite.name}</span><span className="block truncate text-[8px] text-slate-600">{satellite.source} • {satellite.mission}</span></span><span className="ml-2 h-2 w-2 shrink-0 rounded-full" style={{ background: satellite.source === "COPERNICUS" ? "#22d3ee" : satellite.source === "NASA" ? "#84cc16" : "#fb923c" }} /></button>)}</div>
       </section>
 
-      <section className="absolute right-3 top-24 z-20 w-[210px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:right-5 md:w-[245px]">
+      <section className="absolute left-3 top-[calc(6rem+19rem)] z-20 w-[270px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:left-5 md:w-[320px]">
+        <p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">UNIVERSAL MAP FILTER</p>
+        <div className="mt-2 text-[8px] leading-4 text-slate-600">Applies to map, satellite, aircraft, maritime, event, alert and weather targets.</div>
+      </section>
+
+      <aside className="absolute right-3 top-24 z-20 w-[210px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:right-5 md:w-[245px]">
         <div className="flex items-center justify-between"><p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">SYSTEM LAYERS</p><span className="text-[8px] text-slate-600">{Object.values(enabledLayers).filter(Boolean).length} ON</span></div>
         <div className="mt-2 space-y-1">{layerGroups.map((layer) => <button key={layer.id} type="button" onClick={() => toggleLayer(layer.id)} className={`flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-[8px] font-bold tracking-[0.1em] ${enabledLayers[layer.id] ? "border-cyan-900 bg-cyan-950/30 text-cyan-300" : "border-slate-900 text-slate-700"}`}><span>{layer.label}</span><span className={`h-1.5 w-1.5 rounded-full ${enabledLayers[layer.id] ? "bg-cyan-400" : "bg-slate-800"}`} /></button>)}</div>
-      </section>
+      </aside>
 
       {selected && <aside className="absolute bottom-4 left-4 z-20 w-[285px] rounded-xl border border-cyan-900/80 bg-black/78 p-3 shadow-2xl backdrop-blur-xl md:left-5"><div className="flex items-start justify-between gap-3"><div><p className="text-[8px] font-bold tracking-[0.25em] text-cyan-500">SELECTED SATELLITE</p><h2 className="mt-1 text-base font-semibold text-cyan-100">{selected.name}</h2></div><button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500">×</button></div><div className="mt-2 grid grid-cols-2 gap-1.5 text-[8px]"><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">NORAD</span><br /><span className="text-slate-300">{selected.noradId ?? "PENDING"}</span></div><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div></div></aside>}
 
