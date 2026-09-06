@@ -34,6 +34,16 @@ async function writeCachedTile(z: string, x: string, y: string, body: ArrayBuffe
   await fs.writeFile(target, Buffer.from(body));
 }
 
+function imageResponse(data: Buffer, source: string): Response {
+  return new Response(new Uint8Array(data), {
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Sentinel-Map": source,
+    },
+  });
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ z: string; x: string; y: string }> },
@@ -47,24 +57,12 @@ export async function GET(
 
   const offline = await readTile(OFFLINE_TILE_DIR, z, x, y);
   if (offline) {
-    return new Response(offline, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Sentinel-Map": "OFFLINE-DATASET",
-      },
-    });
+    return imageResponse(offline, "OFFLINE-DATASET");
   }
 
   const cached = await readTile(CACHE_DIR, z, x, y);
   if (cached) {
-    return new Response(cached, {
-      headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Sentinel-Map": "LOCAL-CACHE",
-      },
-    });
+    return imageResponse(cached, "LOCAL-CACHE");
   }
 
   try {
