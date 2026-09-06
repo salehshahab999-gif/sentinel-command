@@ -87,3 +87,9 @@ bin/
 obj/
 
 database-backups/
+
+# Large local intelligence datasets / caches
+/data/intelligence/**
+!/data/intelligence/README.md
+/data/map-tile-cache/**
+/data/map-search-cache/**
