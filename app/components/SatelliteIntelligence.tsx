@@ -251,7 +251,7 @@ export default function SatelliteIntelligence() {
         <div className="rounded-full border border-emerald-900/80 bg-black/70 px-3 py-2 text-[9px] font-bold tracking-[0.16em] text-emerald-300 backdrop-blur-xl">{runtimeStatus}</div>
       </header>
 
-      <section className="absolute left-3 top-24 z-20 w-[250px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:left-5 md:w-[285px]">
+      <section className="absolute left-3 top-[13rem] z-20 w-[250px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:left-5 md:w-[285px]">
         <div className="flex items-center justify-between"><p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">SATELLITE QUERY</p><span className="text-[8px] text-cyan-500">{filteredSatellites.length}/{SKELETON_SATELLITES.length}</span></div>
         <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search satellite / mission..." className="mt-2 w-full rounded-lg border border-slate-800 bg-black/60 px-3 py-2 text-[10px] text-slate-200 outline-none placeholder:text-slate-700 focus:border-cyan-800" />
         <div className="mt-2 grid grid-cols-4 gap-1">{providerFilters.map((item) => <button key={item.id} type="button" onClick={() => setProvider(item.id)} className={`rounded-md border px-1 py-1.5 text-[8px] font-bold tracking-[0.08em] ${provider === item.id ? "border-cyan-700 bg-cyan-950/50 text-cyan-300" : "border-slate-900 text-slate-600"}`}>{item.label}</button>)}</div>
