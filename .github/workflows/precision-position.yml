@@ -12,6 +12,7 @@ on:
       - "scripts/test-precision-position.mjs"
       - "scripts/test-aircraft-target-engine.mjs"
       - "scripts/test-map-search.mjs"
+      - "scripts/test-universal-map-filter.mjs"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/precision-position.yml"
@@ -40,3 +41,5 @@ jobs:
         run: node scripts/test-aircraft-target-engine.mjs
       - name: Map search filter smoke test
         run: node scripts/test-map-search.mjs
+      - name: Universal map filter smoke test
+        run: node scripts/test-universal-map-filter.mjs
