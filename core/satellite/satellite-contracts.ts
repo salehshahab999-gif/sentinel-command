@@ -11,6 +11,8 @@ export type SatelliteSourceKind =
   | "AIS"
   | "OTHER";
 
+export type SatelliteReferenceFrame = "ITRF" | "WGS84" | "TEME" | "GCRS";
+
 export type SatelliteRecord = {
   id: string;
   name: string;
@@ -25,6 +27,21 @@ export type SatelliteRecord = {
   altitudeKm: number;
   inclinationDeg: number;
   raanDeg: number;
+  speedKmS?: number;
+  speedKmH?: number;
+  headingDeg?: number;
+  elevationDeg?: number;
+  phaseDeg?: number;
+  groundTrackLatitudeDeg?: number;
+  groundTrackLongitudeDeg?: number;
+  ecefXKm?: number;
+  ecefYKm?: number;
+  ecefZKm?: number;
+  velocityXKmS?: number;
+  velocityYKmS?: number;
+  velocityZKmS?: number;
+  timestamp?: string;
+  referenceFrame?: SatelliteReferenceFrame;
 };
 
 export type SatelliteLayerId =
