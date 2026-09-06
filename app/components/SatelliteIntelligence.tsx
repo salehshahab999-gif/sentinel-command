@@ -1,198 +1,394 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import Script from "next/script";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SATELLITE_LAYERS, SKELETON_SATELLITES } from "../../core/satellite/satellite-catalog";
-import type { SatelliteLayerId } from "../../core/satellite/satellite-contracts";
+import type { SatelliteLayerId, SatelliteRecord } from "../../core/satellite/satellite-contracts";
 
-const layerAccent: Record<SatelliteLayerId, string> = {
-  baseMap: "border-cyan-700 text-cyan-300",
-  satellites: "border-emerald-700 text-emerald-300",
-  orbits: "border-violet-700 text-violet-300",
-  fires: "border-orange-700 text-orange-300",
-  weather: "border-blue-700 text-blue-300",
-  clouds: "border-slate-600 text-slate-300",
-  ocean: "border-teal-700 text-teal-300",
-  ais: "border-amber-700 text-amber-300",
-  geography: "border-green-700 text-green-300",
-  events: "border-yellow-700 text-yellow-300",
-  alerts: "border-red-700 text-red-300",
-};
+const CESIUM_VERSION = "1.145";
+const CESIUM_BASE = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium`;
 
-const STARFIELD = Array.from({ length: 72 }, (_, index) => ({
-  left: (index * 37) % 100,
-  top: (index * 61) % 100,
-  size: 1 + (index % 3),
-  delay: (index % 9) * -0.7,
-  duration: 3 + (index % 5),
-}));
+type ProviderFilter = "ALL" | "COPERNICUS" | "NASA" | "NOAA";
+
+declare global {
+  interface Window {
+    Cesium?: any;
+  }
+}
+
+const providerFilters: Array<{ id: ProviderFilter; label: string }> = [
+  { id: "ALL", label: "ALL" },
+  { id: "COPERNICUS", label: "COPERNICUS" },
+  { id: "NASA", label: "NASA" },
+  { id: "NOAA", label: "NOAA" },
+];
+
+const layerGroups: Array<{ id: SatelliteLayerId; label: string }> = [
+  { id: "baseMap", label: "BASE MAP" },
+  { id: "satellites", label: "SATELLITES" },
+  { id: "orbits", label: "ORBITS" },
+  { id: "fires", label: "NASA FIRES" },
+  { id: "weather", label: "WEATHER" },
+  { id: "clouds", label: "CLOUDS" },
+  { id: "ocean", label: "OCEAN" },
+  { id: "ais", label: "AIS / SHIPS" },
+  { id: "geography", label: "GEOGRAPHY" },
+  { id: "events", label: "EVENTS" },
+  { id: "alerts", label: "ALERTS" },
+];
+
+function providerColor(Cesium: any, source: string) {
+  if (source === "COPERNICUS") return Cesium.Color.CYAN;
+  if (source === "NASA") return Cesium.Color.LIME;
+  if (source === "NOAA") return Cesium.Color.ORANGE;
+  return Cesium.Color.WHITE;
+}
+
+function buildOrbit(Cesium: any, satellite: SatelliteRecord) {
+  const radiusMeters = (6371 + satellite.altitudeKm) * 1000;
+  const inclination = Cesium.Math.toRadians(satellite.inclinationDeg);
+  const raan = Cesium.Math.toRadians(satellite.raanDeg);
+  const points = [];
+
+  for (let i = 0; i <= 96; i += 1) {
+    const theta = (i / 96) * Cesium.Math.TWO_PI;
+    const x = radiusMeters * Math.cos(theta);
+    const y = radiusMeters * Math.sin(theta) * Math.cos(inclination);
+    const z = radiusMeters * Math.sin(theta) * Math.sin(inclination);
+    const rx = x * Math.cos(raan) - y * Math.sin(raan);
+    const ry = x * Math.sin(raan) + y * Math.cos(raan);
+    points.push(new Cesium.Cartesian3(rx, ry, z));
+  }
+
+  return points;
+}
 
 export default function SatelliteIntelligence() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const viewerRef = useRef<any>(null);
+  const pointsRef = useRef<any>(null);
+  const orbitCollectionRef = useRef<any>(null);
+  const baseLayerRef = useRef<any>(null);
+  const clickHandlerRef = useRef<any>(null);
+
+  const [cesiumReady, setCesiumReady] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [provider, setProvider] = useState<ProviderFilter>("ALL");
   const [enabledLayers, setEnabledLayers] = useState<Record<SatelliteLayerId, boolean>>(
     () => Object.fromEntries(
       SATELLITE_LAYERS.map((layer) => [layer.id, layer.defaultEnabled]),
     ) as Record<SatelliteLayerId, boolean>,
   );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [rotation, setRotation] = useState({ x: -8, y: -18 });
-  const [zoom, setZoom] = useState(1);
-  const dragRef = useRef({ active: false, x: 0, y: 0, baseX: -8, baseY: -18 });
+  const [runtimeStatus, setRuntimeStatus] = useState("POWERED / LIVE OFF");
 
   const selected = useMemo(
     () => SKELETON_SATELLITES.find((satellite) => satellite.id === selectedId) ?? null,
     [selectedId],
   );
 
+  const filteredSatellites = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return SKELETON_SATELLITES.filter((satellite) => {
+      const matchesProvider = provider === "ALL" || satellite.source === provider;
+      const haystack = `${satellite.name} ${satellite.id} ${satellite.operator ?? ""} ${satellite.mission ?? ""}`.toLowerCase();
+      return matchesProvider && (!query || haystack.includes(query));
+    });
+  }, [provider, search]);
+
+  const requestRender = useCallback(() => {
+    viewerRef.current?.scene?.requestRender?.();
+  }, []);
+
+  const syncLayers = useCallback((layers: Record<SatelliteLayerId, boolean>) => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+
+    if (baseLayerRef.current) {
+      baseLayerRef.current.show = layers.baseMap;
+    }
+
+    if (pointsRef.current) {
+      pointsRef.current.show = layers.satellites;
+    }
+
+    if (orbitCollectionRef.current) {
+      orbitCollectionRef.current.show = layers.orbits;
+    }
+
+    requestRender();
+  }, [requestRender]);
+
+  useEffect(() => {
+    syncLayers(enabledLayers);
+  }, [enabledLayers, syncLayers]);
+
+  useEffect(() => {
+    if (!cesiumReady || !containerRef.current || viewerRef.current || !window.Cesium) return;
+
+    const Cesium = window.Cesium;
+    setRuntimeStatus("POWERING GLOBE / LIVE OFF");
+
+    const viewer = new Cesium.Viewer(containerRef.current, {
+      baseLayerPicker: false,
+      geocoder: false,
+      homeButton: false,
+      sceneModePicker: false,
+      navigationHelpButton: false,
+      animation: false,
+      timeline: false,
+      fullscreenButton: false,
+      vrButton: false,
+      infoBox: false,
+      selectionIndicator: false,
+      scene3DOnly: true,
+      shouldAnimate: false,
+      requestRenderMode: true,
+      maximumRenderTimeChange: Number.POSITIVE_INFINITY,
+      baseLayer: false,
+    });
+
+    viewerRef.current = viewer;
+    viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#061116");
+    viewer.scene.globe.showGroundAtmosphere = true;
+    viewer.scene.globe.enableLighting = false;
+    viewer.scene.fog.enabled = false;
+    viewer.scene.postProcessStages.fxaa.enabled = true;
+
+    if (enabledLayers.baseMap) {
+      const osmProvider = new Cesium.OpenStreetMapImageryProvider({
+        url: "https://tile.openstreetmap.org/",
+      });
+      baseLayerRef.current = viewer.imageryLayers.add(new Cesium.ImageryLayer(osmProvider));
+    }
+
+    const points = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+    points.blendOption = Cesium.BlendOption.TRANSLUCENT;
+    pointsRef.current = points;
+
+    const orbitCollection = viewer.scene.primitives.add(new Cesium.PolylineCollection());
+    orbitCollectionRef.current = orbitCollection;
+
+    for (const satellite of SKELETON_SATELLITES) {
+      const point = points.add({
+        id: satellite.id,
+        position: Cesium.Cartesian3.fromDegrees(
+          satellite.longitude,
+          satellite.latitude,
+          satellite.altitudeKm * 1000,
+        ),
+        pixelSize: 8,
+        color: providerColor(Cesium, satellite.source),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 1,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scaleByDistance: new Cesium.NearFarScalar(4.0e6, 1.6, 4.0e7, 0.55),
+      });
+
+      point._sentinelSatelliteId = satellite.id;
+
+      const orbit = orbitCollection.add({
+        positions: buildOrbit(Cesium, satellite),
+        width: 1.2,
+        material: Cesium.Material.fromType("Color", {
+          color: providerColor(Cesium, satellite.source).withAlpha(0.34),
+        }),
+      });
+      orbit._sentinelSatelliteId = satellite.id;
+    }
+
+    clickHandlerRef.current = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    clickHandlerRef.current.setInputAction((movement: any) => {
+      const picked = viewer.scene.pick(movement.position);
+      const id = picked?.primitive?._sentinelSatelliteId ?? picked?.id;
+      if (typeof id === "string") {
+        setSelectedId(id);
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(35, 25, 17000000),
+      orientation: {
+        heading: Cesium.Math.toRadians(0),
+        pitch: Cesium.Math.toRadians(-58),
+        roll: 0,
+      },
+    });
+
+    viewer.scene.requestRender();
+    setRuntimeStatus("CESIUM 3D READY / LIVE OFF");
+
+    return () => {
+      clickHandlerRef.current?.destroy?.();
+      clickHandlerRef.current = null;
+      if (viewerRef.current) {
+        viewerRef.current.destroy();
+        viewerRef.current = null;
+      }
+      pointsRef.current = null;
+      orbitCollectionRef.current = null;
+      baseLayerRef.current = null;
+    };
+    // Initialization is deliberately one-shot; layer/filter state syncs through refs/collections.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cesiumReady]);
+
+  useEffect(() => {
+    const points = pointsRef.current;
+    if (!points) return;
+
+    const visible = new Set(filteredSatellites.map((satellite) => satellite.id));
+    for (let i = 0; i < points.length; i += 1) {
+      const point = points.get(i);
+      const satelliteId = point._sentinelSatelliteId ?? point.id;
+      point.show = enabledLayers.satellites && visible.has(satelliteId);
+      point.pixelSize = selectedId && satelliteId === selectedId ? 13 : 8;
+    }
+
+    requestRender();
+  }, [enabledLayers.satellites, filteredSatellites, requestRender, selectedId]);
+
   const toggleLayer = (id: SatelliteLayerId) => {
     setEnabledLayers((current) => ({ ...current, [id]: !current[id] }));
   };
 
-  const beginDrag = (clientX: number, clientY: number) => {
-    dragRef.current = { active: true, x: clientX, y: clientY, baseX: rotation.x, baseY: rotation.y };
-  };
+  const focusSatellite = (satellite: SatelliteRecord) => {
+    const viewer = viewerRef.current;
+    const Cesium = window.Cesium;
+    if (!viewer || !Cesium) return;
 
-  const moveDrag = (clientX: number, clientY: number) => {
-    if (!dragRef.current.active) return;
-    const dx = clientX - dragRef.current.x;
-    const dy = clientY - dragRef.current.y;
-    setRotation({
-      x: Math.max(-70, Math.min(70, dragRef.current.baseX - dy * 0.22)),
-      y: dragRef.current.baseY + dx * 0.22,
+    setSelectedId(satellite.id);
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(
+        satellite.longitude,
+        satellite.latitude,
+        Math.max(2500000, satellite.altitudeKm * 5000),
+      ),
+      duration: 0.9,
     });
   };
 
-  const endDrag = () => { dragRef.current.active = false; };
-
   return (
-    <main
-      className="relative min-h-screen overflow-hidden bg-[#010305] text-white select-none"
-      onPointerMove={(event) => moveDrag(event.clientX, event.clientY)}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-      onPointerLeave={endDrag}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(18,74,95,.34),transparent_32%),radial-gradient(circle_at_20%_20%,rgba(34,211,238,.08),transparent_24%),linear-gradient(180deg,#010306,#020507 60%,#000102)]" />
-      <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(34,211,238,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,.07)_1px,transparent_1px)] [background-size:64px_64px]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#01060a] text-white">
+      <link rel="stylesheet" href={`${CESIUM_BASE}/Widgets/widgets.css`} />
+      <Script
+        id="sentinel-cesium"
+        src={`${CESIUM_BASE}/Cesium.js`}
+        strategy="afterInteractive"
+        onLoad={() => setCesiumReady(true)}
+        onError={() => setRuntimeStatus("CESIUM LOAD ERROR")}
+      />
 
-      {STARFIELD.map((star, index) => (
-        <span
-          key={`star-${index}`}
-          className="absolute rounded-full bg-cyan-100/70"
-          style={{
-            left: `${star.left}%`,
-            top: `${star.top}%`,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            animation: `sentinel-star ${star.duration}s ease-in-out ${star.delay}s infinite alternate`,
-          }}
-        />
-      ))}
+      <div ref={containerRef} className="absolute inset-0" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(0,0,0,.08)_42%,rgba(0,0,0,.58)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 border border-cyan-950/30" />
 
-      <header className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-4 p-4 md:p-6">
-        <div className="rounded-2xl border border-cyan-950/80 bg-black/55 px-4 py-3 shadow-[0_0_40px_rgba(34,211,238,.05)] backdrop-blur-xl">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(34,211,238,.9)]" />
-            <p className="text-[9px] font-bold tracking-[0.38em] text-cyan-400">SENTINEL COMMAND CENTER</p>
+      <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-3 md:p-5">
+        <div className="rounded-xl border border-cyan-950/80 bg-black/70 px-3 py-2 backdrop-blur-xl md:px-4 md:py-3">
+          <div className="flex items-center gap-2 text-[9px] font-bold tracking-[0.32em] text-cyan-400">
+            <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,.9)]" />
+            SENTINEL COMMAND CENTER
           </div>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight text-slate-100 md:text-2xl">GLOBAL INTELLIGENCE / SPACE</h1>
-          <p className="mt-1 text-[10px] tracking-[0.16em] text-slate-500">VISUAL TEST SHELL • LIVE SOURCES OFF</p>
+          <h1 className="mt-1 text-lg font-semibold tracking-tight text-slate-100 md:text-2xl">GLOBAL INTELLIGENCE / SPACE</h1>
+          <p className="mt-1 text-[9px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • DATA WIRED • LIVE COLLECTORS OFF</p>
         </div>
-        <div className="rounded-full border border-amber-900/70 bg-black/65 px-3 py-2 text-[9px] font-bold tracking-[0.18em] text-amber-300 backdrop-blur-xl">POWER 12% • SKELETON</div>
+        <div className="rounded-full border border-emerald-900/80 bg-black/70 px-3 py-2 text-[9px] font-bold tracking-[0.16em] text-emerald-300 backdrop-blur-xl">
+          {runtimeStatus}
+        </div>
       </header>
 
-      <aside className="absolute left-4 top-28 z-30 hidden w-[205px] md:block">
-        <div className="rounded-2xl border border-cyan-950/80 bg-black/55 p-3 shadow-2xl backdrop-blur-xl">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-[9px] font-bold tracking-[0.26em] text-slate-500">LAYERS</p>
-            <span className="text-[8px] text-slate-700">{Object.values(enabledLayers).filter(Boolean).length} ACTIVE</span>
+      <section className="absolute left-3 top-24 z-20 w-[250px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:left-5 md:w-[285px]">
+        <div className="flex items-center justify-between">
+          <p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">SATELLITE QUERY</p>
+          <span className="text-[8px] text-cyan-500">{filteredSatellites.length}/{SKELETON_SATELLITES.length}</span>
+        </div>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search satellite / mission..."
+          className="mt-2 w-full rounded-lg border border-slate-800 bg-black/60 px-3 py-2 text-[10px] text-slate-200 outline-none placeholder:text-slate-700 focus:border-cyan-800"
+        />
+        <div className="mt-2 grid grid-cols-4 gap-1">
+          {providerFilters.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setProvider(item.id)}
+              className={`rounded-md border px-1 py-1.5 text-[8px] font-bold tracking-[0.08em] transition ${provider === item.id ? "border-cyan-700 bg-cyan-950/50 text-cyan-300" : "border-slate-900 text-slate-600 hover:border-slate-700 hover:text-slate-300"}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 max-h-40 space-y-1 overflow-auto pr-1">
+          {filteredSatellites.map((satellite) => (
+            <button
+              key={satellite.id}
+              type="button"
+              onClick={() => focusSatellite(satellite)}
+              className={`flex w-full items-center justify-between rounded-lg border px-2 py-2 text-left transition ${selectedId === satellite.id ? "border-cyan-700 bg-cyan-950/40" : "border-slate-900 bg-white/[0.015] hover:border-slate-700"}`}
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-[10px] font-medium text-slate-200">{satellite.name}</span>
+                <span className="block truncate text-[8px] text-slate-600">{satellite.source} • {satellite.mission}</span>
+              </span>
+              <span
+                className="ml-2 h-2 w-2 shrink-0 rounded-full"
+                style={{
+                  background: satellite.source === "COPERNICUS" ? "#22d3ee" : satellite.source === "NASA" ? "#84cc16" : "#fb923c",
+                }}
+              />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="absolute right-3 top-24 z-20 w-[210px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:right-5 md:w-[245px]">
+        <div className="flex items-center justify-between">
+          <p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">SYSTEM LAYERS</p>
+          <span className="text-[8px] text-slate-600">{Object.values(enabledLayers).filter(Boolean).length} ON</span>
+        </div>
+        <div className="mt-2 space-y-1">
+          {layerGroups.map((layer) => (
+            <button
+              key={layer.id}
+              type="button"
+              onClick={() => toggleLayer(layer.id)}
+              className={`flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-[8px] font-bold tracking-[0.1em] transition ${enabledLayers[layer.id] ? "border-cyan-900 bg-cyan-950/30 text-cyan-300" : "border-slate-900 text-slate-700 hover:border-slate-800 hover:text-slate-500"}`}
+            >
+              <span>{layer.label}</span>
+              <span className={`h-1.5 w-1.5 rounded-full ${enabledLayers[layer.id] ? "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,.8)]" : "bg-slate-800"}`} />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {selected && (
+        <aside className="absolute bottom-4 left-4 z-20 w-[285px] rounded-xl border border-cyan-900/80 bg-black/78 p-3 shadow-2xl backdrop-blur-xl md:left-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[8px] font-bold tracking-[0.25em] text-cyan-500">SELECTED SATELLITE</p>
+              <h2 className="mt-1 text-base font-semibold text-cyan-100">{selected.name}</h2>
+            </div>
+            <button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500 hover:text-white">×</button>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {SATELLITE_LAYERS.map((layer) => (
-              <button key={layer.id} type="button" onClick={() => toggleLayer(layer.id)} className={`rounded-md border px-2 py-1 text-[9px] font-medium transition duration-200 hover:-translate-y-0.5 ${enabledLayers[layer.id] ? `${layerAccent[layer.id]} bg-white/[0.04] shadow-[0_0_12px_rgba(34,211,238,.05)]` : "border-slate-900 text-slate-700"}`}>
-                {layer.label}
-              </button>
-            ))}
+          <div className="mt-2 grid grid-cols-2 gap-1.5 text-[8px]">
+            <div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div>
+            <div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">NORAD</span><br /><span className="text-slate-300">{selected.noradId ?? "PENDING"}</span></div>
+            <div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div>
+            <div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div>
           </div>
-        </div>
-        <div className="mt-3 rounded-2xl border border-violet-950/60 bg-black/50 p-3 backdrop-blur-xl">
-          <p className="text-[8px] font-bold tracking-[0.25em] text-violet-400">VIEWPORT</p>
-          <div className="mt-2 flex items-center gap-2">
-            <button type="button" onClick={() => setZoom((value) => Math.min(1.32, value + 0.08))} className="rounded-lg border border-slate-800 px-2 py-1 text-xs text-slate-400 hover:text-white">+</button>
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-900"><div className="h-full rounded-full bg-violet-400 transition-all" style={{ width: `${((zoom - 0.72) / 0.6) * 100}%` }} /></div>
-            <button type="button" onClick={() => setZoom((value) => Math.max(0.72, value - 0.08))} className="rounded-lg border border-slate-800 px-2 py-1 text-xs text-slate-400 hover:text-white">−</button>
-          </div>
-          <p className="mt-2 text-[8px] tracking-[0.18em] text-slate-600">+ / − = ZOOM • DRAG = ROTATE</p>
-        </div>
-      </aside>
+        </aside>
+      )}
 
-      <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 [perspective:1400px]">
-        <div className="relative" style={{ width: `${Math.min(790, Math.max(410, 58 * 10)) * zoom}px`, height: `${Math.min(790, Math.max(410, 58 * 10)) * zoom}px` }} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); beginDrag(event.clientX, event.clientY); }}>
-          <div className="absolute inset-[-9%] rounded-full border border-cyan-300/[0.08] shadow-[0_0_100px_rgba(34,211,238,.10)]" />
-          <div className="absolute inset-[-14%] rounded-full border border-violet-300/[0.05]" style={{ animation: "sentinel-orbit-a 18s linear infinite" }} />
-          <div className="absolute inset-[-20%] rounded-full border border-cyan-300/[0.04]" style={{ animation: "sentinel-orbit-b 28s linear infinite reverse" }} />
-          <div className="relative h-full w-full overflow-hidden rounded-full border border-cyan-200/25 bg-[radial-gradient(circle_at_30%_24%,rgba(255,255,255,.28),transparent_10%),radial-gradient(circle_at_42%_40%,#1b6670_0%,#0d3d49_27%,#072630_53%,#021017_76%,#000409_100%)] shadow-[0_0_140px_rgba(34,211,238,.18),inset_-90px_-60px_120px_rgba(0,0,0,.92),inset_35px_20px_70px_rgba(255,255,255,.04)] [transform-style:preserve-3d]" style={{ transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)` }}>
-            <div className="absolute inset-[6%] rounded-full border border-cyan-100/[0.08]" />
-            <div className="absolute inset-[17%] rounded-full border border-cyan-100/[0.05]" />
-            <div className="absolute inset-[28%] rounded-full border border-cyan-100/[0.04]" />
-            <div className="absolute left-1/2 top-[-8%] h-[116%] w-px -translate-x-1/2 rotate-[20deg] bg-cyan-50/[0.06]" />
-            <div className="absolute left-1/2 top-[-8%] h-[116%] w-px -translate-x-1/2 -rotate-[33deg] bg-cyan-50/[0.045]" />
-            <div className="absolute left-[-8%] top-1/2 h-px w-[116%] -translate-y-1/2 rotate-[10deg] bg-cyan-50/[0.045]" />
-
-            {enabledLayers.geography && <div className="absolute inset-[9%] rounded-full opacity-75 [background-image:radial-gradient(circle_at_18%_32%,rgba(34,197,94,.14),transparent_9%),radial-gradient(circle_at_62%_25%,rgba(34,197,94,.10),transparent_10%),radial-gradient(circle_at_73%_62%,rgba(34,197,94,.11),transparent_11%),radial-gradient(circle_at_34%_70%,rgba(34,197,94,.08),transparent_12%)]" />}
-
-            {enabledLayers.orbits && <>
-              <div className="absolute left-[-11%] top-[26%] h-[45%] w-[122%] rotate-[18deg] rounded-[50%] border border-violet-300/30" />
-              <div className="absolute left-[-11%] top-[30%] h-[39%] w-[122%] -rotate-[27deg] rounded-[50%] border border-violet-300/20" />
-            </>}
-
-            {enabledLayers.satellites && SKELETON_SATELLITES.map((satellite, index) => {
-              const angle = (index / SKELETON_SATELLITES.length) * Math.PI * 2;
-              const radius = 31 + (index % 5) * 7;
-              const x = 50 + Math.cos(angle) * radius;
-              const y = 50 + Math.sin(angle) * radius * 0.64;
-              const isSelected = selectedId === satellite.id;
-              return (
-                <button key={satellite.id} type="button" aria-label={`Satellite ${index + 1}`} onClick={(event) => { event.stopPropagation(); setSelectedId(isSelected ? null : satellite.id); }} className={`absolute z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 border transition-all duration-200 ${isSelected ? "h-5 w-5 border-white bg-cyan-100 shadow-[0_0_28px_rgba(103,232,249,1)]" : "border-cyan-300 bg-cyan-400 shadow-[0_0_14px_rgba(34,211,238,.8)]"}`} style={{ left: `${x}%`, top: `${y}%` }} />
-              );
-            })}
-
-            <div className="pointer-events-none absolute inset-[8%] rounded-full border border-white/[0.03]" style={{ animation: "sentinel-scan 7s linear infinite" }} />
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] max-w-[760px] -translate-x-1/2 rounded-2xl border border-cyan-950/80 bg-black/60 px-4 py-3 shadow-2xl backdrop-blur-xl">
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[8px] tracking-[0.18em]">
-          <span className="text-cyan-400">● VISUAL SIMULATION</span>
-          <span className="text-emerald-400">● SATELLITE CATALOG READY</span>
-          <span className="text-amber-400">● MARITIME WIRED</span>
-          <span className="text-slate-500">● LIVE COLLECTION OFF</span>
-        </div>
-      </div>
-
-      {selected && <aside className="absolute right-4 top-28 z-40 w-[285px] rounded-2xl border border-cyan-900/80 bg-[#02090c]/92 p-4 shadow-[0_20px_60px_rgba(0,0,0,.45)] backdrop-blur-xl md:right-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[9px] font-bold tracking-[0.28em] text-cyan-500">SELECTED OBJECT</p>
-            <h2 className="mt-1 text-lg font-semibold text-cyan-100">{selected.name}</h2>
-            <p className="text-[10px] text-slate-600">{selected.id} • NORAD {selected.noradId ?? "pending"}</p>
-          </div>
-          <button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500 hover:text-white">×</button>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 text-[10px]">
-          <div className="rounded-lg bg-white/[0.035] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div>
-          <div className="rounded-lg bg-white/[0.035] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div>
-          <div className="rounded-lg bg-white/[0.035] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div>
-          <div className="rounded-lg bg-white/[0.035] p-2"><span className="text-slate-600">MISSION</span><br /><span className="text-slate-300">{selected.mission}</span></div>
-        </div>
-        <div className="mt-4 rounded-lg border border-amber-900/50 bg-amber-950/10 px-3 py-2 text-[9px] leading-relaxed text-amber-300">TEST DATA ONLY • NO LIVE POSITION</div>
-      </aside>}
-
-      <style jsx>{`
-        @keyframes sentinel-star { from { opacity: .18; transform: scale(.7); } to { opacity: .85; transform: scale(1.35); } }
-        @keyframes sentinel-orbit-a { from { transform: rotate(0deg) scaleY(.58); } to { transform: rotate(360deg) scaleY(.58); } }
-        @keyframes sentinel-orbit-b { from { transform: rotate(0deg) scaleY(.72); } to { transform: rotate(360deg) scaleY(.72); } }
-        @keyframes sentinel-scan { 0% { transform: translateX(-120%) rotate(18deg); opacity: 0; } 18% { opacity: .35; } 50% { opacity: .1; } 100% { transform: translateX(120%) rotate(18deg); opacity: 0; } }
-      `}</style>
+      <footer className="absolute inset-x-3 bottom-3 z-20 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-cyan-950/80 bg-black/70 px-3 py-2 text-[8px] font-bold tracking-[0.14em] backdrop-blur-xl md:inset-x-5">
+        <span className="text-emerald-400">● CESIUM 3D READY</span>
+        <span className="text-cyan-400">● SATELLITE WIRING READY</span>
+        <span className="text-violet-400">● ORBIT ENGINE OFF</span>
+        <span className="text-amber-400">● LIVE POWER OFF</span>
+        <span className="text-slate-600">● DB SINK RESERVED</span>
+      </footer>
     </main>
   );
 }
