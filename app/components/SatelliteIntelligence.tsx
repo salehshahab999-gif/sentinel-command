@@ -136,18 +136,19 @@ export default function SatelliteIntelligence() {
       baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false,
       navigationHelpButton: false, animation: false, timeline: false, fullscreenButton: false,
       vrButton: false, infoBox: false, selectionIndicator: false, scene3DOnly: true,
-      shouldAnimate: false, requestRenderMode: true, maximumRenderTimeChange: Number.POSITIVE_INFINITY,
+      shouldAnimate: false, requestRenderMode: false,
       baseLayer: false,
     });
     viewerRef.current = viewer;
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
-    viewer.scene.skyBox.show = false;
-    viewer.scene.skyAtmosphere.show = false;
-    viewer.scene.sun.show = false;
+    viewer.scene.skyBox.show = true;
+    viewer.scene.skyAtmosphere.show = true;
+    viewer.scene.sun.show = true;
     viewer.scene.moon.show = false;
-    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#061116");
-    viewer.scene.globe.showGroundAtmosphere = false;
-    viewer.scene.globe.enableLighting = false;
+    viewer.scene.globe.show = true;
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#173d49");
+    viewer.scene.globe.showGroundAtmosphere = true;
+    viewer.scene.globe.enableLighting = true;
     viewer.scene.fog.enabled = false;
     viewer.scene.postProcessStages.fxaa.enabled = true;
 
