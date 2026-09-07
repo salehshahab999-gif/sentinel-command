@@ -242,7 +242,7 @@ export default function SatelliteIntelligence() {
     <main className="relative min-h-screen overflow-hidden bg-[#01060a] text-white">
       <link rel="stylesheet" href={`${CESIUM_BASE}/Widgets/widgets.css`} />
       <Script id="sentinel-cesium" src={`${CESIUM_BASE}/Cesium.js`} strategy="afterInteractive" onLoad={() => setCesiumReady(true)} onError={() => setRuntimeStatus("CESIUM LOAD ERROR")} />
-      <div ref={containerRef} className="absolute inset-0 -translate-y-[1cm]" />
+      <div ref={containerRef} className="absolute inset-0" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(0,0,0,.08)_42%,rgba(0,0,0,.58)_100%)]" />
       <div className="pointer-events-none absolute inset-0 border border-cyan-950/30" />
 
