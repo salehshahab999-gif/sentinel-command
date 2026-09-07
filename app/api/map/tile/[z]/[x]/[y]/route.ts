@@ -47,11 +47,11 @@ async function writeCachedTile(
   z: string,
   x: string,
   y: string,
-  body: ArrayBuffer,
+  body: Buffer,
 ): Promise<void> {
   const target = tilePath(root, z, x, y);
   await fs.mkdir(path.dirname(target), { recursive: true });
-  await fs.writeFile(target, Buffer.from(body));
+  await fs.writeFile(target, body);
 }
 
 function imageResponse(data: Buffer, source: string): Response {
@@ -103,7 +103,7 @@ async function fetchProviderTile(provider: Provider, z: string, x: string, y: st
 
     if (!upstream.ok) return null;
 
-    const body = await upstream.arrayBuffer();
+    const body = Buffer.from(await upstream.arrayBuffer());
     await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
 
     return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
