@@ -136,21 +136,18 @@ export default function SatelliteIntelligence() {
       baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false,
       navigationHelpButton: false, animation: false, timeline: false, fullscreenButton: false,
       vrButton: false, infoBox: false, selectionIndicator: false, scene3DOnly: true,
-      shouldAnimate: false, requestRenderMode: false,
+      shouldAnimate: false, requestRenderMode: true, maximumRenderTimeChange: Number.POSITIVE_INFINITY,
       baseLayer: false,
-      globe: new Cesium.Globe(Cesium.Ellipsoid.WGS84),
-      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
     });
     viewerRef.current = viewer;
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
-    viewer.scene.skyBox.show = true;
-    viewer.scene.skyAtmosphere.show = true;
-    viewer.scene.sun.show = true;
+    viewer.scene.skyBox.show = false;
+    viewer.scene.skyAtmosphere.show = false;
+    viewer.scene.sun.show = false;
     viewer.scene.moon.show = false;
-    viewer.scene.globe.show = true;
-    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#173d49");
-    viewer.scene.globe.showGroundAtmosphere = true;
-    viewer.scene.globe.enableLighting = true;
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#061116");
+    viewer.scene.globe.showGroundAtmosphere = false;
+    viewer.scene.globe.enableLighting = false;
     viewer.scene.fog.enabled = false;
     viewer.scene.postProcessStages.fxaa.enabled = true;
 
@@ -188,17 +185,8 @@ export default function SatelliteIntelligence() {
       if (typeof id === "string") setSelectedId(id);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-    viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 22000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-90), roll: 0 } });
-    const cameraController = viewer.scene.screenSpaceCameraController;
-    cameraController.enableInputs = true;
-    cameraController.enableZoom = true;
-    cameraController.enableRotate = false;
-    cameraController.enableTilt = false;
-    cameraController.enableLook = false;
-    cameraController.enableTranslate = false;
-    cameraController.inertiaSpin = 0;
-    cameraController.inertiaTranslate = 0;
-    cameraController.zoomEventTypes = [Cesium.CameraEventType.WHEEL];
+    viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 22000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-56), roll: 0 } });
+    viewer.camera.moveUp(300000);
     viewer.scene.requestRender();
     setRuntimeStatus("CESIUM 3D READY / UNIVERSAL FILTER / LIVE OFF");
 
