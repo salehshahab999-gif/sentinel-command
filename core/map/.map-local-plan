@@ -1,1 +1,0 @@
-Local-first map experiment branch marker. Map runtime should read local MBTiles/offline PNG/cache only; no remote tile dependency in strict-local mode.
