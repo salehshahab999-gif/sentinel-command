@@ -186,7 +186,7 @@ export default function SatelliteIntelligence() {
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 17000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-56), roll: 0 } });
-    viewer.camera.moveUp(150000);
+    viewer.camera.moveUp(300000);
     viewer.scene.requestRender();
     setRuntimeStatus("CESIUM 3D READY / UNIVERSAL FILTER / LIVE OFF");
 
