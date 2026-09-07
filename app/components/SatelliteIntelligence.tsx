@@ -131,6 +131,7 @@ export default function SatelliteIntelligence() {
     const viewer = new Cesium.Viewer(containerRef.current, {
       animation: false,
       timeline: false,
+      baseLayer: false,
       baseLayerPicker: false,
       geocoder: false,
       homeButton: false,
