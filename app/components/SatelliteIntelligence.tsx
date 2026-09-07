@@ -133,12 +133,20 @@ export default function SatelliteIntelligence() {
     setRuntimeStatus("POWERING GLOBE / MAP LOCAL-FIRST / LIVE OFF");
 
     const viewer = new Cesium.Viewer(containerRef.current, {
-      baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false,
-      navigationHelpButton: false, animation: false, timeline: false, fullscreenButton: false,
-      vrButton: false, infoBox: false, selectionIndicator: false, scene3DOnly: true,
-      shouldAnimate: false, requestRenderMode: true, maximumRenderTimeChange: Number.POSITIVE_INFINITY,
-      baseLayer: false,
-    });
+  baseLayerPicker: false,
+  geocoder: false,
+  homeButton: false,
+  sceneModePicker: false,
+  navigationHelpButton: false,
+  animation: false,
+  timeline: false,
+  fullscreenButton: false,
+  vrButton: false,
+  infoBox: false,
+  selectionIndicator: false,
+  scene3DOnly: true,
+  shouldAnimate: false,
+});
     viewerRef.current = viewer;
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
     viewer.scene.skyBox.show = false;
