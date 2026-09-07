@@ -8,6 +8,7 @@ const OSM_CACHE_DIR = path.join(WORLD_DIR, "cache", "osm");
 const TILE_HOST = "tile.openstreetmap.org";
 const NESHAN_TILE_HOST = "map.neshan.org";
 const NESHAN_API_KEY = process.env.NESHAN_API_KEY?.trim();
+const PROVIDER_TIMEOUT_MS = 3000;
 
 function isSafeTilePart(value: string): boolean {
   return /^\d{1,6}$/.test(value);
@@ -53,9 +54,7 @@ function imageResponse(data: Buffer, source: string): Response {
 }
 
 async function fetchNeshanTile(z: string, x: string, y: string): Promise<Response | null> {
-  if (!NESHAN_API_KEY) {
-    return null;
-  }
+  if (!NESHAN_API_KEY) return null;
 
   try {
     const upstream = await fetch(
@@ -67,12 +66,11 @@ async function fetchNeshanTile(z: string, x: string, y: string): Promise<Respons
             process.env.SENTINEL_MAP_USER_AGENT ??
             "Sentinel-Command-Center/1.0 local map tile cache",
         },
+        signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
       },
     );
 
-    if (!upstream.ok) {
-      return null;
-    }
+    if (!upstream.ok) return null;
 
     const body = await upstream.arrayBuffer();
     await writeCachedTile(NESHAN_CACHE_DIR, z, x, y, body);
@@ -98,11 +96,10 @@ async function fetchOsmTile(z: string, x: string, y: string): Promise<Response |
           process.env.SENTINEL_MAP_USER_AGENT ??
           "Sentinel-Command-Center/1.0 local map tile cache",
       },
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
-    if (!upstream.ok) {
-      return null;
-    }
+    if (!upstream.ok) return null;
 
     const body = await upstream.arrayBuffer();
     await writeCachedTile(OSM_CACHE_DIR, z, x, y, body);
@@ -130,15 +127,14 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
+  // Provider order: Neshan first, then OSM. Each provider has its own local cache.
   const neshanCached = await readTile(NESHAN_CACHE_DIR, z, x, y);
   if (neshanCached) {
     return imageResponse(neshanCached, "NESHAN-LOCAL-CACHE");
   }
 
   const neshanOnline = await fetchNeshanTile(z, x, y);
-  if (neshanOnline) {
-    return neshanOnline;
-  }
+  if (neshanOnline) return neshanOnline;
 
   const osmCached = await readTile(OSM_CACHE_DIR, z, x, y);
   if (osmCached) {
@@ -146,9 +142,7 @@ export async function GET(
   }
 
   const osmOnline = await fetchOsmTile(z, x, y);
-  if (osmOnline) {
-    return osmOnline;
-  }
+  if (osmOnline) return osmOnline;
 
   return new Response("Map tile unavailable", {
     status: 503,
