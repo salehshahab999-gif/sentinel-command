@@ -138,6 +138,8 @@ export default function SatelliteIntelligence() {
       vrButton: false, infoBox: false, selectionIndicator: false, scene3DOnly: true,
       shouldAnimate: false, requestRenderMode: false,
       baseLayer: false,
+      globe: new Cesium.Globe(Cesium.Ellipsoid.WGS84),
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
     });
     viewerRef.current = viewer;
     viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
