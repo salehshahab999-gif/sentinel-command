@@ -130,49 +130,46 @@ export default function SatelliteIntelligence() {
   useEffect(() => {
     if (!cesiumReady || !containerRef.current || viewerRef.current || !window.Cesium) return;
     const Cesium = window.Cesium;
-    setRuntimeStatus("POWERING GLOBE / MAP LOCAL-FIRST / LIVE OFF");
+    setRuntimeStatus("POWERING GLOBE / NESHAN + OSM FAILOVER / LIVE OFF");
 
     const viewer = new Cesium.Viewer(containerRef.current, {
-  baseLayerPicker: false,
-  geocoder: false,
-  homeButton: false,
-  sceneModePicker: false,
-  navigationHelpButton: false,
-  animation: false,
-  timeline: false,
-  fullscreenButton: false,
-  vrButton: false,
-  infoBox: false,
-  selectionIndicator: false,
-  scene3DOnly: true,
-  shouldAnimate: false,
-  terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-});
+      baseLayerPicker: false,
+      geocoder: false,
+      homeButton: false,
+      sceneModePicker: false,
+      navigationHelpButton: false,
+      animation: false,
+      timeline: false,
+      fullscreenButton: false,
+      vrButton: false,
+      infoBox: false,
+      selectionIndicator: false,
+      scene3DOnly: true,
+      shouldAnimate: false,
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+    });
     viewerRef.current = viewer;
 
-viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#000308");
-
-viewer.scene.skyBox.show = true;
-viewer.scene.skyAtmosphere.show = true;
-
-viewer.scene.sun.show = true;
-viewer.scene.moon.show = true;
-
-viewer.scene.globe.show = true;
-viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0a1620");
-
-viewer.scene.globe.showGroundAtmosphere = true;
-viewer.scene.globe.enableLighting = true;
-
-viewer.scene.fog.enabled = true;
-viewer.scene.fog.density = 0.000002;
-
-viewer.scene.postProcessStages.fxaa.enabled = true;
-
-viewer.scene.requestRender();
+    viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#000308");
+    viewer.scene.skyBox.show = true;
+    viewer.scene.skyAtmosphere.show = true;
+    viewer.scene.sun.show = true;
+    viewer.scene.moon.show = true;
+    viewer.scene.globe.show = true;
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0a1620");
+    viewer.scene.globe.showGroundAtmosphere = true;
+    viewer.scene.globe.enableLighting = true;
+    viewer.scene.fog.enabled = true;
+    viewer.scene.fog.density = 0.000002;
+    viewer.scene.postProcessStages.fxaa.enabled = true;
+    viewer.scene.requestRender();
 
     if (enabledLayers.baseMap) {
-      const localFirstProvider = new Cesium.UrlTemplateImageryProvider({ url: "/api/map/tile/{z}/{x}/{y}.png", maximumLevel: 19, credit: "© OpenStreetMap contributors" });
+      const localFirstProvider = new Cesium.UrlTemplateImageryProvider({
+        url: "/api/map/tile/{z}/{x}/{y}.png",
+        maximumLevel: 19,
+        credit: "© Neshan Maps / © OpenStreetMap contributors",
+      });
       baseLayerRef.current = viewer.imageryLayers.add(new Cesium.ImageryLayer(localFirstProvider));
     }
 
@@ -194,7 +191,11 @@ viewer.scene.requestRender();
         scaleByDistance: new Cesium.NearFarScalar(4.0e6, 1.6, 4.0e7, 0.55),
       });
       point._sentinelSatelliteId = satellite.id;
-      const orbit = orbitCollection.add({ positions: buildOrbit(Cesium, satellite), width: 1.2, material: Cesium.Material.fromType("Color", { color: providerColor(Cesium, satellite.source).withAlpha(0.34) }) });
+      const orbit = orbitCollection.add({
+        positions: buildOrbit(Cesium, satellite),
+        width: 1.2,
+        material: Cesium.Material.fromType("Color", { color: providerColor(Cesium, satellite.source).withAlpha(0.34) }),
+      });
       orbit._sentinelSatelliteId = satellite.id;
     }
 
@@ -205,25 +206,20 @@ viewer.scene.requestRender();
       if (typeof id === "string") setSelectedId(id);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  viewer.camera.setView({
-  destination: Cesium.Cartesian3.fromDegrees(0, 0, 26000000),
-  orientation: {
-    heading: 0,
-    pitch: Cesium.Math.toRadians(-90),
-    roll: 0
-  }
-});
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(0, 0, 26000000),
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0,
+      },
+    });
 
-viewer.scene.requestRender();
-
-viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
-
-viewer.scene.globe.depthTestAgainstTerrain = true;
-
-viewer.scene.requestRender();
-    
     viewer.scene.requestRender();
-    setRuntimeStatus("CESIUM 3D READY / UNIVERSAL FILTER / LIVE OFF");
+    viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+    viewer.scene.requestRender();
+    setRuntimeStatus("CESIUM 3D READY / NESHAN + OSM FAILOVER / LIVE OFF");
 
     return () => {
       clickHandlerRef.current?.destroy?.();
@@ -286,7 +282,7 @@ viewer.scene.requestRender();
         <div className="rounded-xl border border-cyan-950/80 bg-black/70 px-4 py-3 backdrop-blur-xl md:px-5 md:py-4">
           <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.32em] text-cyan-400"><span className="h-2 w-2 rounded-full bg-cyan-400" />SENTINEL COMMAND CENTER</div>
           <h1 className="mt-1 text-xl font-semibold tracking-tight text-slate-100 md:text-3xl">GLOBAL INTELLIGENCE / SPACE</h1>
-          <p className="mt-2 text-[10px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • LOCAL-FIRST MAP • UNIVERSAL FILTER • LIVE COLLECTORS OFF</p>
+          <p className="mt-2 text-[10px] tracking-[0.16em] text-slate-500">REAL 3D GLOBE • NESHAN + OSM FAILOVER • UNIVERSAL FILTER • LIVE COLLECTORS OFF</p>
         </div>
         <div className="rounded-full border border-emerald-900/80 bg-black/70 px-3 py-2 text-[9px] font-bold tracking-[0.16em] text-emerald-300 backdrop-blur-xl">{runtimeStatus}</div>
       </header>
@@ -303,14 +299,14 @@ viewer.scene.requestRender();
         <div className="mt-2 text-[8px] leading-4 text-slate-600">Applies to map, satellite, aircraft, maritime, event, alert and weather targets.</div>
       </section>
       
-<aside className="absolute right-3 top-[calc(6rem-1cm)] z-20 w-[210px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:right-5 md:w-[245px]">
+      <aside className="absolute right-3 top-[calc(6rem-1cm)] z-20 w-[210px] rounded-xl border border-cyan-950/80 bg-black/72 p-3 shadow-2xl backdrop-blur-xl md:right-5 md:w-[245px]">
         <div className="flex items-center justify-between"><p className="text-[9px] font-bold tracking-[0.28em] text-slate-500">SYSTEM LAYERS</p><span className="text-[8px] text-slate-600">{Object.values(enabledLayers).filter(Boolean).length} ON</span></div>
         <div className="mt-2 space-y-1">{layerGroups.map((layer) => <button key={layer.id} type="button" onClick={() => toggleLayer(layer.id)} className={`flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-[8px] font-bold tracking-[0.1em] ${enabledLayers[layer.id] ? "border-cyan-900 bg-cyan-950/30 text-cyan-300" : "border-slate-900 text-slate-700"}`}><span>{layer.label}</span><span className={`h-1.5 w-1.5 rounded-full ${enabledLayers[layer.id] ? "bg-cyan-400" : "bg-slate-800"}`} /></button>)}</div>
       </aside>
 
       {selected && <aside className="absolute bottom-4 left-4 z-20 w-[285px] rounded-xl border border-cyan-900/80 bg-black/78 p-3 shadow-2xl backdrop-blur-xl md:left-5"><div className="flex items-start justify-between gap-3"><div><p className="text-[8px] font-bold tracking-[0.25em] text-cyan-500">SELECTED SATELLITE</p><h2 className="mt-1 text-base font-semibold text-cyan-100">{selected.name}</h2></div><button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500">×</button></div><div className="mt-2 grid grid-cols-2 gap-1.5 text-[8px]"><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">NORAD</span><br /><span className="text-slate-300">{selected.noradId ?? "PENDING"}</span></div><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div><div className="rounded-md bg-white/[0.03] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div></div></aside>}
 
-      <footer className="absolute inset-x-3 bottom-3 z-20 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-cyan-950/80 bg-black/70 px-3 py-2 text-[8px] font-bold tracking-[0.14em] backdrop-blur-xl md:inset-x-5"><span className="text-emerald-400">● CESIUM 3D READY</span><span className="text-cyan-400">● MAP LOCAL-FIRST</span><span className="text-cyan-400">● UNIVERSAL FILTER</span><span className="text-violet-400">● ORBIT ENGINE OFF</span><span className="text-amber-400">● LIVE POWER OFF</span><span className="text-slate-500">● © OpenStreetMap contributors</span></footer>
+      <footer className="absolute inset-x-3 bottom-3 z-20 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-cyan-950/80 bg-black/70 px-3 py-2 text-[8px] font-bold tracking-[0.14em] backdrop-blur-xl md:inset-x-5"><span className="text-emerald-400">● CESIUM 3D READY</span><span className="text-cyan-400">● NESHAN PRIMARY</span><span className="text-cyan-400">● OSM FAILOVER</span><span className="text-cyan-400">● UNIVERSAL FILTER</span><span className="text-violet-400">● ORBIT ENGINE OFF</span><span className="text-amber-400">● LIVE POWER OFF</span></footer>
     </main>
   );
 }
