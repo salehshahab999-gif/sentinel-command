@@ -186,7 +186,16 @@ export default function SatelliteIntelligence() {
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 22000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-56), roll: 0 } });
-    viewer.camera.moveUp(300000);
+    const cameraController = viewer.scene.screenSpaceCameraController;
+    cameraController.enableInputs = true;
+    cameraController.enableZoom = true;
+    cameraController.enableRotate = false;
+    cameraController.enableTilt = false;
+    cameraController.enableLook = false;
+    cameraController.enableTranslate = false;
+    cameraController.inertiaSpin = 0;
+    cameraController.inertiaTranslate = 0;
+    cameraController.zoomEventTypes = [Cesium.CameraEventType.WHEEL];
     viewer.scene.requestRender();
     setRuntimeStatus("CESIUM 3D READY / UNIVERSAL FILTER / LIVE OFF");
 
