@@ -146,18 +146,30 @@ export default function SatelliteIntelligence() {
   selectionIndicator: false,
   scene3DOnly: true,
   shouldAnimate: false,
+  terrainProvider: new Cesium.EllipsoidTerrainProvider(),
 });
     viewerRef.current = viewer;
-    viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#01060a");
-    viewer.scene.skyBox.show = false;
-    viewer.scene.skyAtmosphere.show = false;
-    viewer.scene.sun.show = false;
-    viewer.scene.moon.show = false;
-    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#061116");
-    viewer.scene.globe.showGroundAtmosphere = false;
-    viewer.scene.globe.enableLighting = false;
-    viewer.scene.fog.enabled = false;
-    viewer.scene.postProcessStages.fxaa.enabled = true;
+
+viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#000308");
+
+viewer.scene.skyBox.show = true;
+viewer.scene.skyAtmosphere.show = true;
+
+viewer.scene.sun.show = true;
+viewer.scene.moon.show = true;
+
+viewer.scene.globe.show = true;
+viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0a1620");
+
+viewer.scene.globe.showGroundAtmosphere = true;
+viewer.scene.globe.enableLighting = true;
+
+viewer.scene.fog.enabled = true;
+viewer.scene.fog.density = 0.000002;
+
+viewer.scene.postProcessStages.fxaa.enabled = true;
+
+viewer.scene.requestRender();
 
     if (enabledLayers.baseMap) {
       const localFirstProvider = new Cesium.UrlTemplateImageryProvider({ url: "/api/map/tile/{z}/{x}/{y}.png", maximumLevel: 19, credit: "© OpenStreetMap contributors" });
@@ -193,8 +205,23 @@ export default function SatelliteIntelligence() {
       if (typeof id === "string") setSelectedId(id);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-    viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 22000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-56), roll: 0 } });
-    viewer.camera.moveUp(300000);
+  viewer.camera.setView({
+  destination: Cesium.Cartesian3.fromDegrees(0, 0, 26000000),
+  orientation: {
+    heading: 0,
+    pitch: Cesium.Math.toRadians(-90),
+    roll: 0
+  }
+});
+
+viewer.scene.requestRender();
+
+viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+
+viewer.scene.globe.depthTestAgainstTerrain = true;
+
+viewer.scene.requestRender();
+    
     viewer.scene.requestRender();
     setRuntimeStatus("CESIUM 3D READY / UNIVERSAL FILTER / LIVE OFF");
 
