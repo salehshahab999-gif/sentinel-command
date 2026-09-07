@@ -1,0 +1,46 @@
+name: Cesium Browser Smoke
+
+on:
+  push:
+    branches:
+      - "feat/pnt-multi-source-switch"
+  workflow_dispatch:
+
+jobs:
+  cesium-browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright@latest install --with-deps chromium
+
+      - name: Start Next dev server
+        run: |
+          mkdir -p .artifacts
+          (npm run dev -- --hostname 127.0.0.1 > /tmp/sentinel-next.log 2>&1 & echo $! > /tmp/sentinel-next.pid)
+          npx wait-on@latest http://127.0.0.1:3000/satellite --timeout 120000
+
+      - name: Cesium browser smoke
+        env:
+          BASE_URL: http://127.0.0.1:3000
+        run: npx -p playwright node scripts/cesium-browser-smoke.mjs
+
+      - name: Upload Cesium screenshots and Next logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cesium-browser-smoke
+          path: |
+            .artifacts/*.png
+            /tmp/sentinel-next.log
