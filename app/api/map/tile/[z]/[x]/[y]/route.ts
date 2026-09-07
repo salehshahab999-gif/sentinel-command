@@ -3,12 +3,18 @@ import path from "node:path";
 import { resolveStoragePath } from "../../../../../../../core/storage/storage-runtime";
 
 const WORLD_DIR = resolveStoragePath("MAP");
-const NESHAN_CACHE_DIR = path.join(WORLD_DIR, "cache", "neshan");
-const OSM_CACHE_DIR = path.join(WORLD_DIR, "cache", "osm");
-const TILE_HOST = "tile.openstreetmap.org";
-const NESHAN_TILE_HOST = "map.neshan.org";
-const NESHAN_API_KEY = process.env.NESHAN_API_KEY?.trim();
+
+const CACHE_ROOT = path.join(WORLD_DIR, "cache");
+const PROVIDER_CACHES = {
+  carto: path.join(CACHE_ROOT, "carto"),
+  esri: path.join(CACHE_ROOT, "esri"),
+  osm: path.join(CACHE_ROOT, "osm"),
+} as const;
+
 const PROVIDER_TIMEOUT_MS = 3000;
+const SENTINEL_USER_AGENT =
+  process.env.SENTINEL_MAP_USER_AGENT ??
+  "Sentinel-Command-Center/1.0 local map tile cache";
 
 function isSafeTilePart(value: string): boolean {
   return /^\d{1,6}$/.test(value);
@@ -23,7 +29,12 @@ function tilePath(root: string, z: string, x: string, y: string): string {
   return path.join(root, z, x, `${y}.png`);
 }
 
-async function readTile(root: string, z: string, x: string, y: string): Promise<Buffer | null> {
+async function readTile(
+  root: string,
+  z: string,
+  x: string,
+  y: string,
+): Promise<Buffer | null> {
   try {
     return await fs.readFile(tilePath(root, z, x, y));
   } catch {
@@ -53,48 +64,39 @@ function imageResponse(data: Buffer, source: string): Response {
   });
 }
 
-async function fetchNeshanTile(z: string, x: string, y: string): Promise<Response | null> {
-  if (!NESHAN_API_KEY) return null;
+type Provider = {
+  id: keyof typeof PROVIDER_CACHES;
+  label: string;
+  buildUrl: (z: string, x: string, y: string) => string;
+};
 
+const providers: Provider[] = [
+  {
+    id: "carto",
+    label: "CARTO-LIGHT",
+    buildUrl: (z, x, y) =>
+      `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
+  },
+  {
+    id: "esri",
+    label: "ESRI-WORLD-IMAGERY",
+    buildUrl: (z, x, y) =>
+      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+  },
+  {
+    id: "osm",
+    label: "OSM-STANDARD",
+    buildUrl: (z, x, y) =>
+      `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+  },
+];
+
+async function fetchProviderTile(provider: Provider, z: string, x: string, y: string) {
   try {
-    const upstream = await fetch(
-      `https://${NESHAN_TILE_HOST}/${z}/${x}/${y}.png?key=${encodeURIComponent(NESHAN_API_KEY)}`,
-      {
-        headers: {
-          Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
-          "User-Agent":
-            process.env.SENTINEL_MAP_USER_AGENT ??
-            "Sentinel-Command-Center/1.0 local map tile cache",
-        },
-        signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
-      },
-    );
-
-    if (!upstream.ok) return null;
-
-    const body = await upstream.arrayBuffer();
-    await writeCachedTile(NESHAN_CACHE_DIR, z, x, y, body);
-
-    return new Response(body, {
-      headers: {
-        "Content-Type": upstream.headers.get("content-type") ?? "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Sentinel-Map": "NESHAN-ONLINE-CACHED",
-      },
-    });
-  } catch {
-    return null;
-  }
-}
-
-async function fetchOsmTile(z: string, x: string, y: string): Promise<Response | null> {
-  try {
-    const upstream = await fetch(`https://${TILE_HOST}/${z}/${x}/${y}.png`, {
+    const upstream = await fetch(provider.buildUrl(z, x, y), {
       headers: {
         Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
-        "User-Agent":
-          process.env.SENTINEL_MAP_USER_AGENT ??
-          "Sentinel-Command-Center/1.0 local map tile cache",
+        "User-Agent": SENTINEL_USER_AGENT,
       },
       signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
@@ -102,15 +104,9 @@ async function fetchOsmTile(z: string, x: string, y: string): Promise<Response |
     if (!upstream.ok) return null;
 
     const body = await upstream.arrayBuffer();
-    await writeCachedTile(OSM_CACHE_DIR, z, x, y, body);
+    await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
 
-    return new Response(body, {
-      headers: {
-        "Content-Type": upstream.headers.get("content-type") ?? "image/png",
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Sentinel-Map": "OSM-ONLINE-CACHED",
-      },
-    });
+    return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
   } catch {
     return null;
   }
@@ -127,22 +123,19 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
-  // Provider order: Neshan first, then OSM. Each provider has its own local cache.
-  const neshanCached = await readTile(NESHAN_CACHE_DIR, z, x, y);
-  if (neshanCached) {
-    return imageResponse(neshanCached, "NESHAN-LOCAL-CACHE");
+  // Try every local cache first, then every online provider.
+  for (const provider of providers) {
+    const cached = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
+    if (cached) {
+      return imageResponse(cached, `${provider.label}-LOCAL-CACHE`);
+    }
   }
 
-  const neshanOnline = await fetchNeshanTile(z, x, y);
-  if (neshanOnline) return neshanOnline;
-
-  const osmCached = await readTile(OSM_CACHE_DIR, z, x, y);
-  if (osmCached) {
-    return imageResponse(osmCached, "OSM-LOCAL-CACHE-FALLBACK");
+  // No API key is required for this provider chain.
+  for (const provider of providers) {
+    const online = await fetchProviderTile(provider, z, x, y);
+    if (online) return online;
   }
-
-  const osmOnline = await fetchOsmTile(z, x, y);
-  if (osmOnline) return osmOnline;
 
   return new Response("Map tile unavailable", {
     status: 503,
