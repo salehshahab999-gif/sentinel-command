@@ -185,7 +185,7 @@ export default function SatelliteIntelligence() {
       if (typeof id === "string") setSelectedId(id);
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-    viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 22000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-56), roll: 0 } });
+    viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 25, 22000000), orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-90), roll: 0 } });
     const cameraController = viewer.scene.screenSpaceCameraController;
     cameraController.enableInputs = true;
     cameraController.enableZoom = true;
