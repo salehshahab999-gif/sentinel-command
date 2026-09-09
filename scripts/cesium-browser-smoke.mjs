@@ -2,6 +2,24 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:3000";
 
+async function checkMapTile(page) {
+  const response = await page.request.get(
+    `${baseUrl}/api/map/tile/17/83880/51020.png`,
+    { timeout: 30000 },
+  );
+
+  const contentType = response.headers()["content-type"] ?? "";
+  const source = response.headers()["x-sentinel-map"] ?? "";
+  const body = await response.body();
+
+  return {
+    status: response.status(),
+    contentType,
+    source,
+    bytes: body.length,
+  };
+}
+
 const browser = await chromium.launch({
   headless: true,
   args: ["--use-gl=swiftshader", "--disable-gpu-sandbox"],
@@ -62,6 +80,11 @@ try {
       );
     }
 
+    const mapTile =
+      route === "/satellite"
+        ? await checkMapTile(page)
+        : null;
+
     const state = await page.evaluate(() => {
       const canvases = [...document.querySelectorAll("canvas")];
 
@@ -102,6 +125,7 @@ try {
     const result = {
       route,
       state,
+      mapTile,
       consoleErrors,
       pageErrors,
       failedRequests,
@@ -116,7 +140,12 @@ try {
       consoleErrors.length > 0 ||
       pageErrors.length > 0 ||
       failedRequests.length > 0 ||
-      (route === "/test-globe" && state.imagery !== "READY")
+      (route === "/test-globe" && state.imagery !== "READY") ||
+      (route === "/satellite" &&
+        (!mapTile ||
+          mapTile.status !== 200 ||
+          !mapTile.contentType.startsWith("image/") ||
+          !mapTile.source))
     ) {
       throw new Error(
         `${route} failed Cesium browser smoke: ${JSON.stringify(result)}`,
