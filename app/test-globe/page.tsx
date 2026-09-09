@@ -77,6 +77,7 @@ export default function TestGlobePage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
   const inputHandlerRef = useRef<any>(null);
+  const zoomControllerRef = useRef<any>(null);
   const layersRef = useRef<Record<LayerMode, any>>({
     map: null,
     "satellite-labels": null,
@@ -152,12 +153,23 @@ export default function TestGlobePage() {
         if (viewer.scene.postProcessStages?.fxaa) viewer.scene.postProcessStages.fxaa.enabled = true;
         viewer.resolutionScale = Math.min(Math.max(window.devicePixelRatio || 1, 1) * 1.5, 2.0);
 
-        const controller = viewer.scene.screenSpaceCameraController;
-        controller.inertiaZoom = 0.72;
-        controller.zoomFactor = 0.55;
-        controller.minimumZoomDistance = 100;
-        controller.maximumZoomDistance = 40000000;
-        controller.enableCollisionDetection = false;
+        const baseController = viewer.scene.screenSpaceCameraController;
+        baseController.enableZoom = false;
+        baseController.minimumZoomDistance = 100;
+        baseController.maximumZoomDistance = 40000000;
+        baseController.enableCollisionDetection = false;
+
+        const zoomController = new Cesium.ScreenSpaceZoomCameraController();
+        zoomController.usePointerPosition = true;
+        zoomController.zoomSensitivity = 0.12;
+        zoomController.zoomDistanceRatio = 0.32;
+        zoomController.maximumZoomVelocity = 1.4;
+        zoomController.dampingEnabled = true;
+        zoomController.inertiaEnabled = true;
+        zoomController.inertialDecay = 7.0;
+        zoomController.zoomAnimationDuration = 0.32;
+        viewer.addController(zoomController);
+        zoomControllerRef.current = zoomController;
 
         viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000) });
         viewerRef.current = viewer;
@@ -165,12 +177,12 @@ export default function TestGlobePage() {
         inputHandlerRef.current = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         inputHandlerRef.current.setInputAction((movement: any) => {
           const ray = viewer.camera.getPickRay(movement.position);
-          const cartesian = ray ? viewer.scene.globe.ellipsoid.pick(ray, viewer.scene) : undefined;
+          const cartesian = ray ? viewer.scene.globe.pick(ray, viewer.scene) : undefined;
           if (!cartesian) return;
 
           const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-          const height = Math.max(viewer.camera.positionCartographic.height, 50000);
-          const targetHeight = Math.min(Math.max(height * 0.42, 1500), 2500000);
+          const height = Math.max(viewer.camera.positionCartographic.height, 12000);
+          const targetHeight = Math.min(Math.max(height * 0.38, 1200), 1800000);
 
           viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromRadians(
@@ -178,10 +190,9 @@ export default function TestGlobePage() {
               cartographic.latitude,
               targetHeight,
             ),
-            duration: 0.65,
-            maximumHeight: Math.min(Math.max(height * 1.15, 1000000), 20000000),
+            duration: 0.55,
+            maximumHeight: Math.min(Math.max(height * 1.1, 500000), 18000000),
           });
-          viewer.scene.requestRender();
         }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
         await Promise.all([
@@ -214,6 +225,10 @@ export default function TestGlobePage() {
       destroyed = true;
       inputHandlerRef.current?.destroy();
       inputHandlerRef.current = null;
+      if (zoomControllerRef.current && viewerRef.current && !viewerRef.current.isDestroyed()) {
+        viewerRef.current.removeController(zoomControllerRef.current);
+      }
+      zoomControllerRef.current = null;
       viewerRef.current?.destroy();
       viewerRef.current = null;
       layersRef.current = { map: null, "satellite-labels": null, "satellite-clean": null };
@@ -260,7 +275,7 @@ export default function TestGlobePage() {
   const zoom = (direction: "in" | "out") => {
     const viewer = viewerRef.current;
     if (!viewer) return;
-    direction === "in" ? viewer.camera.zoomIn(1_000_000) : viewer.camera.zoomOut(1_000_000);
+    direction === "in" ? viewer.camera.zoomIn(1000000) : viewer.camera.zoomOut(1000000);
     setZoomLevel((value) => direction === "in" ? Math.min(220, value + 15) : Math.max(40, value - 15));
     viewer.scene.requestRender();
   };
