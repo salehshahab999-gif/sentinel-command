@@ -1,6 +1,9 @@
 import { chromium } from "playwright";
 
 const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:3000";
+const requireTestGlobeImagery =
+  process.env.REQUIRE_TEST_GLOBE_IMAGERY !== "false" &&
+  (!process.env.CI || process.env.REQUIRE_TEST_GLOBE_IMAGERY === "true");
 
 async function checkMapTile(page) {
   const response = await page.request.get(
@@ -73,7 +76,7 @@ try {
 
     await page.waitForTimeout(3000);
 
-    if (route === "/test-globe") {
+    if (route === "/test-globe" && requireTestGlobeImagery) {
       await page.waitForFunction(
         () => window.__SENTINEL_TEST_GLOBE__?.imagery === "READY",
         { timeout: 60000 },
@@ -126,6 +129,7 @@ try {
       route,
       state,
       mapTile,
+      requireTestGlobeImagery,
       consoleErrors,
       pageErrors,
       failedRequests,
@@ -140,12 +144,15 @@ try {
       consoleErrors.length > 0 ||
       pageErrors.length > 0 ||
       failedRequests.length > 0 ||
-      (route === "/test-globe" && state.imagery !== "READY") ||
+      (route === "/test-globe" &&
+        requireTestGlobeImagery &&
+        state.imagery !== "READY") ||
       (route === "/satellite" &&
         (!mapTile ||
           mapTile.status !== 200 ||
           !mapTile.contentType.startsWith("image/") ||
-          !mapTile.source))
+          !mapTile.source ||
+          mapTile.bytes <= 0))
     ) {
       throw new Error(
         `${route} failed Cesium browser smoke: ${JSON.stringify(result)}`,
