@@ -80,7 +80,7 @@ export default function TestGlobePage() {
 
       const assetId = mode === "map" ? ROADMAP_ASSET_ID : mode === "satellite-labels" ? SATELLITE_LABELS_ASSET_ID : SATELLITE_CLEAN_ASSET_ID;
       const provider = await Cesium.IonImageryProvider.fromAssetId(assetId);
-      const layer = viewer.imageryLayers.add(provider);
+      const layer = viewer.imageryLayers.addImageryProvider(provider);
       layer.show = false;
 
       if (mode === "satellite-labels") {
@@ -182,9 +182,8 @@ export default function TestGlobePage() {
     try {
       const layer = layersRef.current[nextMode] || await (async () => {
         const assetId = nextMode === "map" ? ROADMAP_ASSET_ID : nextMode === "satellite-labels" ? SATELLITE_LABELS_ASSET_ID : SATELLITE_CLEAN_ASSET_ID;
-        const created = viewer.imageryLayers.add(
-          await Cesium.IonImageryProvider.fromAssetId(assetId),
-        );
+        const provider = await Cesium.IonImageryProvider.fromAssetId(assetId);
+        const created = viewer.imageryLayers.addImageryProvider(provider);
         created.show = false;
         layersRef.current[nextMode] = created;
         return created;
@@ -192,7 +191,6 @@ export default function TestGlobePage() {
 
       Object.values(layersRef.current).forEach((item) => { if (item) item.show = false; });
       viewer.scene.globe.show = true;
-      // eslint-disable-next-line react-hooks/immutability
       layer.show = true;
 
       if (nextMode === "satellite-labels") {
