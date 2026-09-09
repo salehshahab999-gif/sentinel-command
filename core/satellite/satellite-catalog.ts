@@ -5,7 +5,7 @@ import type {
 } from "./satellite-contracts";
 
 export const SATELLITE_LAYERS: SatelliteLayerDefinition[] = [
-  { id: "baseMap", label: "Base Map", description: "Online global base map", liveReady: true, defaultEnabled: true },
+  { id: "baseMap", label: "Sentinel Offline Map", description: "Local map tile cache with online provider fallback", liveReady: true, defaultEnabled: true },
   { id: "satellites", label: "Satellites", description: "Satellite positions", liveReady: true, defaultEnabled: true },
   { id: "orbits", label: "Orbits", description: "Orbit and ground tracks", liveReady: true, defaultEnabled: false },
   { id: "fires", label: "NASA Fires", description: "NASA FIRMS active fire and thermal anomaly layer", liveReady: true, defaultEnabled: false },
@@ -33,7 +33,7 @@ export const SKELETON_SATELLITES: SatelliteRecord[] = [
 
 export const SATELLITE_WIRE_STATUS: SatelliteWireStatus[] = [
   { component: "3D Globe", status: "READY", note: "CesiumJS integration target; no live satellite fetch" },
-  { component: "Base Map", status: "READY", note: "Online map layer target" },
+  { component: "Sentinel Offline Map", status: "READY", note: "Local PMTiles architecture target plus on-demand local tile cache and online fallback" },
   { component: "Satellite Catalog", status: "READY", note: "Skeleton records only" },
   { component: "Orbit Engine", status: "POWERED_OFF", note: "Will use TLE/OMM + SGP4 when powered" },
   { component: "NASA FIRMS", status: "POWERED_OFF", note: "Dormant NASA FIRMS wiring; live hotspot collection disabled" },
