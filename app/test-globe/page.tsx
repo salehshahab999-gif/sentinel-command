@@ -134,8 +134,18 @@ export default function TestGlobePage() {
         viewer.scene.globe.maximumScreenSpaceError = 2;
         viewer.scene.fog.enabled = false;
         if (viewer.scene.skyAtmosphere) {
-          viewer.scene.skyAtmosphere.show = true;
+          viewer.scene.skyAtmosphere.show = false;
         }
+        if (viewer.scene.skyBox) {
+          viewer.scene.skyBox.show = false;
+        }
+        if (viewer.scene.sun) {
+          viewer.scene.sun.show = false;
+        }
+        if (viewer.scene.moon) {
+          viewer.scene.moon.show = false;
+        }
+        viewer.scene.backgroundColor = Cesium.Color.BLACK;
 
         viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000),
