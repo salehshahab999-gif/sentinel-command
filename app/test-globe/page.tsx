@@ -192,6 +192,7 @@ export default function TestGlobePage() {
 
       Object.values(layersRef.current).forEach((item) => { if (item) item.show = false; });
       viewer.scene.globe.show = true;
+      // eslint-disable-next-line react-hooks/immutability
       layer.show = true;
 
       if (nextMode === "satellite-labels") {
