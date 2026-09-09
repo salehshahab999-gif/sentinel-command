@@ -15,6 +15,7 @@ declare global {
 }
 
 const CESIUM_VERSION = "1.145";
+const SATELLITE_ASSET_ID = 3830183;
 const CESIUM_SCRIPT = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Cesium.js`;
 const CESIUM_CSS = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Widgets/widgets.css`;
 const CESIUM_BASE_URL = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/`;
@@ -56,13 +57,55 @@ function setTestStatus(status: Window["__SENTINEL_TEST_GLOBE__"]): void {
 export default function TestGlobePage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
+  const fallbackLayerRef = useRef<any>(null);
+  const googleTilesetRef = useRef<any>(null);
   const [engineState, setEngineState] = useState("BOOTING");
   const [imageryState, setImageryState] = useState("LOADING");
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [mode, setMode] = useState("GOOGLE 3D");
+  const [mode, setMode] = useState("BOOTING");
 
   useEffect(() => {
     let destroyed = false;
+
+    async function addSatelliteFallback(Cesium: any, viewer: any) {
+      if (destroyed || fallbackLayerRef.current) return;
+
+      try {
+        const satelliteLayer = Cesium.ImageryLayer.fromProviderAsync(
+          Cesium.IonImageryProvider.fromAssetId(SATELLITE_ASSET_ID),
+          {
+            brightness: 1.03,
+            contrast: 1.12,
+            saturation: 0.98,
+            gamma: 1.0,
+          },
+        );
+
+        satelliteLayer.readyEvent.addEventListener(() => {
+          if (destroyed) return;
+          setImageryState("READY");
+          setTestStatus({ engine: "READY", imagery: "READY" });
+          viewer.scene.requestRender();
+        });
+
+        satelliteLayer.errorEvent.addEventListener((error: unknown) => {
+          if (destroyed) return;
+          const message = error instanceof Error ? error.message : "Satellite imagery failed";
+          setImageryState("ERROR");
+          setTestStatus({ engine: "READY", imagery: "ERROR", error: message });
+          console.error("SATELLITE_IMAGERY_ERROR:", error);
+          viewer.scene.requestRender();
+        });
+
+        fallbackLayerRef.current = viewer.imageryLayers.add(satelliteLayer);
+        viewer.scene.requestRender();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Satellite imagery failed";
+        setImageryState("ERROR");
+        setTestStatus({ engine: "READY", imagery: "ERROR", error: message });
+        console.error("SATELLITE_IMAGERY_INIT_ERROR:", error);
+      }
+    }
 
     async function init() {
       try {
@@ -91,9 +134,16 @@ export default function TestGlobePage() {
           requestRenderMode: true,
           maximumRenderTimeChange: Number.POSITIVE_INFINITY,
           baseLayer: false,
-          globe: false,
         });
 
+        viewer.scene.globe.show = true;
+        viewer.scene.globe.enableLighting = false;
+        viewer.scene.globe.maximumScreenSpaceError = 0.35;
+        viewer.scene.globe.tileCacheSize = 400;
+        viewer.scene.globe.preloadSiblings = true;
+        viewer.scene.globe.preloadAncestors = true;
+        viewer.scene.globe.backFaceCulling = true;
+        viewer.scene.globe.depthTestAgainstTerrain = false;
         viewer.scene.fog.enabled = false;
         if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = false;
         if (viewer.scene.skyBox) viewer.scene.skyBox.show = false;
@@ -108,19 +158,19 @@ export default function TestGlobePage() {
         setTestStatus({ engine: "READY", imagery: "LOADING" });
 
         if (!googleKey) {
-          setImageryState("ERROR");
-          setMode("GOOGLE 3D KEY MISSING");
-          setTestStatus({ engine: "READY", imagery: "ERROR", error: "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not configured" });
-          viewer.scene.requestRender();
+          setMode("SATELLITE FALLBACK");
+          await addSatelliteFallback(Cesium, viewer);
           return;
         }
 
         try {
           setMode("GOOGLE 3D");
+          viewer.scene.globe.show = false;
           const tileset = await Cesium.createGooglePhotorealistic3DTileset({
             key: googleKey,
             usingOnlyWithGoogleGeocoder: true,
           });
+
           if (destroyed) {
             tileset.destroy?.();
             return;
@@ -129,31 +179,36 @@ export default function TestGlobePage() {
           tileset.showCreditsOnScreen = true;
           tileset.maximumScreenSpaceError = 1.0;
           tileset.preloadFlightDestinations = true;
-          viewer.scene.primitives.add(tileset);
+          googleTilesetRef.current = viewer.scene.primitives.add(tileset);
           setImageryState("READY");
           setTestStatus({ engine: "READY", imagery: "READY" });
           viewer.scene.requestRender();
         } catch (error) {
           const message = error instanceof Error ? error.message : "Google Photorealistic 3D Tiles failed";
-          setImageryState("ERROR");
-          setMode("GOOGLE 3D ERROR");
-          setTestStatus({ engine: "READY", imagery: "ERROR", error: message });
-          console.error("GOOGLE_PHOTOREALISTIC_3D_ERROR:", error);
-          viewer.scene.requestRender();
+          console.warn("GOOGLE_PHOTOREALISTIC_3D_ERROR:", error);
+          viewer.scene.globe.show = true;
+          setMode("SATELLITE FALLBACK");
+          setTestStatus({ engine: "READY", imagery: "LOADING", error: message });
+          await addSatelliteFallback(Cesium, viewer);
         }
       } catch (error) {
         if (destroyed) return;
         const message = error instanceof Error ? error.message : "Unknown Cesium error";
         setEngineState("ERROR");
         setImageryState("ERROR");
+        setMode("ENGINE ERROR");
         setTestStatus({ engine: "ERROR", imagery: "ERROR", error: message });
         console.error("CESIUM_INIT_ERROR:", error);
       }
     }
 
     init();
+
     return () => {
       destroyed = true;
+      googleTilesetRef.current?.destroy?.();
+      fallbackLayerRef.current = null;
+      googleTilesetRef.current = null;
       viewerRef.current?.destroy();
       viewerRef.current = null;
     };
@@ -209,7 +264,7 @@ export default function TestGlobePage() {
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-[9px]">
             <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">ZOOM</span><br /><span className="text-cyan-300">{zoomLevel}%</span></div>
-            <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">3D DATA</span><br /><span className={imageryState === "READY" ? "text-emerald-300" : "text-red-300"}>{imageryState}</span></div>
+            <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">3D DATA</span><br /><span className={imageryState === "READY" ? "text-emerald-300" : imageryState === "ERROR" ? "text-red-300" : "text-amber-300"}>{imageryState}</span></div>
           </div>
         </section>
 
