@@ -156,10 +156,9 @@ export default function TestGlobePage() {
           return;
         }
 
-        try {
-          setImageryState("LOADING");
+        setImageryState("LOADING");
 
-          // Cesium's current recommended Google Maps 2D Satellite with Labels asset.
+        try {
           const satelliteLayer = Cesium.ImageryLayer.fromProviderAsync(
             Cesium.IonImageryProvider.fromAssetId(SATELLITE_ASSET_ID),
             {
@@ -170,15 +169,31 @@ export default function TestGlobePage() {
             },
           );
 
+          satelliteLayer.readyEvent.addEventListener(() => {
+            if (destroyed) return;
+            setImageryState("READY");
+            setTestStatus({ engine: "READY", imagery: "READY" });
+            viewer.scene.requestRender();
+          });
+
+          satelliteLayer.errorEvent.addEventListener((error: unknown) => {
+            if (destroyed) return;
+            const message =
+              error instanceof Error ? error.message : "Satellite imagery failed";
+            setImageryState("ERROR");
+            setTestStatus({ engine: "READY", imagery: "ERROR", error: message });
+            console.error("SATELLITE_IMAGERY_ERROR:", error);
+            viewer.scene.requestRender();
+          });
+
           satelliteLayerRef.current = viewer.imageryLayers.add(satelliteLayer);
-          setImageryState("READY");
-          setTestStatus({ engine: "READY", imagery: "READY" });
           viewer.scene.requestRender();
         } catch (error) {
           const message =
             error instanceof Error ? error.message : "Satellite imagery failed";
           setImageryState("ERROR");
           setTestStatus({ engine: "READY", imagery: "ERROR", error: message });
+          console.error("SATELLITE_IMAGERY_INIT_ERROR:", error);
           viewer.scene.requestRender();
         }
       } catch (error) {
@@ -307,7 +322,9 @@ export default function TestGlobePage() {
                 className={
                   imageryState === "READY"
                     ? "text-emerald-300"
-                    : "text-amber-300"
+                    : imageryState === "ERROR"
+                      ? "text-red-300"
+                      : "text-amber-300"
                 }
               >
                 {imageryState}
