@@ -76,6 +76,7 @@ async function createIonProvider(Cesium: any, assetId: number): Promise<any> {
 export default function TestGlobePage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
+  const inputHandlerRef = useRef<any>(null);
   const layersRef = useRef<Record<LayerMode, any>>({
     map: null,
     "satellite-labels": null,
@@ -150,8 +151,38 @@ export default function TestGlobePage() {
         viewer.scene.backgroundColor = Cesium.Color.BLACK;
         if (viewer.scene.postProcessStages?.fxaa) viewer.scene.postProcessStages.fxaa.enabled = true;
         viewer.resolutionScale = Math.min(Math.max(window.devicePixelRatio || 1, 1) * 1.5, 2.0);
+
+        const controller = viewer.scene.screenSpaceCameraController;
+        controller.inertiaZoom = 0.72;
+        controller.zoomFactor = 0.55;
+        controller.minimumZoomDistance = 100;
+        controller.maximumZoomDistance = 40000000;
+        controller.enableCollisionDetection = false;
+
         viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000) });
         viewerRef.current = viewer;
+
+        inputHandlerRef.current = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        inputHandlerRef.current.setInputAction((movement: any) => {
+          const ray = viewer.camera.getPickRay(movement.position);
+          const cartesian = ray ? viewer.scene.globe.ellipsoid.pick(ray, viewer.scene) : undefined;
+          if (!cartesian) return;
+
+          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          const height = Math.max(viewer.camera.positionCartographic.height, 50000);
+          const targetHeight = Math.min(Math.max(height * 0.42, 1500), 2500000);
+
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromRadians(
+              cartographic.longitude,
+              cartographic.latitude,
+              targetHeight,
+            ),
+            duration: 0.65,
+            maximumHeight: Math.min(Math.max(height * 1.15, 1000000), 20000000),
+          });
+          viewer.scene.requestRender();
+        }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
         await Promise.all([
           createLayer(Cesium, viewer, "map"),
@@ -181,6 +212,8 @@ export default function TestGlobePage() {
 
     return () => {
       destroyed = true;
+      inputHandlerRef.current?.destroy();
+      inputHandlerRef.current = null;
       viewerRef.current?.destroy();
       viewerRef.current = null;
       layersRef.current = { map: null, "satellite-labels": null, "satellite-clean": null };
@@ -227,7 +260,7 @@ export default function TestGlobePage() {
   const zoom = (direction: "in" | "out") => {
     const viewer = viewerRef.current;
     if (!viewer) return;
-    direction === "in" ? viewer.camera.zoomIn(1_500_000) : viewer.camera.zoomOut(1_500_000);
+    direction === "in" ? viewer.camera.zoomIn(1_000_000) : viewer.camera.zoomOut(1_000_000);
     setZoomLevel((value) => direction === "in" ? Math.min(220, value + 15) : Math.max(40, value - 15));
     viewer.scene.requestRender();
   };
