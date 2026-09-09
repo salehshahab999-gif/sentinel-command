@@ -16,9 +16,9 @@ try {
       deviceScaleFactor: 1,
     });
 
-    const consoleErrors: string[] = [];
-    const pageErrors: string[] = [];
-    const failedRequests: Array<{ url: string; error: string }> = [];
+    const consoleErrors = [];
+    const pageErrors = [];
+    const failedRequests = [];
 
     page.on("console", (message) => {
       if (message.type() === "error") {
