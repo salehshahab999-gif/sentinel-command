@@ -35,6 +35,8 @@ jobs:
         run: npm run lint
 
       - name: Next production build
+        env:
+          DATABASE_URL: postgresql://ci-build:ci-build@127.0.0.1:5432/ci-build
         run: npm run build
 
       - name: Precision position test
