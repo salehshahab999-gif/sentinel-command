@@ -2,62 +2,97 @@
 
 import { useEffect, useRef } from "react";
 
-const CESIUM_URL =
-  "https://cesium.com/downloads/cesiumjs/releases/1.145/Build/Cesium/Cesium.js";
+declare global {
+  interface Window {
+    Cesium?: any;
+    CESIUM_BASE_URL?: string;
+  }
+}
 
-export default function TestGlobe() {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const hasInitialized = useRef(false);
+const CESIUM_VERSION = "1.145";
+
+const CESIUM_SCRIPT =
+  `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Cesium.js`;
+
+const CESIUM_CSS =
+  `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Widgets/widgets.css`;
+
+const CESIUM_BASE_URL =
+  `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/`;
+
+function loadCesium(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    if (window.Cesium) {
+      resolve(window.Cesium);
+      return;
+    }
+
+    // مهم: این باید قبل از اجرای Cesium تنظیم شود
+    window.CESIUM_BASE_URL = CESIUM_BASE_URL;
+
+    // CSS
+    if (!document.querySelector('link[data-cesium-css="true"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = CESIUM_CSS;
+      link.dataset.cesiumCss = "true";
+      document.head.appendChild(link);
+    }
+
+    const existing = document.querySelector(
+      'script[data-cesium-script="true"]'
+    ) as HTMLScriptElement | null;
+
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.Cesium));
+      existing.addEventListener("error", () =>
+        reject(new Error("Cesium script failed to load"))
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = CESIUM_SCRIPT;
+    script.async = true;
+    script.dataset.cesiumScript = "true";
+
+    script.onload = () => {
+      if (!window.Cesium) {
+        reject(new Error("Cesium loaded but window.Cesium is unavailable"));
+        return;
+      }
+
+      resolve(window.Cesium);
+    };
+
+    script.onerror = () => {
+      reject(new Error("Failed to load CesiumJS"));
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+export default function TestGlobePage() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    console.log("CESIUM_TEST_EFFECT_STARTED");
     let viewer: any = null;
-    let script: HTMLScriptElement | null = null;
+    let destroyed = false;
 
-    const loadCesium = () =>
-      new Promise<any>((resolve, reject) => {
-        const existing = (window as any).Cesium;
-
-        if (existing) {
-          resolve(existing);
-          return;
-        }
-
-        script = document.createElement("script");
-        script.src = CESIUM_URL;
-        script.async = true;
-
-        script.onload = () => {
-          const Cesium = (window as any).Cesium;
-
-          if (!Cesium) {
-            reject(new Error("Cesium script loaded but window.Cesium is missing"));
-            return;
-          }
-
-          resolve(Cesium);
-        };
-
-        script.onerror = () => {
-          reject(new Error("Failed to load Cesium"));
-        };
-
-        document.head.appendChild(script);
-      });
-
-    const init = async () => {
-      if (hasInitialized.current) return;
-      hasInitialized.current = true;
-      if (!mapRef.current) return;
-
+    async function init() {
       try {
         const Cesium = await loadCesium();
-        Cesium.Ion.defaultAccessToken =
-          process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN;
 
-        if (!mapRef.current) return;
+        if (destroyed || !containerRef.current) return;
 
-        viewer = new Cesium.Viewer(mapRef.current, {
+        const token = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN;
+
+        if (token) {
+          Cesium.Ion.defaultAccessToken = token;
+        }
+
+        viewer = new Cesium.Viewer(containerRef.current, {
           animation: false,
           timeline: false,
           baseLayerPicker: false,
@@ -66,46 +101,58 @@ export default function TestGlobe() {
           sceneModePicker: false,
           navigationHelpButton: false,
           fullscreenButton: false,
+
+          // مهم: جلوی imagery پیش‌فرض Ion را می‌گیرد
+          baseLayer: false,
+
+          // کره خام Cesium
+          terrain: Cesium.Terrain.fromWorldTerrain
+            ? undefined
+            : undefined,
+
+          scene3DOnly: true,
+          shouldAnimate: false,
         });
 
         viewer.scene.globe.show = true;
 
-        viewer.camera.flyTo({
+        viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(
             35,
             25,
-            20000000,
+            20000000
           ),
-          duration: 0,
         });
 
         viewer.scene.requestRender();
+
+        console.log("CESIUM TEST GLOBE: READY");
       } catch (error) {
         console.error("CESIUM_INIT_ERROR:", error);
       }
-    };
+    }
 
     init();
 
     return () => {
-      if (viewer) {
-        viewer.destroy();
-        viewer = null;
-      }
+      destroyed = true;
 
-      if (script && script.parentNode) {
-        script.parentNode.removeChild(script);
+      if (viewer && !viewer.isDestroyed()) {
+        viewer.destroy();
       }
     };
   }, []);
 
   return (
     <div
-      ref={mapRef}
+      ref={containerRef}
       style={{
         position: "fixed",
         inset: 0,
+        width: "100%",
+        height: "100%",
         background: "#000",
+        overflow: "hidden",
       }}
     />
   );
