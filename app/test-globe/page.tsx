@@ -127,19 +127,12 @@ export default function TestGlobePage() {
           requestRenderMode: true,
           maximumRenderTimeChange: Number.POSITIVE_INFINITY,
           baseLayer: false,
-          useBrowserRecommendedResolution: false,
         });
-
-        viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.25);
 
         viewer.scene.globe.show = true;
         viewer.scene.globe.enableLighting = false;
         viewer.scene.globe.maximumScreenSpaceError = 1;
         viewer.scene.fog.enabled = false;
-
-        if (viewer.scene.fxaa) {
-          viewer.scene.fxaa.enabled = true;
-        }
 
         if (viewer.scene.skyAtmosphere) {
           viewer.scene.skyAtmosphere.show = false;
@@ -158,6 +151,15 @@ export default function TestGlobePage() {
         }
 
         viewer.scene.backgroundColor = Cesium.Color.BLACK;
+
+        if (viewer.scene.postProcessStages?.fxaa) {
+          viewer.scene.postProcessStages.fxaa.enabled = true;
+        }
+
+        viewer.resolutionScale = Math.min(
+          Math.max(window.devicePixelRatio || 1, 1) * 1.25,
+          1.5,
+        );
 
         viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000),
