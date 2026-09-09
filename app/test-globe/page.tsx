@@ -131,31 +131,29 @@ export default function TestGlobePage() {
 
         viewer.scene.globe.show = true;
         viewer.scene.globe.enableLighting = false;
-        viewer.scene.globe.maximumScreenSpaceError = 1;
+        viewer.scene.globe.maximumScreenSpaceError = 0.5;
+        viewer.scene.globe.tileCacheSize = 200;
+        viewer.scene.globe.preloadSiblings = true;
+        viewer.scene.globe.preloadAncestors = true;
+        viewer.scene.globe.backFaceCulling = true;
+        viewer.scene.globe.depthTestAgainstTerrain = false;
         viewer.scene.fog.enabled = false;
 
         if (viewer.scene.skyAtmosphere) {
           viewer.scene.skyAtmosphere.show = false;
         }
-
         if (viewer.scene.skyBox) {
           viewer.scene.skyBox.show = false;
         }
-
         if (viewer.scene.sun) {
           viewer.scene.sun.show = false;
         }
-
         if (viewer.scene.moon) {
           viewer.scene.moon.show = false;
         }
 
         viewer.scene.backgroundColor = Cesium.Color.BLACK;
-
-        if (viewer.scene.postProcessStages?.fxaa) {
-          viewer.scene.postProcessStages.fxaa.enabled = true;
-        }
-
+        viewer.scene.postProcessStages.fxaa.enabled = true;
         viewer.resolutionScale = Math.min(
           Math.max(window.devicePixelRatio || 1, 1) * 1.25,
           1.5,
@@ -186,10 +184,11 @@ export default function TestGlobePage() {
           const satelliteLayer = Cesium.ImageryLayer.fromProviderAsync(
             Cesium.IonImageryProvider.fromAssetId(SATELLITE_ASSET_ID),
             {
-              brightness: 1.0,
-              contrast: 1.08,
-              saturation: 0.95,
-              gamma: 1.0,
+              brightness: 1.05,
+              contrast: 1.18,
+              saturation: 1.0,
+              gamma: 0.96,
+              alpha: 1.0,
             },
           );
 
