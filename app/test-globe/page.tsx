@@ -15,7 +15,6 @@ declare global {
 }
 
 const CESIUM_VERSION = "1.145";
-const SATELLITE_ASSET_ID = 3830183;
 const CESIUM_SCRIPT = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Cesium.js`;
 const CESIUM_CSS = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Widgets/widgets.css`;
 const CESIUM_BASE_URL = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/`;
@@ -95,7 +94,6 @@ export default function TestGlobePage() {
           globe: false,
         });
 
-        viewer.scene.globe.show = false;
         viewer.scene.fog.enabled = false;
         if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = false;
         if (viewer.scene.skyBox) viewer.scene.skyBox.show = false;
