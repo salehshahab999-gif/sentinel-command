@@ -23,7 +23,7 @@ export const PNT_SOURCE_REGISTRY: PntSourceDefinition[] = [
     kind: "WINDOWS",
     priority: 100,
     enabled: true,
-    independent: true,
+    independent: false,
     implementation: "WINDOWS_BRIDGE",
   },
   {
