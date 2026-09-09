@@ -330,7 +330,7 @@ export default function SatelliteIntelligence() {
       orbitCollectionRef.current = null;
       customMapLayerRef.current = null;
     };
-  }, [cesiumReady, enabledLayers.baseMap]);
+  }, [cesiumReady]);
 
   useEffect(() => {
     const points = pointsRef.current;
