@@ -22,6 +22,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Generate Prisma local client
+        run: npx prisma generate --config=prisma-local.config.ts
+
+      - name: Generate Prisma remote client
+        run: npx prisma generate --config=prisma.config.ts
+
       - name: TypeScript check
         run: npx tsc --noEmit
 
