@@ -2,6 +2,8 @@ import { getCoreHealth, getCoreSystem } from "../../../core";
 import { getAlertEngineStatus } from "../../../core/alerts/alert-status";
 import { prisma } from "../../../core/database/prisma-client";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const health = getCoreHealth();
   const system = getCoreSystem();
