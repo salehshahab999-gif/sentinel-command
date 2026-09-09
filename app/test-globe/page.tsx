@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef } from "react";
 
@@ -39,7 +39,7 @@ export default function TestGlobe() {
         };
 
         script.onerror = () => {
-          reject(new Error(Failed to load Cesium from ));
+          reject(new Error("Failed to load Cesium"));
         };
 
         document.head.appendChild(script);
