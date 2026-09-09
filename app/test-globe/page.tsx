@@ -20,6 +20,8 @@ const CESIUM_VERSION = "1.145";
 const ROADMAP_ASSET_ID = 3830184;
 const SATELLITE_LABELS_ASSET_ID = 3830183;
 const SATELLITE_CLEAN_ASSET_ID = 3830182;
+const LOCAL_MAP_URL = "/api/map/tile/{z}/{x}/{y}.png";
+const LOCAL_MAP_MAX_LEVEL = 19;
 
 const CESIUM_SCRIPT = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Cesium.js`;
 const CESIUM_CSS = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Widgets/widgets.css`;
@@ -59,6 +61,18 @@ function setTestStatus(status: Window["__SENTINEL_TEST_GLOBE__"]): void {
   window.__SENTINEL_TEST_GLOBE__ = status;
 }
 
+function createMapProvider(Cesium: any): any {
+  return new Cesium.UrlTemplateImageryProvider({
+    url: LOCAL_MAP_URL,
+    maximumLevel: LOCAL_MAP_MAX_LEVEL,
+    tilingScheme: new Cesium.WebMercatorTilingScheme(),
+  });
+}
+
+async function createIonProvider(Cesium: any, assetId: number): Promise<any> {
+  return Cesium.IonImageryProvider.fromAssetId(assetId);
+}
+
 export default function TestGlobePage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
@@ -79,7 +93,7 @@ export default function TestGlobePage() {
       if (layersRef.current[mode]) return layersRef.current[mode];
 
       const assetId = mode === "map" ? ROADMAP_ASSET_ID : mode === "satellite-labels" ? SATELLITE_LABELS_ASSET_ID : SATELLITE_CLEAN_ASSET_ID;
-      const provider = await Cesium.IonImageryProvider.fromAssetId(assetId);
+      const provider = mode === "map" ? createMapProvider(Cesium) : await createIonProvider(Cesium, assetId);
       const layer = viewer.imageryLayers.addImageryProvider(provider);
       layer.show = false;
 
@@ -182,7 +196,7 @@ export default function TestGlobePage() {
     try {
       const layer = layersRef.current[nextMode] || await (async () => {
         const assetId = nextMode === "map" ? ROADMAP_ASSET_ID : nextMode === "satellite-labels" ? SATELLITE_LABELS_ASSET_ID : SATELLITE_CLEAN_ASSET_ID;
-        const provider = await Cesium.IonImageryProvider.fromAssetId(assetId);
+        const provider = nextMode === "map" ? createMapProvider(Cesium) : await createIonProvider(Cesium, assetId);
         const created = viewer.imageryLayers.addImageryProvider(provider);
         created.show = false;
         layersRef.current[nextMode] = created;
@@ -214,7 +228,7 @@ export default function TestGlobePage() {
     const viewer = viewerRef.current;
     if (!viewer) return;
     direction === "in" ? viewer.camera.zoomIn(1_500_000) : viewer.camera.zoomOut(1_500_000);
-    setZoomLevel((value) => direction === "in" ? Math.min(180, value + 15) : Math.max(40, value - 15));
+    setZoomLevel((value) => direction === "in" ? Math.min(220, value + 15) : Math.max(40, value - 15));
     viewer.scene.requestRender();
   };
 
