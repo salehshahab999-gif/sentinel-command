@@ -16,9 +16,9 @@ try {
       deviceScaleFactor: 1,
     });
 
-    const consoleErrors = [];
-    const pageErrors = [];
-    const failedRequests = [];
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    const failedRequests: Array<{ url: string; error: string }> = [];
 
     page.on("console", (message) => {
       if (message.type() === "error") {
@@ -55,6 +55,13 @@ try {
 
     await page.waitForTimeout(3000);
 
+    if (route === "/test-globe") {
+      await page.waitForFunction(
+        () => window.__SENTINEL_TEST_GLOBE__?.imagery === "READY",
+        { timeout: 60000 },
+      );
+    }
+
     const state = await page.evaluate(() => {
       const canvases = [...document.querySelectorAll("canvas")];
 
@@ -75,6 +82,7 @@ try {
       );
 
       const cesiumGlobal = Boolean(window.Cesium);
+      const testGlobe = window.__SENTINEL_TEST_GLOBE__;
 
       return {
         canvas: canvas
@@ -86,7 +94,8 @@ try {
         webgl: Boolean(gl),
         cesiumGlobal,
         cesiumWidget,
-        cesiumReady: cesiumGlobal || cesiumWidget,
+        cesiumReady: cesiumGlobal && cesiumWidget,
+        imagery: testGlobe?.imagery ?? null,
       };
     });
 
@@ -104,14 +113,13 @@ try {
       !state.canvas ||
       !state.webgl ||
       !state.cesiumReady ||
-      !state.cesiumWidget
+      consoleErrors.length > 0 ||
+      pageErrors.length > 0 ||
+      failedRequests.length > 0 ||
+      (route === "/test-globe" && state.imagery !== "READY")
     ) {
-      throw new Error(`${route} failed Cesium browser smoke`);
-    }
-
-    if (consoleErrors.length || pageErrors.length) {
       throw new Error(
-        `${route} produced browser errors: ${JSON.stringify({ consoleErrors, pageErrors })}`,
+        `${route} failed Cesium browser smoke: ${JSON.stringify(result)}`,
       );
     }
 
