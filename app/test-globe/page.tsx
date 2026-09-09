@@ -79,7 +79,7 @@ export default function TestGlobePage() {
       if (layersRef.current[mode]) return layersRef.current[mode];
 
       const assetId = mode === "map" ? ROADMAP_ASSET_ID : mode === "satellite-labels" ? SATELLITE_LABELS_ASSET_ID : SATELLITE_CLEAN_ASSET_ID;
-      const provider = Cesium.IonImageryProvider.fromAssetId(assetId);
+      const provider = await Cesium.IonImageryProvider.fromAssetId(assetId);
       const layer = viewer.imageryLayers.add(provider);
       layer.show = false;
 
@@ -182,7 +182,9 @@ export default function TestGlobePage() {
     try {
       const layer = layersRef.current[nextMode] || await (async () => {
         const assetId = nextMode === "map" ? ROADMAP_ASSET_ID : nextMode === "satellite-labels" ? SATELLITE_LABELS_ASSET_ID : SATELLITE_CLEAN_ASSET_ID;
-        const created = viewer.imageryLayers.add(Cesium.IonImageryProvider.fromAssetId(assetId));
+        const created = viewer.imageryLayers.add(
+          await Cesium.IonImageryProvider.fromAssetId(assetId),
+        );
         created.show = false;
         layersRef.current[nextMode] = created;
         return created;
