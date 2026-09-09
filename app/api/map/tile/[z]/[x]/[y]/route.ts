@@ -3,9 +3,18 @@ import path from "node:path";
 import { resolveStoragePath } from "../../../../../../../core/storage/storage-runtime";
 
 const WORLD_DIR = resolveStoragePath("MAP");
-const CACHE_DIR = path.join(WORLD_DIR, "cache");
-const OFFLINE_TILE_DIR = path.join(WORLD_DIR, "tiles");
-const TILE_HOST = "tile.openstreetmap.org";
+
+const CACHE_ROOT = path.join(WORLD_DIR, "cache");
+const PROVIDER_CACHES = {
+  carto: path.join(CACHE_ROOT, "carto"),
+  esri: path.join(CACHE_ROOT, "esri"),
+  osm: path.join(CACHE_ROOT, "osm"),
+} as const;
+
+const PROVIDER_TIMEOUT_MS = 3000;
+const SENTINEL_USER_AGENT =
+  process.env.SENTINEL_MAP_USER_AGENT ??
+  "Sentinel-Command-Center/1.0 local map tile cache";
 
 function isSafeTilePart(value: string): boolean {
   return /^\d{1,6}$/.test(value);
@@ -20,7 +29,12 @@ function tilePath(root: string, z: string, x: string, y: string): string {
   return path.join(root, z, x, `${y}.png`);
 }
 
-async function readTile(root: string, z: string, x: string, y: string): Promise<Buffer | null> {
+async function readTile(
+  root: string,
+  z: string,
+  x: string,
+  y: string,
+): Promise<Buffer | null> {
   try {
     return await fs.readFile(tilePath(root, z, x, y));
   } catch {
@@ -28,10 +42,16 @@ async function readTile(root: string, z: string, x: string, y: string): Promise<
   }
 }
 
-async function writeCachedTile(z: string, x: string, y: string, body: ArrayBuffer): Promise<void> {
-  const target = tilePath(CACHE_DIR, z, x, y);
+async function writeCachedTile(
+  root: string,
+  z: string,
+  x: string,
+  y: string,
+  body: Buffer,
+): Promise<void> {
+  const target = tilePath(root, z, x, y);
   await fs.mkdir(path.dirname(target), { recursive: true });
-  await fs.writeFile(target, Buffer.from(body));
+  await fs.writeFile(target, body);
 }
 
 function imageResponse(data: Buffer, source: string): Response {
@@ -42,6 +62,54 @@ function imageResponse(data: Buffer, source: string): Response {
       "X-Sentinel-Map": source,
     },
   });
+}
+
+type Provider = {
+  id: keyof typeof PROVIDER_CACHES;
+  label: string;
+  buildUrl: (z: string, x: string, y: string) => string;
+};
+
+const providers: Provider[] = [
+  {
+    id: "carto",
+    label: "CARTO-LIGHT",
+    buildUrl: (z, x, y) =>
+      `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
+  },
+  {
+    id: "esri",
+    label: "ESRI-WORLD-IMAGERY",
+    buildUrl: (z, x, y) =>
+      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+  },
+  {
+    id: "osm",
+    label: "OSM-STANDARD",
+    buildUrl: (z, x, y) =>
+      `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+  },
+];
+
+async function fetchProviderTile(provider: Provider, z: string, x: string, y: string) {
+  try {
+    const upstream = await fetch(provider.buildUrl(z, x, y), {
+      headers: {
+        Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
+        "User-Agent": SENTINEL_USER_AGENT,
+      },
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+    });
+
+    if (!upstream.ok) return null;
+
+    const body = Buffer.from(await upstream.arrayBuffer());
+    await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
+
+    return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(
@@ -55,43 +123,24 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
-  const offline = await readTile(OFFLINE_TILE_DIR, z, x, y);
-  if (offline) {
-    return imageResponse(offline, "OFFLINE-DATASET");
-  }
-
-  const cached = await readTile(CACHE_DIR, z, x, y);
-  if (cached) {
-    return imageResponse(cached, "LOCAL-CACHE");
-  }
-
-  try {
-    const upstream = await fetch(`https://${TILE_HOST}/${z}/${x}/${y}.png`, {
-      headers: {
-        Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
-        "User-Agent": process.env.SENTINEL_MAP_USER_AGENT ?? "Sentinel-Command-Center/1.0 local map tile cache",
-      },
-    });
-
-    if (upstream.ok) {
-      const body = await upstream.arrayBuffer();
-      await writeCachedTile(z, x, y, body);
-      return new Response(body, {
-        headers: {
-          "Content-Type": upstream.headers.get("content-type") ?? "image/png",
-          "Cache-Control": "public, max-age=31536000, immutable",
-          "X-Sentinel-Map": "ONLINE-CACHED",
-        },
-      });
+  // Try every local cache first, then every online provider.
+  for (const provider of providers) {
+    const cached = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
+    if (cached) {
+      return imageResponse(cached, `${provider.label}-LOCAL-CACHE`);
     }
-  } catch {
-    // Offline-first: an unavailable online provider must not break the globe.
+  }
+
+  // No API key is required for this provider chain.
+  for (const provider of providers) {
+    const online = await fetchProviderTile(provider, z, x, y);
+    if (online) return online;
   }
 
   return new Response("Map tile unavailable", {
     status: 503,
     headers: {
-      "X-Sentinel-Map": "OFFLINE-MISS",
+      "X-Sentinel-Map": "ALL-PROVIDERS-MISS",
       "Cache-Control": "no-store",
     },
   });

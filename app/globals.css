@@ -30,3 +30,42 @@ main > .max-w-7xl > .grid {
   row-gap: 1.5rem;
   align-items: start;
 }
+
+/* Sentinel tactical globe polish: visual-only HUD treatment around Cesium. */
+.cesium-widget {
+  position: relative;
+  overflow: hidden;
+  background: #000308 !important;
+}
+
+.cesium-widget canvas {
+  filter: saturate(1.08) contrast(1.05);
+}
+
+.cesium-widget::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  border: 1px solid rgba(0, 183, 197, 0.10);
+  background:
+    linear-gradient(90deg, transparent 49.94%, rgba(0, 183, 197, 0.16) 50%, transparent 50.06%) center / 100% 100% no-repeat,
+    linear-gradient(0deg, transparent 49.94%, rgba(0, 183, 197, 0.16) 50%, transparent 50.06%) center / 100% 100% no-repeat,
+    radial-gradient(circle at 50% 50%, transparent 0 52px, rgba(0, 183, 197, 0.12) 53px, transparent 55px),
+    radial-gradient(circle at 50% 50%, transparent 0 120px, rgba(0, 183, 197, 0.035) 121px, transparent 122px),
+    radial-gradient(circle at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.08) 72%, rgba(0, 0, 0, 0.62) 100%);
+}
+
+.cesium-widget::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 21;
+  pointer-events: none;
+  opacity: 0.28;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 183, 197, 0.022) 0 1px, transparent 1px 7px),
+    linear-gradient(90deg, transparent 0%, rgba(0, 183, 197, 0.028) 50%, transparent 100%);
+  mix-blend-mode: screen;
+}
