@@ -12,6 +12,10 @@ const PROVIDER_CACHES = {
 } as const;
 
 const PROVIDER_TIMEOUT_MS = 3000;
+const CARTO_API_KEY = process.env.CARTO_BASEMAP_API_KEY?.trim();
+const SENTINEL_MAP_REFERER =
+  process.env.SENTINEL_MAP_REFERER?.trim() ??
+  "http://127.0.0.1:3000/";
 const SENTINEL_USER_AGENT =
   process.env.SENTINEL_MAP_USER_AGENT ??
   "Sentinel-Command-Center/1.0 local map tile cache";
@@ -67,15 +71,22 @@ function imageResponse(data: Buffer, source: string): Response {
 type Provider = {
   id: keyof typeof PROVIDER_CACHES;
   label: string;
-  buildUrl: (z: string, x: string, y: string) => string;
+  buildUrl: (z: string, x: string, y: string) => string | null;
 };
 
 const providers: Provider[] = [
   {
     id: "carto",
     label: "CARTO-LIGHT",
-    buildUrl: (z, x, y) =>
-      `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
+    buildUrl: (z, x, y) => {
+      if (!CARTO_API_KEY) return null;
+
+      const url = new URL(
+        `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
+      );
+      url.searchParams.set("key", CARTO_API_KEY);
+      return url.toString();
+    },
   },
   {
     id: "esri",
@@ -92,18 +103,32 @@ const providers: Provider[] = [
 ];
 
 async function fetchProviderTile(provider: Provider, z: string, x: string, y: string) {
+  const url = provider.buildUrl(z, x, y);
+  if (!url) return null;
+
   try {
-    const upstream = await fetch(provider.buildUrl(z, x, y), {
-      headers: {
-        Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
-        "User-Agent": SENTINEL_USER_AGENT,
-      },
+    const headers: Record<string, string> = {
+      Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
+      "User-Agent": SENTINEL_USER_AGENT,
+    };
+
+    if (provider.id === "osm") {
+      headers.Referer = SENTINEL_MAP_REFERER;
+    }
+
+    const upstream = await fetch(url, {
+      headers,
       signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
     if (!upstream.ok) return null;
 
+    const contentType = upstream.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().startsWith("image/")) return null;
+
     const body = Buffer.from(await upstream.arrayBuffer());
+    if (!body.length) return null;
+
     await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
 
     return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
@@ -131,7 +156,8 @@ export async function GET(
     }
   }
 
-  // No API key is required for this provider chain.
+  // CARTO is used only when a current provider-owned API key is configured.
+  // Esri and OSM remain available as independent online fallbacks.
   for (const provider of providers) {
     const online = await fetchProviderTile(provider, z, x, y);
     if (online) return online;
