@@ -22,6 +22,18 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: ESLint check
+        run: npm run lint
+
+      - name: Next production build
+        run: npm run build
+
+      - name: Precision position test
+        run: npm run test:precision
+
       - name: Install Playwright Chromium
         run: npx playwright@latest install --with-deps chromium
 
