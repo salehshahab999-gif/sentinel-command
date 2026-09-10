@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-
 import { SATELLITE_LAYERS, SKELETON_SATELLITES } from "../../core/satellite/satellite-catalog";
 import type { SatelliteLayerId, SatelliteRecord } from "../../core/satellite/satellite-contracts";
 import type { MapSearchResult } from "../../core/map/map-search";
@@ -9,12 +8,22 @@ import { filterUniversalMapTargets, type UniversalMapFilter, type UniversalMapTa
 
 const CESIUM_VERSION = "1.145";
 const CESIUM_BASE = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium`;
-
 type ProviderFilter = "ALL" | "COPERNICUS" | "NASA" | "NOAA";
 type GlobalMode = "map" | "satellite-labels" | "satellite-clean";
 
 declare global {
-  interface Window { Cesium?: any; CESIUM_BASE_URL?: string; }
+  interface Window {
+    Cesium?: any;
+    CESIUM_BASE_URL?: string;
+    __SENTINEL_GLOBAL_DEBUG__?: {
+      ready: boolean;
+      mode: GlobalMode;
+      mapVisible: boolean;
+      imageryVisible: boolean;
+      labelsVisible: boolean;
+      layerCount: number;
+    };
+  }
 }
 
 const providerFilters: Array<{ id: ProviderFilter; label: string }> = [
@@ -124,6 +133,8 @@ export default function SatelliteIntelligence() {
   const labelsLayerRef = useRef<any>(null);
   const pointsRef = useRef<any>(null);
   const orbitCollectionRef = useRef<any>(null);
+  const modeRef = useRef<GlobalMode>("satellite-labels");
+  const baseLayerKindRef = useRef<"map" | "imagery" | null>(null);
 
   const [cesiumReady, setCesiumReady] = useState(false);
   const [mode, setMode] = useState<GlobalMode>("satellite-labels");
@@ -152,21 +163,69 @@ export default function SatelliteIntelligence() {
     return candidates.filter((satellite) => visible.has(satellite.id));
   }, [provider, search, universalFilter]);
 
-  const applyMode = (nextMode: GlobalMode) => {
-    const map = mapLayerRef.current;
-    const imagery = imageryLayerRef.current;
-    const labels = labelsLayerRef.current;
-    if (!map || !imagery || !labels) return;
+  const syncDebugState = () => {
+    const viewer = viewerRef.current;
+    const mapVisible = Boolean(mapLayerRef.current?.show);
+    const imageryVisible = Boolean(imageryLayerRef.current?.show);
+    const labelsVisible = Boolean(labelsLayerRef.current?.show);
+    window.__SENTINEL_GLOBAL_DEBUG__ = {
+      ready: Boolean(viewer) && cesiumReady,
+      mode: modeRef.current,
+      mapVisible,
+      imageryVisible,
+      labelsVisible,
+      layerCount: viewer?.imageryLayers?.length ?? 0,
+    };
+  };
 
-    map.show = nextMode === "map" && enabledLayers.baseMap;
-    imagery.show = nextMode !== "map" && enabledLayers.baseMap;
-    labels.show = nextMode !== "satellite-clean" && enabledLayers.baseMap;
+  const replaceModeLayers = (nextMode: GlobalMode) => {
+    const viewer = viewerRef.current;
+    const Cesium = window.Cesium;
+    if (!viewer || !Cesium) return;
+
+    const layers = viewer.imageryLayers;
+
+    if (mapLayerRef.current) layers.remove(mapLayerRef.current, true);
+    if (imageryLayerRef.current) layers.remove(imageryLayerRef.current, true);
+    if (labelsLayerRef.current) layers.remove(labelsLayerRef.current, true);
+
+    mapLayerRef.current = null;
+    imageryLayerRef.current = null;
+    labelsLayerRef.current = null;
+    baseLayerKindRef.current = null;
+
+    const providerFor = (tileMode: "map" | "imagery" | "labels") =>
+      new Cesium.UrlTemplateImageryProvider({
+        url: `/api/map/tile/{z}/{x}/{y}.png?mode=${tileMode}`,
+        maximumLevel: 19,
+        tilingScheme: new Cesium.WebMercatorTilingScheme(),
+        enablePickFeatures: false,
+      });
+
+    if (nextMode === "map") {
+      mapLayerRef.current = layers.addImageryProvider(providerFor("map"));
+      baseLayerKindRef.current = "map";
+      mapLayerRef.current.show = enabledLayers.baseMap;
+    } else {
+      imageryLayerRef.current = layers.addImageryProvider(providerFor("imagery"));
+      baseLayerKindRef.current = "imagery";
+      imageryLayerRef.current.show = enabledLayers.baseMap;
+
+      if (nextMode === "satellite-labels") {
+        labelsLayerRef.current = layers.addImageryProvider(providerFor("labels"));
+        labelsLayerRef.current.show = enabledLayers.baseMap;
+      }
+    }
+
+    modeRef.current = nextMode;
     setMode(nextMode);
-    viewerRef.current?.scene?.requestRender?.();
+    viewer.scene.requestRender();
+    syncDebugState();
   };
 
   useEffect(() => {
     let destroyed = false;
+
     async function init() {
       try {
         const Cesium = await loadCesium();
@@ -206,20 +265,6 @@ export default function SatelliteIntelligence() {
         if (viewer.scene.moon) viewer.scene.moon.show = false;
         if (viewer.scene.postProcessStages?.fxaa) viewer.scene.postProcessStages.fxaa.enabled = true;
         viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000) });
-
-        const localProvider = (tileMode: string) => new Cesium.UrlTemplateImageryProvider({
-          url: `/api/map/tile/{z}/{x}/{y}.png?mode=${tileMode}`,
-          maximumLevel: 19,
-          tilingScheme: new Cesium.WebMercatorTilingScheme(),
-          credit: "Sentinel map service • Esri / OpenStreetMap attribution",
-        });
-
-        mapLayerRef.current = viewer.imageryLayers.addImageryProvider(localProvider("map"));
-        imageryLayerRef.current = viewer.imageryLayers.addImageryProvider(localProvider("imagery"));
-        labelsLayerRef.current = viewer.imageryLayers.addImageryProvider(localProvider("labels"));
-        mapLayerRef.current.show = false;
-        imageryLayerRef.current.show = true;
-        labelsLayerRef.current.show = true;
 
         pointsRef.current = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
         pointsRef.current.blendOption = Cesium.BlendOption.TRANSLUCENT;
@@ -273,9 +318,9 @@ export default function SatelliteIntelligence() {
           (viewer as any)._sentinelZoomController = zoomController;
         }
 
-        setMode("satellite-labels");
         setCesiumReady(true);
-        setRuntimeStatus("GLOBAL READY / LOCAL TILES / NO ION IMAGERY");
+        setRuntimeStatus("GLOBAL READY / 3 ISOLATED MODES / NO ION IMAGERY");
+        replaceModeLayers("satellite-labels");
         viewer.scene.requestRender();
       } catch (error) {
         if (destroyed) return;
@@ -285,13 +330,20 @@ export default function SatelliteIntelligence() {
     }
 
     void init();
+
     return () => {
       destroyed = true;
       clickHandlerRef.current?.destroy?.();
       clickHandlerRef.current = null;
+
       const viewer = viewerRef.current;
       const zoomController = viewer?._sentinelZoomController;
       if (viewer && zoomController) viewer.removeController?.(zoomController);
+
+      if (viewer && mapLayerRef.current) viewer.imageryLayers.remove(mapLayerRef.current, true);
+      if (viewer && imageryLayerRef.current) viewer.imageryLayers.remove(imageryLayerRef.current, true);
+      if (viewer && labelsLayerRef.current) viewer.imageryLayers.remove(labelsLayerRef.current, true);
+
       if (viewer && !viewer.isDestroyed()) viewer.destroy();
       viewerRef.current = null;
       mapLayerRef.current = null;
@@ -299,6 +351,7 @@ export default function SatelliteIntelligence() {
       labelsLayerRef.current = null;
       pointsRef.current = null;
       orbitCollectionRef.current = null;
+      delete window.__SENTINEL_GLOBAL_DEBUG__;
     };
   }, []);
 
@@ -316,11 +369,24 @@ export default function SatelliteIntelligence() {
     }
 
     if (orbitCollectionRef.current) orbitCollectionRef.current.show = enabledLayers.orbits;
-    if (mapLayerRef.current) mapLayerRef.current.show = mode === "map" && enabledLayers.baseMap;
-    if (imageryLayerRef.current) imageryLayerRef.current.show = mode !== "map" && enabledLayers.baseMap;
-    if (labelsLayerRef.current) labelsLayerRef.current.show = mode !== "satellite-clean" && enabledLayers.baseMap;
+
+    if (mode === "map") {
+      if (mapLayerRef.current) mapLayerRef.current.show = enabledLayers.baseMap;
+      if (imageryLayerRef.current) imageryLayerRef.current.show = false;
+      if (labelsLayerRef.current) labelsLayerRef.current.show = false;
+    } else if (mode === "satellite-labels") {
+      if (mapLayerRef.current) mapLayerRef.current.show = false;
+      if (imageryLayerRef.current) imageryLayerRef.current.show = enabledLayers.baseMap;
+      if (labelsLayerRef.current) labelsLayerRef.current.show = enabledLayers.baseMap;
+    } else {
+      if (mapLayerRef.current) mapLayerRef.current.show = false;
+      if (imageryLayerRef.current) imageryLayerRef.current.show = enabledLayers.baseMap;
+      if (labelsLayerRef.current) labelsLayerRef.current.show = false;
+    }
+
+    syncDebugState();
     viewerRef.current?.scene?.requestRender?.();
-  }, [enabledLayers, filteredSatellites, mode, selectedId]);
+  }, [enabledLayers, filteredSatellites, mode, selectedId, cesiumReady]);
 
   useEffect(() => {
     const handleMapFocus = (event: Event) => {
@@ -346,10 +412,7 @@ export default function SatelliteIntelligence() {
     const Cesium = window.Cesium;
     if (!viewer || !Cesium) return;
     setSelectedId(satellite.id);
-    viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(satellite.longitude, satellite.latitude, Math.max(2500000, satellite.altitudeKm * 5000)),
-      duration: 0.8,
-    });
+    viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(satellite.longitude, satellite.latitude, Math.max(2500000, satellite.altitudeKm * 5000)), duration: 0.8 });
   };
 
   const modeLabel = mode === "map" ? "MAP + CITY LABELS" : mode === "satellite-labels" ? "SATELLITE + CITY LABELS" : "SATELLITE CLEAN";
@@ -362,7 +425,7 @@ export default function SatelliteIntelligence() {
         <div className="rounded-2xl border border-cyan-950/80 bg-black/75 px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-2 text-[9px] font-bold tracking-[.35em] text-cyan-400"><span className={`h-2 w-2 rounded-full ${cesiumReady ? "animate-pulse bg-emerald-400" : "animate-pulse bg-amber-400"}`} />SENTINEL COMMAND CENTER</div>
           <h1 className="mt-1 text-xl font-semibold tracking-tight md:text-2xl">GLOBAL INTELLIGENCE / SPACE</h1>
-          <p className="mt-1 text-[9px] tracking-[.18em] text-slate-500">CESIUMJS {CESIUM_VERSION} • LOCAL MAP SERVICE • GLOBAL MODE ISOLATED</p>
+          <p className="mt-1 text-[9px] tracking-[.18em] text-slate-500">CESIUMJS {CESIUM_VERSION} • LOCAL MAP SERVICE • MODE ISOLATION</p>
         </div>
         <div className="rounded-full border border-cyan-900/80 bg-black/75 px-3 py-2 text-[9px] font-bold tracking-[.14em] text-cyan-300 backdrop-blur-xl">{modeLabel} • {runtimeStatus}</div>
       </header>
@@ -371,7 +434,7 @@ export default function SatelliteIntelligence() {
         <section className="rounded-2xl border border-cyan-950/80 bg-black/78 p-3 backdrop-blur-xl">
           <div className="mb-2 flex items-center justify-between"><span className="text-[9px] font-bold tracking-[.24em] text-cyan-400">GLOBAL MAP MODE</span><span className="text-[8px] text-emerald-400">3 ONLINE</span></div>
           <div className="space-y-1.5">
-            {([["map", "MAP + CITY LABELS", "STREET"], ["satellite-labels", "SATELLITE + CITY LABELS", "HYBRID"], ["satellite-clean", "SATELLITE CLEAN", "IMAGERY"]] as const).map(([id, label, tag]) => <button key={id} type="button" onClick={() => applyMode(id)} data-testid={`global-mode-${id}`} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-[10px] font-semibold ${mode === id ? "border-cyan-700 bg-cyan-950/30 text-cyan-200" : "border-slate-800 bg-black/30 text-slate-400"}`}><span>{label}</span><span className="text-[8px] text-slate-600">{tag}</span></button>)}
+            {([["map", "MAP + CITY LABELS", "STREET"], ["satellite-labels", "SATELLITE + CITY LABELS", "HYBRID"], ["satellite-clean", "SATELLITE CLEAN", "IMAGERY"]] as const).map(([id, label, tag]) => <button key={id} type="button" onClick={() => replaceModeLayers(id)} data-testid={`global-mode-${id}`} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-[10px] font-semibold ${mode === id ? "border-cyan-700 bg-cyan-950/30 text-cyan-200" : "border-slate-800 bg-black/30 text-slate-400"}`}><span>{label}</span><span className="text-[8px] text-slate-600">{tag}</span></button>)}
           </div>
         </section>
 
@@ -387,11 +450,11 @@ export default function SatelliteIntelligence() {
         </section>
       </aside>
 
-      <section className="absolute right-4 top-28 z-20 hidden w-[275px] md:block">
+      <section className="absolute right-4 top-28 z-20 hidden w-[295px] md:block">
         <div className="rounded-2xl border border-cyan-950/80 bg-black/78 p-4 backdrop-blur-xl">
           <p className="text-[8px] font-bold tracking-[.28em] text-cyan-500">GLOBAL SOURCE BUS</p>
           <div className="mt-3 space-y-2 text-[9px]">
-            <div className="flex justify-between"><span className="text-slate-600">MAP</span><span className="text-cyan-400">ESRI STREET / OSM</span></div>
+            <div className="flex justify-between"><span className="text-slate-600">MAP</span><span className="text-cyan-400">OSM STREET</span></div>
             <div className="flex justify-between"><span className="text-slate-600">SATELLITE</span><span className="text-emerald-400">ESRI WORLD IMAGERY</span></div>
             <div className="flex justify-between"><span className="text-slate-600">LABELS</span><span className="text-violet-400">ESRI BOUNDARIES / PLACES</span></div>
             <div className="flex justify-between"><span className="text-slate-600">LOCAL CACHE</span><span className="text-emerald-400">ENABLED</span></div>
