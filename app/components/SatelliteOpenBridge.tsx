@@ -17,7 +17,7 @@ export default function SatelliteOpenBridge() {
         return;
       }
 
-      window.open("/satellite", "_blank", "noopener,noreferrer");
+      window.location.assign("/satellite");
     };
 
     document.addEventListener("click", handleClick);
