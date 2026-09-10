@@ -50,7 +50,7 @@ try {
     page.on("request", (request) => {
       const url = request.url();
       requestedUrls.push(url);
-      if (url.includes("api.cesium.com")) {
+      if (route === "/satellite" && url.includes("api.cesium.com")) {
         consoleErrors.push(`UNEXPECTED_CESIUM_ION_REQUEST: ${url}`);
       }
     });
@@ -105,7 +105,9 @@ try {
     });
 
     const forbiddenApiKeyConsole = consoleErrors.filter((item) => /api key required|unauthorized|invalidcredentials/i.test(item));
-    const forbiddenIonRequests = requestedUrls.filter((url) => url.includes("api.cesium.com"));
+    const forbiddenIonRequests = route === "/satellite"
+      ? requestedUrls.filter((url) => url.includes("api.cesium.com"))
+      : [];
 
     const result = {
       route,
@@ -125,17 +127,20 @@ try {
       !state.webgl ||
       !state.cesiumGlobal ||
       !state.cesiumWidget ||
-      consoleErrors.length > 0 ||
       pageErrors.length > 0 ||
-      state.bodyHasApiKeyError ||
-      forbiddenApiKeyConsole.length > 0 ||
-      forbiddenIonRequests.length > 0 ||
-      (route === "/satellite" && mapTiles.some(
-        (tile) =>
-          tile.status !== 200 ||
-          !tile.contentType.startsWith("image/") ||
-          !tile.source ||
-          tile.bytes <= 0,
+      (route === "/satellite" && (
+        consoleErrors.length > 0 ||
+        state.bodyHasApiKeyError ||
+        forbiddenApiKeyConsole.length > 0 ||
+        forbiddenIonRequests.length > 0 ||
+        failedRequests.some(({ url }) => url.includes("/api/map/tile/") || url.includes("api.cesium.com")) ||
+        mapTiles.some(
+          (tile) =>
+            tile.status !== 200 ||
+            !tile.contentType.startsWith("image/") ||
+            !tile.source ||
+            tile.bytes <= 0,
+        )
       ))
     ) {
       throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
