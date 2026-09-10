@@ -3,22 +3,23 @@ import path from "node:path";
 import { resolveStoragePath } from "../../../../../../../core/storage/storage-runtime";
 
 const WORLD_DIR = resolveStoragePath("MAP");
-
 const CACHE_ROOT = path.join(WORLD_DIR, "cache");
-const PROVIDER_CACHES = {
-  carto: path.join(CACHE_ROOT, "carto"),
-  esri: path.join(CACHE_ROOT, "esri"),
-  osm: path.join(CACHE_ROOT, "osm"),
-} as const;
-
-const PROVIDER_TIMEOUT_MS = 3000;
+const PROVIDER_TIMEOUT_MS = 4000;
 const CARTO_API_KEY = process.env.CARTO_BASEMAP_API_KEY?.trim();
 const SENTINEL_MAP_REFERER =
   process.env.SENTINEL_MAP_REFERER?.trim() ??
   "http://127.0.0.1:3000/";
 const SENTINEL_USER_AGENT =
-  process.env.SENTINEL_MAP_USER_AGENT ??
+  process.env.SENTINEL_MAP_USER_AGENT?.trim() ??
   "Sentinel-Command-Center/1.0 local map tile cache";
+
+type MapMode = "map" | "imagery" | "labels";
+
+type Provider = {
+  id: string;
+  label: string;
+  buildUrl: (z: string, x: string, y: string) => string | null;
+};
 
 function isSafeTilePart(value: string): boolean {
   return /^\d{1,6}$/.test(value);
@@ -29,31 +30,33 @@ function normalizeY(value: string): string | null {
   return isSafeTilePart(y) ? y : null;
 }
 
-function tilePath(root: string, z: string, x: string, y: string): string {
-  return path.join(root, z, x, `${y}.png`);
+function cachePath(providerId: string, mode: MapMode, z: string, x: string, y: string): string {
+  return path.join(CACHE_ROOT, mode, providerId, z, x, `${y}.png`);
 }
 
-async function readTile(
-  root: string,
+async function readCachedTile(
+  providerId: string,
+  mode: MapMode,
   z: string,
   x: string,
   y: string,
 ): Promise<Buffer | null> {
   try {
-    return await fs.readFile(tilePath(root, z, x, y));
+    return await fs.readFile(cachePath(providerId, mode, z, x, y));
   } catch {
     return null;
   }
 }
 
 async function writeCachedTile(
-  root: string,
+  providerId: string,
+  mode: MapMode,
   z: string,
   x: string,
   y: string,
   body: Buffer,
 ): Promise<void> {
-  const target = tilePath(root, z, x, y);
+  const target = cachePath(providerId, mode, z, x, y);
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.writeFile(target, body);
 }
@@ -68,41 +71,68 @@ function imageResponse(data: Buffer, source: string): Response {
   });
 }
 
-type Provider = {
-  id: keyof typeof PROVIDER_CACHES;
-  label: string;
-  buildUrl: (z: string, x: string, y: string) => string | null;
-};
+function providersForMode(mode: MapMode): Provider[] {
+  if (mode === "imagery") {
+    return [
+      {
+        id: "esri-world-imagery",
+        label: "ESRI-WORLD-IMAGERY",
+        buildUrl: (z, x, y) =>
+          `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+      },
+    ];
+  }
 
-const providers: Provider[] = [
-  {
-    id: "carto",
-    label: "CARTO-LIGHT",
-    buildUrl: (z, x, y) => {
-      if (!CARTO_API_KEY) return null;
+  if (mode === "labels") {
+    return [
+      {
+        id: "esri-reference-world-boundaries-places",
+        label: "ESRI-BOUNDARIES-PLACES",
+        buildUrl: (z, x, y) =>
+          `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/${z}/${y}/${x}`,
+      },
+    ];
+  }
 
-      const url = new URL(
-        `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
-      );
-      url.searchParams.set("key", CARTO_API_KEY);
-      return url.toString();
+  const mapProviders: Provider[] = [
+    {
+      id: "esri-world-street-map",
+      label: "ESRI-WORLD-STREET",
+      buildUrl: (z, x, y) =>
+        `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`,
     },
-  },
-  {
-    id: "esri",
-    label: "ESRI-WORLD-IMAGERY",
-    buildUrl: (z, x, y) =>
-      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
-  },
-  {
-    id: "osm",
-    label: "OSM-STANDARD",
-    buildUrl: (z, x, y) =>
-      `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
-  },
-];
+    {
+      id: "osm",
+      label: "OSM-STANDARD",
+      buildUrl: (z, x, y) =>
+        `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+    },
+  ];
 
-async function fetchProviderTile(provider: Provider, z: string, x: string, y: string) {
+  if (CARTO_API_KEY) {
+    mapProviders.push({
+      id: "carto-light",
+      label: "CARTO-LIGHT",
+      buildUrl: (z, x, y) => {
+        const url = new URL(
+          `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
+        );
+        url.searchParams.set("key", CARTO_API_KEY);
+        return url.toString();
+      },
+    });
+  }
+
+  return mapProviders;
+}
+
+async function fetchProviderTile(
+  provider: Provider,
+  mode: MapMode,
+  z: string,
+  x: string,
+  y: string,
+): Promise<Response | null> {
   const url = provider.buildUrl(z, x, y);
   if (!url) return null;
 
@@ -129,8 +159,7 @@ async function fetchProviderTile(provider: Provider, z: string, x: string, y: st
     const body = Buffer.from(await upstream.arrayBuffer());
     if (!body.length) return null;
 
-    await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
-
+    await writeCachedTile(provider.id, mode, z, x, y, body);
     return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
   } catch {
     return null;
@@ -138,7 +167,7 @@ async function fetchProviderTile(provider: Provider, z: string, x: string, y: st
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ z: string; x: string; y: string }> },
 ) {
   const { z, x, y: rawY } = await params;
@@ -148,25 +177,30 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
-  // Try every local cache first, then every online provider.
+  const requestedMode = new URL(request.url).searchParams.get("mode");
+  const mode: MapMode =
+    requestedMode === "imagery" || requestedMode === "labels"
+      ? requestedMode
+      : "map";
+
+  const providers = providersForMode(mode);
+
   for (const provider of providers) {
-    const cached = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
+    const cached = await readCachedTile(provider.id, mode, z, x, y);
     if (cached) {
       return imageResponse(cached, `${provider.label}-LOCAL-CACHE`);
     }
   }
 
-  // CARTO is used only when a current provider-owned API key is configured.
-  // Esri and OSM remain available as independent online fallbacks.
   for (const provider of providers) {
-    const online = await fetchProviderTile(provider, z, x, y);
+    const online = await fetchProviderTile(provider, mode, z, x, y);
     if (online) return online;
   }
 
   return new Response("Map tile unavailable", {
     status: 503,
     headers: {
-      "X-Sentinel-Map": "ALL-PROVIDERS-MISS",
+      "X-Sentinel-Map": `ALL-PROVIDERS-MISS-${mode.toUpperCase()}`,
       "Cache-Control": "no-store",
     },
   });
