@@ -32,7 +32,7 @@ const sourceCards = [
     status: "CURRENT",
     detail: "CESIUMJS 1.145 / URL TILES",
     sources: "GITHUB / CESIUM FORUM / CODE",
-    tone: "slate",
+    tone: "emerald",
   },
 ] as const;
 
@@ -41,7 +41,7 @@ const toneClasses = {
   lime: "border-lime-900/70 text-lime-300",
   violet: "border-violet-900/70 text-violet-300",
   amber: "border-amber-900/70 text-amber-300",
-  slate: "border-slate-800 text-slate-300",
+  emerald: "border-emerald-900/70 text-emerald-300",
 } as const;
 
 export default function GlobalSourceCards() {
