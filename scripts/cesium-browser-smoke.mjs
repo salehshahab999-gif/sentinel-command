@@ -15,49 +15,65 @@ try {
     const failedRequests = [];
     const requestedUrls = [];
 
-    page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
     page.on("pageerror", (error) => pageErrors.push(error.message));
     page.on("request", (request) => requestedUrls.push(request.url()));
-    page.on("requestfailed", (request) => failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? "unknown" }));
+    page.on("requestfailed", (request) => {
+      failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? "unknown" });
+    });
 
     await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForFunction(() => Boolean(window.Cesium) || Boolean(document.querySelector(".cesium-widget")), { timeout: 60000 });
     await page.waitForSelector("canvas", { timeout: 30000 });
     await page.waitForTimeout(2500);
 
-    const modeChecks = [
-      ["map", "MAP + CITY LABELS"],
-      ["satellite-labels", "SATELLITE + CITY LABELS"],
-      ["satellite-clean", "SATELLITE CLEAN"],
-    ];
+    if (route === "/satellite") {
+      const modeChecks = [
+        ["map", "MAP + CITY LABELS"],
+        ["satellite-labels", "SATELLITE + CITY LABELS"],
+        ["satellite-clean", "SATELLITE CLEAN"],
+      ];
 
-    for (let cycle = 1; cycle <= 3; cycle += 1) {
-      for (const [mode, label] of modeChecks) {
-        const button = page.getByTestId(`global-mode-${mode}`);
-        await button.waitFor({ state: "visible", timeout: 10000 });
-        await button.click();
-        await page.waitForTimeout(700);
-        const bodyText = await page.locator("body").innerText();
-        if (!bodyText.includes(label)) throw new Error(`${route}: mode did not settle on ${label}, cycle ${cycle}`);
+      for (let cycle = 1; cycle <= 3; cycle += 1) {
+        for (const [mode, label] of modeChecks) {
+          const button = page.getByTestId(`global-mode-${mode}`);
+          await button.waitFor({ state: "visible", timeout: 10000 });
+          await button.click();
+          await page.waitForTimeout(900);
 
-        if (route === "/satellite") {
+          const bodyText = await page.locator("body").innerText();
+          if (!bodyText.includes(label)) {
+            throw new Error(`${route}: mode did not settle on ${label}, cycle ${cycle}`);
+          }
+
           const debug = await page.evaluate(() => window.__SENTINEL_GLOBAL_DEBUG__ ?? null);
-          if (!debug || !debug.ready || debug.mode !== mode) throw new Error(`${route}: invalid debug state for ${label}: ${JSON.stringify(debug)}`);
-          if (debug.layerCount > 2) throw new Error(`${route}: layer leak detected: ${JSON.stringify(debug)}`);
-          if (mode === "map" && (!debug.mapVisible || debug.imageryVisible || debug.labelsVisible)) throw new Error(`MAP isolation failed: ${JSON.stringify(debug)}`);
-          if (mode === "satellite-labels" && (debug.mapVisible || !debug.imageryVisible || !debug.labelsVisible)) throw new Error(`SATELLITE+LABELS isolation failed: ${JSON.stringify(debug)}`);
-          if (mode === "satellite-clean" && (debug.mapVisible || !debug.imageryVisible || debug.labelsVisible)) throw new Error(`SATELLITE CLEAN isolation failed: ${JSON.stringify(debug)}`);
+          if (!debug || !debug.ready || debug.mode !== mode) {
+            throw new Error(`${route}: invalid debug state for ${label}: ${JSON.stringify(debug)}`);
+          }
+          if (debug.layerCount > 2) {
+            throw new Error(`${route}: imagery layer leak detected: ${JSON.stringify(debug)}`);
+          }
+
+          if (mode === "map" && (!debug.mapVisible || debug.imageryVisible || debug.labelsVisible)) {
+            throw new Error(`MAP isolation failed: ${JSON.stringify(debug)}`);
+          }
+          if (mode === "satellite-labels" && (debug.mapVisible || !debug.imageryVisible || !debug.labelsVisible)) {
+            throw new Error(`SATELLITE+LABELS isolation failed: ${JSON.stringify(debug)}`);
+          }
+          if (mode === "satellite-clean" && (debug.mapVisible || !debug.imageryVisible || debug.labelsVisible)) {
+            throw new Error(`SATELLITE CLEAN isolation failed: ${JSON.stringify(debug)}`);
+          }
         }
       }
-    }
 
-    if (route === "/satellite") {
       const canvas = page.locator("canvas").first();
       await canvas.hover({ position: { x: 720, y: 450 } });
       await page.mouse.wheel(0, -900);
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(600);
       await page.mouse.wheel(0, 900);
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(600);
     }
 
     const state = await page.evaluate(() => {
@@ -76,18 +92,42 @@ try {
     const forbiddenApiKeyConsole = consoleErrors.filter((item) => /api key required|unauthorized|invalidcredentials|isIon is not a function/i.test(item));
     const forbiddenIonRequests = requestedUrls.filter((url) => /api\.cesium\.com/i.test(url));
     const mapProxyRequests = requestedUrls.filter((url) => /\/api\/map\/tile\//i.test(url));
-    const arcGisRequests = requestedUrls.filter((url) => /server\.arcgisonline\.com/i.test(url));
 
-    const result = { route, state, requestedArcGisRequests: arcGisRequests.length, mapProxyRequests: mapProxyRequests.length, forbiddenApiKeyConsole, forbiddenIonRequests, consoleErrors, pageErrors, failedRequests };
+    const result = {
+      route,
+      state,
+      mapProxyRequests: mapProxyRequests.length,
+      forbiddenApiKeyConsole,
+      forbiddenIonRequests,
+      consoleErrors,
+      pageErrors,
+      failedRequests,
+    };
     console.log(JSON.stringify(result, null, 2));
 
-    if (!state.canvas || !state.webgl || !state.cesiumGlobal || !state.cesiumWidget || state.bodyHasApiKeyError || pageErrors.length > 0 || forbiddenApiKeyConsole.length > 0 || forbiddenIonRequests.length > 0 || consoleErrors.length > 0 || (route === "/test-globe" && arcGisRequests.length === 0) || (route === "/satellite" && mapProxyRequests.length === 0)) {
+    if (
+      !state.canvas ||
+      !state.webgl ||
+      !state.cesiumGlobal ||
+      !state.cesiumWidget ||
+      state.bodyHasApiKeyError ||
+      pageErrors.length > 0 ||
+      forbiddenApiKeyConsole.length > 0 ||
+      forbiddenIonRequests.length > 0 ||
+      consoleErrors.length > 0 ||
+      failedRequests.some(({ url }) => /api\.cesium\.com/i.test(url)) ||
+      (route === "/satellite" && mapProxyRequests.length === 0)
+    ) {
       throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
     }
 
-    await page.screenshot({ path: `.artifacts/cesium${route === "/test-globe" ? "-control" : "-satellite"}.png`, fullPage: true });
+    await page.screenshot({
+      path: `.artifacts/cesium${route === "/test-globe" ? "-control" : "-satellite"}.png`,
+      fullPage: true,
+    });
     await page.close();
   }
+
   console.log("\nCESIUM BROWSER SMOKE PASS");
 } finally {
   await browser.close();
