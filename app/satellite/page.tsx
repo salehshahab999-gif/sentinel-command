@@ -1,12 +1,12 @@
+import GlobalGlobe from "../components/GlobalGlobe";
 import GlobalSourceCards from "../components/GlobalSourceCards";
-import MaritimeSkeletonOverlay from "../components/MaritimeSkeletonOverlay";
 import MapSearchPanel from "../components/MapSearchPanel";
-import SatelliteIntelligence from "../components/SatelliteIntelligence";
+import MaritimeSkeletonOverlay from "../components/MaritimeSkeletonOverlay";
 
 export default function SatellitePage() {
   return (
     <>
-      <SatelliteIntelligence />
+      <GlobalGlobe />
       <GlobalSourceCards />
       <MapSearchPanel />
       <MaritimeSkeletonOverlay />
