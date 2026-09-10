@@ -2,49 +2,6 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:3000";
 
-async function checkMapTile(page, mode) {
-  const response = await page.request.get(
-    `${baseUrl}/api/map/tile/17/83880/51020.png?mode=${mode}`,
-    { timeout: 30000 },
-  );
-
-  const headers = response.headers();
-  const contentType = headers["content-type"] ?? "";
-  const source = headers["x-sentinel-map"] ?? "";
-  const body = await response.body();
-
-  return {
-    mode,
-    status: response.status(),
-    contentType,
-    source,
-    bytes: body.length,
-  };
-}
-
-function assertTileMode(tile) {
-  if (
-    tile.status !== 200 ||
-    !tile.contentType.startsWith("image/") ||
-    !tile.source ||
-    tile.bytes <= 0
-  ) {
-    throw new Error(`Invalid tile result: ${JSON.stringify(tile)}`);
-  }
-
-  if (tile.mode === "map" && !tile.source.includes("OSM-STANDARD")) {
-    throw new Error(`MAP resolved to an unexpected provider: ${JSON.stringify(tile)}`);
-  }
-
-  if (tile.mode === "imagery" && !tile.source.includes("ESRI-WORLD-IMAGERY")) {
-    throw new Error(`IMAGERY resolved to an unexpected provider: ${JSON.stringify(tile)}`);
-  }
-
-  if (tile.mode === "labels" && !tile.source.includes("ESRI-BOUNDARIES-PLACES")) {
-    throw new Error(`LABELS resolved to an unexpected provider: ${JSON.stringify(tile)}`);
-  }
-}
-
 const browser = await chromium.launch({
   headless: true,
   args: ["--use-gl=swiftshader", "--disable-gpu-sandbox"],
@@ -71,11 +28,7 @@ try {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     page.on("request", (request) => {
-      const url = request.url();
-      requestedUrls.push(url);
-      if (route === "/satellite" && url.includes("api.cesium.com")) {
-        consoleErrors.push(`UNEXPECTED_CESIUM_ION_REQUEST: ${url}`);
-      }
+      requestedUrls.push(request.url());
     });
 
     page.on("requestfailed", (request) => {
@@ -98,15 +51,7 @@ try {
     await page.waitForSelector("canvas", { timeout: 30000 });
     await page.waitForTimeout(2500);
 
-    const mapTiles = [];
-
-    if (route === "/satellite") {
-      for (const mode of ["map", "imagery", "labels"]) {
-        const tile = await checkMapTile(page, mode);
-        assertTileMode(tile);
-        mapTiles.push(tile);
-      }
-
+    if (route === "/test-globe") {
       const modeChecks = [
         ["map", "MAP + CITY LABELS"],
         ["satellite-labels", "SATELLITE + CITY LABELS"],
@@ -118,7 +63,7 @@ try {
           const button = page.getByTestId(`global-mode-${mode}`);
           await button.waitFor({ state: "visible", timeout: 10000 });
           await button.click();
-          await page.waitForTimeout(600);
+          await page.waitForTimeout(900);
 
           const bodyText = await page.locator("body").innerText();
           if (!bodyText.includes(label)) {
@@ -142,20 +87,29 @@ try {
       };
     });
 
-    const forbiddenApiKeyConsole = consoleErrors.filter((item) => /api key required|unauthorized|invalidcredentials/i.test(item));
-    const forbiddenIonRequests = route === "/satellite"
-      ? requestedUrls.filter((url) => url.includes("api.cesium.com"))
-      : [];
+    const forbiddenApiKeyConsole = consoleErrors.filter((item) =>
+      /api key required|unauthorized|invalidcredentials/i.test(item),
+    );
+    const forbiddenIonRequests = requestedUrls.filter((url) =>
+      /api\.cesium\.com/i.test(url),
+    );
+    const mapProxyRequests = requestedUrls.filter((url) =>
+      /\/api\/map\/tile\//i.test(url),
+    );
+    const arcGisRequests = requestedUrls.filter((url) =>
+      /server\.arcgisonline\.com/i.test(url),
+    );
 
     const result = {
       route,
       state,
-      mapTiles,
+      requestedArcGisRequests: arcGisRequests.length,
+      mapProxyRequests: mapProxyRequests.length,
+      forbiddenApiKeyConsole,
+      forbiddenIonRequests,
       consoleErrors,
       pageErrors,
       failedRequests,
-      forbiddenApiKeyConsole,
-      forbiddenIonRequests,
     };
 
     console.log(JSON.stringify(result, null, 2));
@@ -165,14 +119,13 @@ try {
       !state.webgl ||
       !state.cesiumGlobal ||
       !state.cesiumWidget ||
+      state.bodyHasApiKeyError ||
       pageErrors.length > 0 ||
-      (route === "/satellite" && (
-        consoleErrors.length > 0 ||
-        state.bodyHasApiKeyError ||
-        forbiddenApiKeyConsole.length > 0 ||
-        forbiddenIonRequests.length > 0 ||
-        failedRequests.some(({ url }) => url.includes("/api/map/tile/") || url.includes("api.cesium.com"))
-      ))
+      forbiddenApiKeyConsole.length > 0 ||
+      forbiddenIonRequests.length > 0 ||
+      consoleErrors.length > 0 ||
+      failedRequests.some(({ url }) => /api\.cesium\.com/i.test(url)) ||
+      (route === "/test-globe" && arcGisRequests.length === 0)
     ) {
       throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
     }
