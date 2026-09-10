@@ -9,7 +9,10 @@ const browser = await chromium.launch({
 try {
   for (const route of ["/test-globe", "/satellite"]) {
     console.log(`\n=== TEST ${route} ===`);
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 1,
+    });
     const consoleErrors = [];
     const pageErrors = [];
     const failedRequests = [];
@@ -21,11 +24,20 @@ try {
     page.on("pageerror", (error) => pageErrors.push(error.message));
     page.on("request", (request) => requestedUrls.push(request.url()));
     page.on("requestfailed", (request) => {
-      failedRequests.push({ url: request.url(), error: request.failure()?.errorText ?? "unknown" });
+      failedRequests.push({
+        url: request.url(),
+        error: request.failure()?.errorText ?? "unknown",
+      });
     });
 
-    await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 60000 });
-    await page.waitForFunction(() => Boolean(window.Cesium) || Boolean(document.querySelector(".cesium-widget")), { timeout: 60000 });
+    await page.goto(`${baseUrl}${route}`, {
+      waitUntil: "domcontentloaded",
+      timeout: 60000,
+    });
+    await page.waitForFunction(
+      () => Boolean(window.Cesium) || Boolean(document.querySelector(".cesium-widget")),
+      { timeout: 60000 },
+    );
     await page.waitForSelector("canvas", { timeout: 30000 });
     await page.waitForTimeout(2500);
 
@@ -41,14 +53,24 @@ try {
           const button = page.getByTestId(`global-mode-${mode}`);
           await button.waitFor({ state: "visible", timeout: 10000 });
           await button.click();
-          await page.waitForTimeout(900);
+
+          await page.waitForFunction(
+            (expected) => {
+              const debug = window.__SENTINEL_GLOBAL_DEBUG__;
+              return Boolean(debug?.ready) && debug?.mode === expected;
+            },
+            mode,
+            { timeout: 15000 },
+          );
 
           const bodyText = await page.locator("body").innerText();
           if (!bodyText.includes(label)) {
             throw new Error(`${route}: mode did not settle on ${label}, cycle ${cycle}`);
           }
 
-          const debug = await page.evaluate(() => window.__SENTINEL_GLOBAL_DEBUG__ ?? null);
+          const debug = await page.evaluate(
+            () => window.__SENTINEL_GLOBAL_DEBUG__ ?? null,
+          );
           if (!debug || !debug.ready || debug.mode !== mode) {
             throw new Error(`${route}: invalid debug state for ${label}: ${JSON.stringify(debug)}`);
           }
@@ -56,14 +78,49 @@ try {
             throw new Error(`${route}: imagery layer leak detected: ${JSON.stringify(debug)}`);
           }
 
-          if (mode === "map" && (!debug.mapVisible || debug.imageryVisible || debug.labelsVisible)) {
+          if (
+            mode === "map" &&
+            (!debug.mapVisible || debug.imageryVisible || !debug.labelsVisible)
+          ) {
             throw new Error(`MAP isolation failed: ${JSON.stringify(debug)}`);
           }
-          if (mode === "satellite-labels" && (debug.mapVisible || !debug.imageryVisible || !debug.labelsVisible)) {
+          if (
+            mode === "satellite-labels" &&
+            (debug.mapVisible || !debug.imageryVisible || !debug.labelsVisible)
+          ) {
             throw new Error(`SATELLITE+LABELS isolation failed: ${JSON.stringify(debug)}`);
           }
-          if (mode === "satellite-clean" && (debug.mapVisible || !debug.imageryVisible || debug.labelsVisible)) {
+          if (
+            mode === "satellite-clean" &&
+            (debug.mapVisible || !debug.imageryVisible || debug.labelsVisible)
+          ) {
             throw new Error(`SATELLITE CLEAN isolation failed: ${JSON.stringify(debug)}`);
+          }
+
+          const canvas = page.locator("canvas").first();
+          const box = await canvas.boundingBox();
+          if (!box) throw new Error(`${route}: canvas bounding box unavailable`);
+
+          await page.mouse.move(
+            box.x + box.width * 0.35,
+            box.y + box.height * 0.50,
+          );
+          await page.mouse.down({ button: "left" });
+          await page.mouse.move(
+            box.x + box.width * 0.55,
+            box.y + box.height * 0.42,
+            { steps: 12 },
+          );
+          await page.mouse.up({ button: "left" });
+          await page.waitForTimeout(350);
+
+          const rotatedDebug = await page.evaluate(
+            () => window.__SENTINEL_GLOBAL_DEBUG__ ?? null,
+          );
+          if (!rotatedDebug || rotatedDebug.mode !== mode) {
+            throw new Error(
+              `${route}: rotation changed active mode: ${JSON.stringify(rotatedDebug)}`,
+            );
           }
         }
       }
@@ -71,14 +128,30 @@ try {
       const canvas = page.locator("canvas").first();
       await canvas.hover({ position: { x: 720, y: 450 } });
       await page.mouse.wheel(0, -900);
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(500);
+      const afterZoomIn = await page.evaluate(
+        () => window.__SENTINEL_GLOBAL_DEBUG__ ?? null,
+      );
       await page.mouse.wheel(0, 900);
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(500);
+      const afterZoomOut = await page.evaluate(
+        () => window.__SENTINEL_GLOBAL_DEBUG__ ?? null,
+      );
+
+      if (!afterZoomIn || !afterZoomOut || afterZoomIn.mode !== afterZoomOut.mode) {
+        throw new Error(
+          `${route}: wheel zoom changed mode: ${JSON.stringify({ afterZoomIn, afterZoomOut })}`,
+        );
+      }
     }
 
     const state = await page.evaluate(() => {
-      const canvas = [...document.querySelectorAll("canvas")].find((item) => item.width > 300 && item.height > 300) ?? document.querySelector("canvas");
-      const gl = canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
+      const canvas =
+        [...document.querySelectorAll("canvas")].find(
+          (item) => item.width > 300 && item.height > 300,
+        ) ?? document.querySelector("canvas");
+      const gl =
+        canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
       return {
         canvas: canvas ? { width: canvas.width, height: canvas.height } : null,
         webgl: Boolean(gl),
@@ -89,14 +162,20 @@ try {
       };
     });
 
-    const forbiddenApiKeyConsole = consoleErrors.filter((item) => /api key required|unauthorized|invalidcredentials|isIon is not a function/i.test(item));
-    const forbiddenIonRequests = requestedUrls.filter((url) => /api\.cesium\.com/i.test(url));
-    const mapProxyRequests = requestedUrls.filter((url) => /\/api\/map\/tile\//i.test(url));
+    const forbiddenApiKeyConsole = consoleErrors.filter((item) =>
+      /api key required|unauthorized|invalidcredentials|isIon is not a function/i.test(item),
+    );
+    const forbiddenIonRequests = requestedUrls.filter((url) =>
+      /api\.cesium\.com/i.test(url),
+    );
+    const arcGisRequests = requestedUrls.filter((url) =>
+      /arcgisonline\.com/i.test(url),
+    );
 
     const result = {
       route,
       state,
-      mapProxyRequests: mapProxyRequests.length,
+      arcGisRequests: arcGisRequests.length,
       forbiddenApiKeyConsole,
       forbiddenIonRequests,
       consoleErrors,
@@ -116,7 +195,7 @@ try {
       forbiddenIonRequests.length > 0 ||
       consoleErrors.length > 0 ||
       failedRequests.some(({ url }) => /api\.cesium\.com/i.test(url)) ||
-      (route === "/satellite" && mapProxyRequests.length === 0)
+      arcGisRequests.length === 0
     ) {
       throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
     }
