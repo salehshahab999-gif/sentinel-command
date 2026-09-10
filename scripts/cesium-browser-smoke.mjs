@@ -22,6 +22,29 @@ async function checkMapTile(page, mode) {
   };
 }
 
+function assertTileMode(tile) {
+  if (
+    tile.status !== 200 ||
+    !tile.contentType.startsWith("image/") ||
+    !tile.source ||
+    tile.bytes <= 0
+  ) {
+    throw new Error(`Invalid tile result: ${JSON.stringify(tile)}`);
+  }
+
+  if (tile.mode === "map" && !tile.source.includes("OSM-STANDARD")) {
+    throw new Error(`MAP resolved to an unexpected provider: ${JSON.stringify(tile)}`);
+  }
+
+  if (tile.mode === "imagery" && !tile.source.includes("ESRI-WORLD-IMAGERY")) {
+    throw new Error(`IMAGERY resolved to an unexpected provider: ${JSON.stringify(tile)}`);
+  }
+
+  if (tile.mode === "labels" && !tile.source.includes("ESRI-BOUNDARIES-PLACES")) {
+    throw new Error(`LABELS resolved to an unexpected provider: ${JSON.stringify(tile)}`);
+  }
+}
+
 const browser = await chromium.launch({
   headless: true,
   args: ["--use-gl=swiftshader", "--disable-gpu-sandbox"],
@@ -75,18 +98,33 @@ try {
     await page.waitForSelector("canvas", { timeout: 30000 });
     await page.waitForTimeout(2500);
 
-    let mapTiles = [];
+    const mapTiles = [];
 
     if (route === "/satellite") {
       for (const mode of ["map", "imagery", "labels"]) {
-        mapTiles.push(await checkMapTile(page, mode));
+        const tile = await checkMapTile(page, mode);
+        assertTileMode(tile);
+        mapTiles.push(tile);
       }
 
-      for (const mode of ["map", "satellite-labels", "satellite-clean"]) {
-        const button = page.getByTestId(`global-mode-${mode}`);
-        await button.waitFor({ state: "visible", timeout: 10000 });
-        await button.click();
-        await page.waitForTimeout(500);
+      const modeChecks = [
+        ["map", "MAP + CITY LABELS"],
+        ["satellite-labels", "SATELLITE + CITY LABELS"],
+        ["satellite-clean", "SATELLITE CLEAN"],
+      ];
+
+      for (let cycle = 1; cycle <= 3; cycle += 1) {
+        for (const [mode, label] of modeChecks) {
+          const button = page.getByTestId(`global-mode-${mode}`);
+          await button.waitFor({ state: "visible", timeout: 10000 });
+          await button.click();
+          await page.waitForTimeout(600);
+
+          const bodyText = await page.locator("body").innerText();
+          if (!bodyText.includes(label)) {
+            throw new Error(`Global mode did not settle on ${label} during cycle ${cycle}`);
+          }
+        }
       }
     }
 
@@ -133,14 +171,7 @@ try {
         state.bodyHasApiKeyError ||
         forbiddenApiKeyConsole.length > 0 ||
         forbiddenIonRequests.length > 0 ||
-        failedRequests.some(({ url }) => url.includes("/api/map/tile/") || url.includes("api.cesium.com")) ||
-        mapTiles.some(
-          (tile) =>
-            tile.status !== 200 ||
-            !tile.contentType.startsWith("image/") ||
-            !tile.source ||
-            tile.bytes <= 0,
-        )
+        failedRequests.some(({ url }) => url.includes("/api/map/tile/") || url.includes("api.cesium.com"))
       ))
     ) {
       throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
