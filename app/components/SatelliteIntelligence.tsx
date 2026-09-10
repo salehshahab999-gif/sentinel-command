@@ -14,7 +14,7 @@ type ProviderFilter = "ALL" | "COPERNICUS" | "NASA" | "NOAA";
 type GlobalMode = "map" | "satellite-labels" | "satellite-clean";
 
 declare global {
-  interface Window { Cesium?: any; }
+  interface Window { Cesium?: any; CESIUM_BASE_URL?: string; }
 }
 
 const providerFilters: Array<{ id: ProviderFilter; label: string }> = [
@@ -167,7 +167,6 @@ export default function SatelliteIntelligence() {
 
   useEffect(() => {
     let destroyed = false;
-
     async function init() {
       try {
         const Cesium = await loadCesium();
@@ -206,7 +205,6 @@ export default function SatelliteIntelligence() {
         if (viewer.scene.sun) viewer.scene.sun.show = false;
         if (viewer.scene.moon) viewer.scene.moon.show = false;
         if (viewer.scene.postProcessStages?.fxaa) viewer.scene.postProcessStages.fxaa.enabled = true;
-
         viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000) });
 
         const localProvider = (tileMode: string) => new Cesium.UrlTemplateImageryProvider({
@@ -287,7 +285,6 @@ export default function SatelliteIntelligence() {
     }
 
     void init();
-
     return () => {
       destroyed = true;
       clickHandlerRef.current?.destroy?.();
@@ -331,14 +328,9 @@ export default function SatelliteIntelligence() {
       const viewer = viewerRef.current;
       const Cesium = window.Cesium;
       if (!viewer || !Cesium || !result) return;
-      viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(result.longitude, result.latitude, 900000),
-        duration: 0.8,
-      });
+      viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(result.longitude, result.latitude, 900000), duration: 0.8 });
     };
-    const handleUniversalFilter = (event: Event) => {
-      setUniversalFilter((event as CustomEvent<UniversalMapFilter>).detail ?? {});
-    };
+    const handleUniversalFilter = (event: Event) => setUniversalFilter((event as CustomEvent<UniversalMapFilter>).detail ?? {});
     window.addEventListener("sentinel-map-focus", handleMapFocus);
     window.addEventListener("sentinel-map-universal-filter", handleUniversalFilter);
     return () => {
@@ -347,9 +339,7 @@ export default function SatelliteIntelligence() {
     };
   }, []);
 
-  const toggleLayer = (id: SatelliteLayerId) => {
-    setEnabledLayers((current) => ({ ...current, [id]: !current[id] }));
-  };
+  const toggleLayer = (id: SatelliteLayerId) => setEnabledLayers((current) => ({ ...current, [id]: !current[id] }));
 
   const focusSatellite = (satellite: SatelliteRecord) => {
     const viewer = viewerRef.current;
@@ -368,7 +358,6 @@ export default function SatelliteIntelligence() {
     <main className="relative min-h-screen overflow-hidden bg-[#020406] text-slate-100">
       <div ref={containerRef} className="absolute inset-0" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(0,0,0,.10)_45%,rgba(0,0,0,.62)_100%)]" />
-
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4 md:p-6">
         <div className="rounded-2xl border border-cyan-950/80 bg-black/75 px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-2 text-[9px] font-bold tracking-[.35em] text-cyan-400"><span className={`h-2 w-2 rounded-full ${cesiumReady ? "animate-pulse bg-emerald-400" : "animate-pulse bg-amber-400"}`} />SENTINEL COMMAND CENTER</div>
@@ -382,13 +371,7 @@ export default function SatelliteIntelligence() {
         <section className="rounded-2xl border border-cyan-950/80 bg-black/78 p-3 backdrop-blur-xl">
           <div className="mb-2 flex items-center justify-between"><span className="text-[9px] font-bold tracking-[.24em] text-cyan-400">GLOBAL MAP MODE</span><span className="text-[8px] text-emerald-400">3 ONLINE</span></div>
           <div className="space-y-1.5">
-            {([
-              ["map", "MAP + CITY LABELS", "STREET"],
-              ["satellite-labels", "SATELLITE + CITY LABELS", "HYBRID"],
-              ["satellite-clean", "SATELLITE CLEAN", "IMAGERY"],
-            ] as const).map(([id, label, tag]) => (
-              <button key={id} type="button" onClick={() => applyMode(id)} data-testid={`global-mode-${id}`} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-[10px] font-semibold ${mode === id ? "border-cyan-700 bg-cyan-950/30 text-cyan-200" : "border-slate-800 bg-black/30 text-slate-400"}`}><span>{label}</span><span className="text-[8px] text-slate-600">{tag}</span></button>
-            ))}
+            {([["map", "MAP + CITY LABELS", "STREET"], ["satellite-labels", "SATELLITE + CITY LABELS", "HYBRID"], ["satellite-clean", "SATELLITE CLEAN", "IMAGERY"]] as const).map(([id, label, tag]) => <button key={id} type="button" onClick={() => applyMode(id)} data-testid={`global-mode-${id}`} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-[10px] font-semibold ${mode === id ? "border-cyan-700 bg-cyan-950/30 text-cyan-200" : "border-slate-800 bg-black/30 text-slate-400"}`}><span>{label}</span><span className="text-[8px] text-slate-600">{tag}</span></button>)}
           </div>
         </section>
 
@@ -417,13 +400,7 @@ export default function SatelliteIntelligence() {
         </div>
       </section>
 
-      {selected && (
-        <section className="absolute bottom-24 right-4 z-30 w-[285px] max-w-[calc(100vw-2rem)] rounded-2xl border border-cyan-900/80 bg-black/88 p-4 backdrop-blur-xl md:right-6">
-          <div className="flex items-start justify-between gap-3"><div><p className="text-[8px] font-bold tracking-[.25em] text-cyan-500">SELECTED SATELLITE</p><h2 className="mt-1 text-lg font-semibold text-cyan-100">{selected.name}</h2><p className="text-[9px] text-slate-600">{selected.id} • NORAD {selected.noradId ?? "PENDING"}</p></div><button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500">×</button></div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-[9px]"><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MISSION</span><br /><span className="text-slate-300">{selected.mission}</span></div></div>
-          <button type="button" onClick={() => focusSatellite(selected)} className="mt-3 w-full rounded-lg border border-cyan-900 bg-cyan-950/30 px-3 py-2 text-[9px] font-bold text-cyan-300">FOCUS SATELLITE</button>
-        </section>
-      )}
+      {selected && <section className="absolute bottom-24 right-4 z-30 w-[285px] max-w-[calc(100vw-2rem)] rounded-2xl border border-cyan-900/80 bg-black/88 p-4 backdrop-blur-xl md:right-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[8px] font-bold tracking-[.25em] text-cyan-500">SELECTED SATELLITE</p><h2 className="mt-1 text-lg font-semibold text-cyan-100">{selected.name}</h2><p className="text-[9px] text-slate-600">{selected.id} • NORAD {selected.noradId ?? "PENDING"}</p></div><button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500">×</button></div><div className="mt-3 grid grid-cols-2 gap-2 text-[9px]"><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MISSION</span><br /><span className="text-slate-300">{selected.mission}</span></div></div><button type="button" onClick={() => focusSatellite(selected)} className="mt-3 w-full rounded-lg border border-cyan-900 bg-cyan-950/30 px-3 py-2 text-[9px] font-bold text-cyan-300">FOCUS SATELLITE</button></section>}
 
       <footer className="absolute inset-x-0 bottom-4 z-20 px-4"><div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-2xl border border-cyan-950/80 bg-black/78 px-4 py-3 text-[8px] tracking-[.16em] backdrop-blur-xl"><span className="text-emerald-400">● CESIUM GLOBE</span><span className="text-cyan-400">● LOCAL MAP CACHE</span><span className="text-violet-400">● LABEL OVERLAY</span><span className="text-slate-500">● LIVE COLLECTORS OFF</span></div></footer>
     </main>
