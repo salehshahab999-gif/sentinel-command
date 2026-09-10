@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { SATELLITE_LAYERS, SKELETON_SATELLITES } from "../../core/satellite/satellite-catalog";
@@ -372,10 +371,7 @@ export default function SatelliteIntelligence() {
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4 md:p-6">
         <div className="rounded-2xl border border-cyan-950/80 bg-black/75 px-4 py-3 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-[9px] font-bold tracking-[.35em] text-cyan-400">
-            <span className={`h-2 w-2 rounded-full ${cesiumReady ? "animate-pulse bg-emerald-400" : "animate-pulse bg-amber-400"}`} />
-            SENTINEL COMMAND CENTER
-          </div>
+          <div className="flex items-center gap-2 text-[9px] font-bold tracking-[.35em] text-cyan-400"><span className={`h-2 w-2 rounded-full ${cesiumReady ? "animate-pulse bg-emerald-400" : "animate-pulse bg-amber-400"}`} />SENTINEL COMMAND CENTER</div>
           <h1 className="mt-1 text-xl font-semibold tracking-tight md:text-2xl">GLOBAL INTELLIGENCE / SPACE</h1>
           <p className="mt-1 text-[9px] tracking-[.18em] text-slate-500">CESIUMJS {CESIUM_VERSION} • LOCAL MAP SERVICE • GLOBAL MODE ISOLATED</p>
         </div>
@@ -384,43 +380,27 @@ export default function SatelliteIntelligence() {
 
       <aside className="absolute left-4 top-28 z-20 w-[315px] max-w-[calc(100vw-2rem)] space-y-3 md:left-6">
         <section className="rounded-2xl border border-cyan-950/80 bg-black/78 p-3 backdrop-blur-xl">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-[9px] font-bold tracking-[.24em] text-cyan-400">GLOBAL MAP MODE</span>
-            <span className="text-[8px] text-emerald-400">3 ONLINE</span>
-          </div>
+          <div className="mb-2 flex items-center justify-between"><span className="text-[9px] font-bold tracking-[.24em] text-cyan-400">GLOBAL MAP MODE</span><span className="text-[8px] text-emerald-400">3 ONLINE</span></div>
           <div className="space-y-1.5">
             {([
               ["map", "MAP + CITY LABELS", "STREET"],
               ["satellite-labels", "SATELLITE + CITY LABELS", "HYBRID"],
               ["satellite-clean", "SATELLITE CLEAN", "IMAGERY"],
             ] as const).map(([id, label, tag]) => (
-              <button key={id} type="button" onClick={() => applyMode(id)} data-testid={`global-mode-${id}`} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-[10px] font-semibold ${mode === id ? "border-cyan-700 bg-cyan-950/30 text-cyan-200" : "border-slate-800 bg-black/30 text-slate-400"}`}>
-                <span>{label}</span><span className="text-[8px] text-slate-600">{tag}</span>
-              </button>
+              <button key={id} type="button" onClick={() => applyMode(id)} data-testid={`global-mode-${id}`} className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-[10px] font-semibold ${mode === id ? "border-cyan-700 bg-cyan-950/30 text-cyan-200" : "border-slate-800 bg-black/30 text-slate-400"}`}><span>{label}</span><span className="text-[8px] text-slate-600">{tag}</span></button>
             ))}
           </div>
         </section>
 
         <section className="rounded-2xl border border-cyan-950/80 bg-black/78 p-3 backdrop-blur-xl">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-[9px] font-bold tracking-[.24em] text-slate-400">SATELLITE FILTERS</span>
-            <span className="text-[8px] text-slate-600">{filteredSatellites.length} OBJECTS</span>
-          </div>
+          <div className="mb-2 flex items-center justify-between"><span className="text-[9px] font-bold tracking-[.24em] text-slate-400">SATELLITE FILTERS</span><span className="text-[8px] text-slate-600">{filteredSatellites.length} OBJECTS</span></div>
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search satellite..." className="mb-2 w-full rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs text-slate-200 outline-none placeholder:text-slate-700" />
-          <div className="grid grid-cols-4 gap-1">
-            {providerFilters.map((item) => (
-              <button key={item.id} type="button" onClick={() => setProvider(item.id)} className={`rounded-md border px-2 py-1.5 text-[8px] font-bold ${provider === item.id ? "border-cyan-700 bg-cyan-950/40 text-cyan-300" : "border-slate-900 text-slate-600"}`}>{item.label}</button>
-            ))}
-          </div>
+          <div className="grid grid-cols-4 gap-1">{providerFilters.map((item) => <button key={item.id} type="button" onClick={() => setProvider(item.id)} className={`rounded-md border px-2 py-1.5 text-[8px] font-bold ${provider === item.id ? "border-cyan-700 bg-cyan-950/40 text-cyan-300" : "border-slate-900 text-slate-600"}`}>{item.label}</button>)}</div>
         </section>
 
         <section className="rounded-2xl border border-cyan-950/80 bg-black/78 p-3 backdrop-blur-xl">
           <div className="mb-2 flex items-center justify-between"><span className="text-[9px] font-bold tracking-[.24em] text-slate-400">LAYER BUS</span><span className="text-[8px] text-emerald-500">WIRED</span></div>
-          <div className="flex flex-wrap gap-1.5">
-            {SATELLITE_LAYERS.map((layer) => (
-              <button key={layer.id} type="button" onClick={() => toggleLayer(layer.id)} className={`rounded-md border px-2 py-1.5 text-[8px] font-medium ${enabledLayers[layer.id] ? `${layerAccent[layer.id]} bg-white/[.04]` : "border-slate-900 text-slate-700"}`}>{layer.label}</button>
-            ))}
-          </div>
+          <div className="flex flex-wrap gap-1.5">{SATELLITE_LAYERS.map((layer) => <button key={layer.id} type="button" onClick={() => toggleLayer(layer.id)} className={`rounded-md border px-2 py-1.5 text-[8px] font-medium ${enabledLayers[layer.id] ? `${layerAccent[layer.id]} bg-white/[.04]` : "border-slate-900 text-slate-700"}`}>{layer.label}</button>)}</div>
         </section>
       </aside>
 
@@ -440,12 +420,7 @@ export default function SatelliteIntelligence() {
       {selected && (
         <section className="absolute bottom-24 right-4 z-30 w-[285px] max-w-[calc(100vw-2rem)] rounded-2xl border border-cyan-900/80 bg-black/88 p-4 backdrop-blur-xl md:right-6">
           <div className="flex items-start justify-between gap-3"><div><p className="text-[8px] font-bold tracking-[.25em] text-cyan-500">SELECTED SATELLITE</p><h2 className="mt-1 text-lg font-semibold text-cyan-100">{selected.name}</h2><p className="text-[9px] text-slate-600">{selected.id} • NORAD {selected.noradId ?? "PENDING"}</p></div><button type="button" onClick={() => setSelectedId(null)} className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500">×</button></div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-[9px]">
-            <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div>
-            <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div>
-            <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div>
-            <div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MISSION</span><br /><span className="text-slate-300">{selected.mission}</span></div>
-          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-[9px]"><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">SOURCE</span><br /><span className="text-cyan-300">{selected.source}</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MODE</span><br /><span className="text-amber-300">{selected.dataMode}</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">ALTITUDE</span><br /><span className="text-slate-300">{selected.altitudeKm.toLocaleString()} km</span></div><div className="rounded-lg bg-white/[.035] p-2"><span className="text-slate-600">MISSION</span><br /><span className="text-slate-300">{selected.mission}</span></div></div>
           <button type="button" onClick={() => focusSatellite(selected)} className="mt-3 w-full rounded-lg border border-cyan-900 bg-cyan-950/30 px-3 py-2 text-[9px] font-bold text-cyan-300">FOCUS SATELLITE</button>
         </section>
       )}
