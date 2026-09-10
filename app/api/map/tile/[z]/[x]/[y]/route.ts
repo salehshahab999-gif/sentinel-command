@@ -3,19 +3,17 @@ import path from "node:path";
 import { resolveStoragePath } from "../../../../../../../core/storage/storage-runtime";
 
 const WORLD_DIR = resolveStoragePath("MAP");
-
-const CACHE_ROOT = path.join(WORLD_DIR, "cache");
+const CACHE_ROOT = path.join(WORLD_DIR, "cache", "world-street-v2");
 const PROVIDER_CACHES = {
-  carto: path.join(CACHE_ROOT, "carto"),
-  esri: path.join(CACHE_ROOT, "esri"),
+  esriStreet: path.join(CACHE_ROOT, "esri-street"),
   osm: path.join(CACHE_ROOT, "osm"),
+  carto: path.join(CACHE_ROOT, "carto"),
 } as const;
 
-const PROVIDER_TIMEOUT_MS = 3000;
+const PROVIDER_TIMEOUT_MS = 1800;
 const CARTO_API_KEY = process.env.CARTO_BASEMAP_API_KEY?.trim();
 const SENTINEL_MAP_REFERER =
-  process.env.SENTINEL_MAP_REFERER?.trim() ??
-  "http://127.0.0.1:3000/";
+  process.env.SENTINEL_MAP_REFERER?.trim() ?? "http://127.0.0.1:3000/";
 const SENTINEL_USER_AGENT =
   process.env.SENTINEL_MAP_USER_AGENT ??
   "Sentinel-Command-Center/1.0 local map tile cache";
@@ -33,12 +31,7 @@ function tilePath(root: string, z: string, x: string, y: string): string {
   return path.join(root, z, x, `${y}.png`);
 }
 
-async function readTile(
-  root: string,
-  z: string,
-  x: string,
-  y: string,
-): Promise<Buffer | null> {
+async function readTile(root: string, z: string, x: string, y: string): Promise<Buffer | null> {
   try {
     return await fs.readFile(tilePath(root, z, x, y));
   } catch {
@@ -76,11 +69,21 @@ type Provider = {
 
 const providers: Provider[] = [
   {
+    id: "esriStreet",
+    label: "ESRI-WORLD-STREET",
+    buildUrl: (z, x, y) =>
+      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`,
+  },
+  {
+    id: "osm",
+    label: "OSM-STANDARD",
+    buildUrl: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+  },
+  {
     id: "carto",
     label: "CARTO-LIGHT",
     buildUrl: (z, x, y) => {
       if (!CARTO_API_KEY) return null;
-
       const url = new URL(
         `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
       );
@@ -88,21 +91,34 @@ const providers: Provider[] = [
       return url.toString();
     },
   },
-  {
-    id: "esri",
-    label: "ESRI-WORLD-IMAGERY",
-    buildUrl: (z, x, y) =>
-      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
-  },
-  {
-    id: "osm",
-    label: "OSM-STANDARD",
-    buildUrl: (z, x, y) =>
-      `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
-  },
 ];
 
-async function fetchProviderTile(provider: Provider, z: string, x: string, y: string) {
+const memoryCache = new Map<string, Buffer>();
+const MEMORY_CACHE_LIMIT = 128;
+
+function memoryKey(providerId: string, z: string, x: string, y: string): string {
+  return `${providerId}/${z}/${x}/${y}`;
+}
+
+function getMemoryTile(key: string): Buffer | null {
+  const value = memoryCache.get(key);
+  if (!value) return null;
+  memoryCache.delete(key);
+  memoryCache.set(key, value);
+  return value;
+}
+
+function setMemoryTile(key: string, body: Buffer): void {
+  memoryCache.delete(key);
+  memoryCache.set(key, body);
+  while (memoryCache.size > MEMORY_CACHE_LIMIT) {
+    const oldest = memoryCache.keys().next().value;
+    if (oldest === undefined) break;
+    memoryCache.delete(oldest);
+  }
+}
+
+async function fetchProviderTile(provider: Provider, z: string, x: string, y: string): Promise<Response | null> {
   const url = provider.buildUrl(z, x, y);
   if (!url) return null;
 
@@ -112,9 +128,7 @@ async function fetchProviderTile(provider: Provider, z: string, x: string, y: st
       "User-Agent": SENTINEL_USER_AGENT,
     };
 
-    if (provider.id === "osm") {
-      headers.Referer = SENTINEL_MAP_REFERER;
-    }
+    if (provider.id === "osm") headers.Referer = SENTINEL_MAP_REFERER;
 
     const upstream = await fetch(url, {
       headers,
@@ -122,13 +136,13 @@ async function fetchProviderTile(provider: Provider, z: string, x: string, y: st
     });
 
     if (!upstream.ok) return null;
-
     const contentType = upstream.headers.get("content-type") ?? "";
     if (!contentType.toLowerCase().startsWith("image/")) return null;
 
     const body = Buffer.from(await upstream.arrayBuffer());
     if (!body.length) return null;
 
+    setMemoryTile(memoryKey(provider.id, z, x, y), body);
     await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
 
     return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
@@ -148,16 +162,20 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
-  // Try every local cache first, then every online provider.
+  // Strict MAP contract: cached street maps first. Never read the old World Imagery cache.
   for (const provider of providers) {
+    const key = memoryKey(provider.id, z, x, y);
+    const memory = getMemoryTile(key);
+    if (memory) return imageResponse(memory, `${provider.label}-MEMORY-CACHE`);
+
     const cached = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
     if (cached) {
+      setMemoryTile(key, cached);
       return imageResponse(cached, `${provider.label}-LOCAL-CACHE`);
     }
   }
 
-  // CARTO is used only when a current provider-owned API key is configured.
-  // Esri and OSM remain available as independent online fallbacks.
+  // Fast primary street map, then OSM, then optional keyed CARTO.
   for (const provider of providers) {
     const online = await fetchProviderTile(provider, z, x, y);
     if (online) return online;
@@ -166,7 +184,7 @@ export async function GET(
   return new Response("Map tile unavailable", {
     status: 503,
     headers: {
-      "X-Sentinel-Map": "ALL-PROVIDERS-MISS",
+      "X-Sentinel-Map": "ALL-STREET-PROVIDERS-MISS",
       "Cache-Control": "no-store",
     },
   });
