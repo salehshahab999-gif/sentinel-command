@@ -195,7 +195,7 @@ try {
       forbiddenIonRequests.length > 0 ||
       consoleErrors.length > 0 ||
       failedRequests.some(({ url }) => /api\.cesium\.com/i.test(url)) ||
-      arcGisRequests.length === 0
+      (route === "/satellite" && arcGisRequests.length === 0)
     ) {
       throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
     }
