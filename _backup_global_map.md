@@ -1,0 +1,1 @@
+Global map/zoom backup checkpoint reference: 33c18526a161eb9a31d8527098cf20737039a54c
