@@ -5,7 +5,6 @@ import { resolveStoragePath } from "../../../../../../../core/storage/storage-ru
 const WORLD_DIR = resolveStoragePath("MAP");
 const CACHE_ROOT = path.join(WORLD_DIR, "cache");
 const PROVIDER_TIMEOUT_MS = 4000;
-const CARTO_API_KEY = process.env.CARTO_BASEMAP_API_KEY?.trim();
 const SENTINEL_MAP_REFERER =
   process.env.SENTINEL_MAP_REFERER?.trim() ??
   "http://127.0.0.1:3000/";
@@ -94,13 +93,7 @@ function providersForMode(mode: MapMode): Provider[] {
     ];
   }
 
-  const mapProviders: Provider[] = [
-    {
-      id: "esri-world-street-map",
-      label: "ESRI-WORLD-STREET",
-      buildUrl: (z, x, y) =>
-        `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`,
-    },
+  return [
     {
       id: "osm",
       label: "OSM-STANDARD",
@@ -108,22 +101,6 @@ function providersForMode(mode: MapMode): Provider[] {
         `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
     },
   ];
-
-  if (CARTO_API_KEY) {
-    mapProviders.push({
-      id: "carto-light",
-      label: "CARTO-LIGHT",
-      buildUrl: (z, x, y) => {
-        const url = new URL(
-          `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
-        );
-        url.searchParams.set("key", CARTO_API_KEY);
-        return url.toString();
-      },
-    });
-  }
-
-  return mapProviders;
 }
 
 async function fetchProviderTile(
