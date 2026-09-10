@@ -81,13 +81,6 @@ function loadCesium(): Promise<any> {
   });
 }
 
-async function providerReady(provider: any) {
-  const readyPromise = provider?.readyPromise;
-  if (readyPromise && typeof readyPromise.then === "function") {
-    await readyPromise;
-  }
-}
-
 function modeKinds(mode: GlobalMode): LayerKind[] {
   if (mode === "map") return ["map", "labels"];
   if (mode === "satellite-labels") return ["imagery", "labels"];
@@ -95,7 +88,9 @@ function modeKinds(mode: GlobalMode): LayerKind[] {
 }
 
 function providerUrl(kind: LayerKind) {
-  return kind === "map" ? SOURCES.map : kind === "imagery" ? SOURCES.imagery : SOURCES.labels;
+  if (kind === "map") return SOURCES.map;
+  if (kind === "imagery") return SOURCES.imagery;
+  return SOURCES.labels;
 }
 
 export default function GlobalGlobe() {
@@ -119,7 +114,9 @@ export default function GlobalGlobe() {
     window.__SENTINEL_GLOBAL_DEBUG__ = {
       ready: Boolean(viewer) && ready,
       mode: modeRef.current,
-      mapVisible: layers.some((item) => item.kind === "map" && item.layer?.show),
+      mapVisible: layers.some(
+        (item) => item.kind === "map" && item.layer?.show,
+      ),
       imageryVisible: layers.some(
         (item) => item.kind === "imagery" && item.layer?.show,
       ),
@@ -139,16 +136,15 @@ export default function GlobalGlobe() {
     setSwitching(true);
     setError(null);
 
-    const kinds = modeKinds(nextMode);
-
     try {
       const prepared = await Promise.all(
-        kinds.map(async (kind) => {
-          const provider = new Cesium.ArcGisMapServerImageryProvider({
-            url: providerUrl(kind),
-            enablePickFeatures: false,
-          });
-          await providerReady(provider);
+        modeKinds(nextMode).map(async (kind) => {
+          const provider = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+            providerUrl(kind),
+            {
+              enablePickFeatures: false,
+            },
+          );
           return { kind, provider };
         }),
       );
@@ -176,13 +172,13 @@ export default function GlobalGlobe() {
       if (nextImagery) nextImagery.layer.show = true;
       if (nextLabels) nextLabels.layer.show = true;
 
-      viewer.scene.requestRender();
-
       const oldLayers = activeLayersRef.current;
       activeLayersRef.current = layers;
       modeRef.current = nextMode;
       setMode(nextMode);
       syncDebugState();
+
+      viewer.scene.requestRender();
 
       for (const item of oldLayers) {
         if (item.layer && !viewer.isDestroyed()) {
@@ -195,8 +191,9 @@ export default function GlobalGlobe() {
       syncDebugState();
     } catch (cause) {
       if (requestId === requestIdRef.current) {
-        const message = cause instanceof Error ? cause.message : "imagery switch failed";
-        setError(message);
+        setError(
+          cause instanceof Error ? cause.message : "imagery switch failed",
+        );
         syncDebugState();
       }
     } finally {
@@ -282,7 +279,9 @@ export default function GlobalGlobe() {
         }
       } catch (cause) {
         if (destroyed) return;
-        setError(cause instanceof Error ? cause.message : "GLOBAL INIT ERROR");
+        setError(
+          cause instanceof Error ? cause.message : "GLOBAL INIT ERROR",
+        );
         console.error("GLOBAL_CESIUM_INIT_ERROR:", cause);
       }
     }
@@ -300,7 +299,9 @@ export default function GlobalGlobe() {
       if (viewer && zoom) viewer.removeController?.(zoom);
 
       for (const item of activeLayersRef.current) {
-        if (viewer && item.layer) viewer.imageryLayers.remove(item.layer, true);
+        if (viewer && item.layer) {
+          viewer.imageryLayers.remove(item.layer, true);
+        }
       }
 
       activeLayersRef.current = [];
@@ -312,7 +313,7 @@ export default function GlobalGlobe() {
 
   useEffect(() => {
     const handleMapFocus = (event: Event) => {
-      const result = (event as CustomEvent<MapSearchResult>).detail;
+      const result = (event as CustomEvent<{ latitude: number; longitude: number }>).detail;
       const viewer = viewerRef.current;
       const Cesium = window.Cesium;
       if (!viewer || !Cesium || !result) return;
@@ -359,8 +360,22 @@ export default function GlobalGlobe() {
           </p>
         </div>
 
-        <div className={`rounded-full border bg-black/75 px-3 py-2 text-[8px] font-bold tracking-[.14em] backdrop-blur-xl ${error ? "border-red-900 text-red-300" : switching ? "border-amber-900 text-amber-300" : "border-emerald-900 text-emerald-300"}`}>
-          {error ? "GLOBAL ERROR" : switching ? "LOADING MODE" : ready ? modeText : "BOOTING GLOBAL"}
+        <div
+          className={`rounded-full border bg-black/75 px-3 py-2 text-[8px] font-bold tracking-[.14em] backdrop-blur-xl ${
+            error
+              ? "border-red-900 text-red-300"
+              : switching
+                ? "border-amber-900 text-amber-300"
+                : "border-emerald-900 text-emerald-300"
+          }`}
+        >
+          {error
+            ? "GLOBAL ERROR"
+            : switching
+              ? "LOADING MODE"
+              : ready
+                ? modeText
+                : "BOOTING GLOBAL"}
         </div>
       </header>
 
@@ -383,7 +398,11 @@ export default function GlobalGlobe() {
                 type="button"
                 disabled={switching || !ready}
                 onClick={() => void switchMode(button.id)}
-                className={`w-full rounded-lg border px-3 py-2 text-left text-[9px] font-bold tracking-[.08em] transition ${mode === button.id ? "border-cyan-700 bg-cyan-950/40 text-cyan-200" : "border-slate-900 bg-black/30 text-slate-500 hover:border-slate-700 hover:text-slate-300"}`}
+                className={`w-full rounded-lg border px-3 py-2 text-left text-[9px] font-bold tracking-[.08em] transition ${
+                  mode === button.id
+                    ? "border-cyan-700 bg-cyan-950/40 text-cyan-200"
+                    : "border-slate-900 bg-black/30 text-slate-500 hover:border-slate-700 hover:text-slate-300"
+                }`}
               >
                 {button.label}
               </button>
