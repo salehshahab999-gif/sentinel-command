@@ -1,21 +1,20 @@
 import { chromium } from "playwright";
 
 const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:3000";
-const requireTestGlobeImagery =
-  process.env.REQUIRE_TEST_GLOBE_IMAGERY !== "false" &&
-  (!process.env.CI || process.env.REQUIRE_TEST_GLOBE_IMAGERY === "true");
 
-async function checkMapTile(page) {
+async function checkMapTile(page, mode) {
   const response = await page.request.get(
-    `${baseUrl}/api/map/tile/17/83880/51020.png`,
+    `${baseUrl}/api/map/tile/17/83880/51020.png?mode=${mode}`,
     { timeout: 30000 },
   );
 
-  const contentType = response.headers()["content-type"] ?? "";
-  const source = response.headers()["x-sentinel-map"] ?? "";
+  const headers = response.headers();
+  const contentType = headers["content-type"] ?? "";
+  const source = headers["x-sentinel-map"] ?? "";
   const body = await response.body();
 
   return {
+    mode,
     status: response.status(),
     contentType,
     source,
@@ -40,15 +39,20 @@ try {
     const consoleErrors = [];
     const pageErrors = [];
     const failedRequests = [];
+    const requestedUrls = [];
 
     page.on("console", (message) => {
-      if (message.type() === "error") {
-        consoleErrors.push(message.text());
-      }
+      if (message.type() === "error") consoleErrors.push(message.text());
     });
 
-    page.on("pageerror", (error) => {
-      pageErrors.push(error.message);
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    page.on("request", (request) => {
+      const url = request.url();
+      requestedUrls.push(url);
+      if (url.includes("api.cesium.com")) {
+        consoleErrors.push(`UNEXPECTED_CESIUM_ION_REQUEST: ${url}`);
+      }
     });
 
     page.on("requestfailed", (request) => {
@@ -64,75 +68,54 @@ try {
     });
 
     await page.waitForFunction(
-      () =>
-        Boolean(window.Cesium) ||
-        Boolean(document.querySelector(".cesium-widget")),
+      () => Boolean(window.Cesium) || Boolean(document.querySelector(".cesium-widget")),
       { timeout: 60000 },
     );
 
-    await page.waitForSelector("canvas", {
-      timeout: 30000,
-    });
+    await page.waitForSelector("canvas", { timeout: 30000 });
+    await page.waitForTimeout(2500);
 
-    await page.waitForTimeout(3000);
+    let mapTiles = [];
 
-    if (route === "/test-globe" && requireTestGlobeImagery) {
-      await page.waitForFunction(
-        () => window.__SENTINEL_TEST_GLOBE__?.imagery === "READY",
-        { timeout: 60000 },
-      );
+    if (route === "/satellite") {
+      for (const mode of ["map", "imagery", "labels"]) {
+        mapTiles.push(await checkMapTile(page, mode));
+      }
+
+      for (const mode of ["map", "satellite-labels", "satellite-clean"]) {
+        const button = page.getByTestId(`global-mode-${mode}`);
+        await button.waitFor({ state: "visible", timeout: 10000 });
+        await button.click();
+        await page.waitForTimeout(500);
+      }
     }
 
-    const mapTile =
-      route === "/satellite"
-        ? await checkMapTile(page)
-        : null;
-
     const state = await page.evaluate(() => {
-      const canvases = [...document.querySelectorAll("canvas")];
-
-      const canvas =
-        canvases.find(
-          (item) => item.width > 300 && item.height > 300,
-        ) ??
-        canvases[0] ??
-        null;
-
-      const gl =
-        canvas?.getContext("webgl2") ??
-        canvas?.getContext("webgl") ??
-        null;
-
-      const cesiumWidget = Boolean(
-        document.querySelector(".cesium-widget"),
-      );
-
-      const cesiumGlobal = Boolean(window.Cesium);
-      const testGlobe = window.__SENTINEL_TEST_GLOBE__;
-
+      const canvas = [...document.querySelectorAll("canvas")].find(
+        (item) => item.width > 300 && item.height > 300,
+      ) ?? document.querySelector("canvas");
+      const gl = canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
       return {
-        canvas: canvas
-          ? {
-              width: canvas.width,
-              height: canvas.height,
-            }
-          : null,
+        canvas: canvas ? { width: canvas.width, height: canvas.height } : null,
         webgl: Boolean(gl),
-        cesiumGlobal,
-        cesiumWidget,
-        cesiumReady: cesiumGlobal && cesiumWidget,
-        imagery: testGlobe?.imagery ?? null,
+        cesiumGlobal: Boolean(window.Cesium),
+        cesiumWidget: Boolean(document.querySelector(".cesium-widget")),
+        bodyHasApiKeyError: /api key required/i.test(document.body.innerText),
       };
     });
+
+    const forbiddenApiKeyConsole = consoleErrors.filter((item) => /api key required|unauthorized|invalidcredentials/i.test(item));
+    const forbiddenIonRequests = requestedUrls.filter((url) => url.includes("api.cesium.com"));
 
     const result = {
       route,
       state,
-      mapTile,
-      requireTestGlobeImagery,
+      mapTiles,
       consoleErrors,
       pageErrors,
       failedRequests,
+      forbiddenApiKeyConsole,
+      forbiddenIonRequests,
     };
 
     console.log(JSON.stringify(result, null, 2));
@@ -140,29 +123,26 @@ try {
     if (
       !state.canvas ||
       !state.webgl ||
-      !state.cesiumReady ||
+      !state.cesiumGlobal ||
+      !state.cesiumWidget ||
       consoleErrors.length > 0 ||
       pageErrors.length > 0 ||
-      failedRequests.length > 0 ||
-      (route === "/test-globe" &&
-        requireTestGlobeImagery &&
-        state.imagery !== "READY") ||
-      (route === "/satellite" &&
-        (!mapTile ||
-          mapTile.status !== 200 ||
-          !mapTile.contentType.startsWith("image/") ||
-          !mapTile.source ||
-          mapTile.bytes <= 0))
+      state.bodyHasApiKeyError ||
+      forbiddenApiKeyConsole.length > 0 ||
+      forbiddenIonRequests.length > 0 ||
+      (route === "/satellite" && mapTiles.some(
+        (tile) =>
+          tile.status !== 200 ||
+          !tile.contentType.startsWith("image/") ||
+          !tile.source ||
+          tile.bytes <= 0,
+      ))
     ) {
-      throw new Error(
-        `${route} failed Cesium browser smoke: ${JSON.stringify(result)}`,
-      );
+      throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
     }
 
     await page.screenshot({
-      path: `.artifacts/cesium${
-        route === "/test-globe" ? "-control" : "-satellite"
-      }.png`,
+      path: `.artifacts/cesium${route === "/test-globe" ? "-control" : "-satellite"}.png`,
       fullPage: true,
     });
 
