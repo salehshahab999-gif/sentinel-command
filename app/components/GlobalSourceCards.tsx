@@ -1,9 +1,9 @@
 const sourceCards = [
   {
-    title: "SENTINEL OFFLINE MAP",
+    title: "SENTINEL MAP",
     status: "READY",
-    detail: "LOCAL CACHE + ONLINE FALLBACK",
-    sources: "CARTO / ESRI / OSM",
+    detail: "OSM ONLINE + LOCAL CACHE",
+    sources: "OPENSTREETMAP / XYZ",
     tone: "cyan",
   },
   {
