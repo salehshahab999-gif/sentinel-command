@@ -3,15 +3,10 @@ import path from "node:path";
 import { resolveStoragePath } from "../../../../../../../core/storage/storage-runtime";
 
 const WORLD_DIR = resolveStoragePath("MAP");
-const CACHE_ROOT = path.join(WORLD_DIR, "cache", "world-street-v2");
-const PROVIDER_CACHES = {
-  esriStreet: path.join(CACHE_ROOT, "esri-street"),
-  osm: path.join(CACHE_ROOT, "osm"),
-  carto: path.join(CACHE_ROOT, "carto"),
-} as const;
+const CACHE_ROOT = path.join(WORLD_DIR, "cache", "world-street-osm-v3");
+const OSM_CACHE = path.join(CACHE_ROOT, "osm");
 
-const PROVIDER_TIMEOUT_MS = 1800;
-const CARTO_API_KEY = process.env.CARTO_BASEMAP_API_KEY?.trim();
+const PROVIDER_TIMEOUT_MS = 5000;
 const SENTINEL_MAP_REFERER =
   process.env.SENTINEL_MAP_REFERER?.trim() ?? "http://127.0.0.1:3000/";
 const SENTINEL_USER_AGENT =
@@ -31,22 +26,21 @@ function tilePath(root: string, z: string, x: string, y: string): string {
   return path.join(root, z, x, `${y}.png`);
 }
 
-async function readTile(root: string, z: string, x: string, y: string): Promise<Buffer | null> {
+async function readTile(z: string, x: string, y: string): Promise<Buffer | null> {
   try {
-    return await fs.readFile(tilePath(root, z, x, y));
+    return await fs.readFile(tilePath(OSM_CACHE, z, x, y));
   } catch {
     return null;
   }
 }
 
 async function writeCachedTile(
-  root: string,
   z: string,
   x: string,
   y: string,
   body: Buffer,
 ): Promise<void> {
-  const target = tilePath(root, z, x, y);
+  const target = tilePath(OSM_CACHE, z, x, y);
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.writeFile(target, body);
 }
@@ -61,49 +55,18 @@ function imageResponse(data: Buffer, source: string): Response {
   });
 }
 
-type Provider = {
-  id: keyof typeof PROVIDER_CACHES;
-  label: string;
-  buildUrl: (z: string, x: string, y: string) => string | null;
-};
-
-const providers: Provider[] = [
-  {
-    id: "esriStreet",
-    label: "ESRI-WORLD-STREET",
-    buildUrl: (z, x, y) =>
-      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${x}`,
-  },
-  {
-    id: "osm",
-    label: "OSM-STANDARD",
-    buildUrl: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
-  },
-  {
-    id: "carto",
-    label: "CARTO-LIGHT",
-    buildUrl: (z, x, y) => {
-      if (!CARTO_API_KEY) return null;
-      const url = new URL(
-        `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
-      );
-      url.searchParams.set("key", CARTO_API_KEY);
-      return url.toString();
-    },
-  },
-];
-
 const memoryCache = new Map<string, Buffer>();
 const MEMORY_CACHE_LIMIT = 512;
 const inFlightTiles = new Map<string, Promise<Response | null>>();
 
-function memoryKey(providerId: string, z: string, x: string, y: string): string {
-  return `${providerId}/${z}/${x}/${y}`;
+function memoryKey(z: string, x: string, y: string): string {
+  return `${z}/${x}/${y}`;
 }
 
 function getMemoryTile(key: string): Buffer | null {
   const value = memoryCache.get(key);
   if (!value) return null;
+
   memoryCache.delete(key);
   memoryCache.set(key, value);
   return value;
@@ -112,6 +75,7 @@ function getMemoryTile(key: string): Buffer | null {
 function setMemoryTile(key: string, body: Buffer): void {
   memoryCache.delete(key);
   memoryCache.set(key, body);
+
   while (memoryCache.size > MEMORY_CACHE_LIMIT) {
     const oldest = memoryCache.keys().next().value;
     if (oldest === undefined) break;
@@ -119,89 +83,57 @@ function setMemoryTile(key: string, body: Buffer): void {
   }
 }
 
-async function readAnyCachedTile(
+async function readCachedTile(
   z: string,
   x: string,
   y: string,
 ): Promise<Response | null> {
-  for (const provider of providers) {
-    const key = memoryKey(provider.id, z, x, y);
-    const memory = getMemoryTile(key);
-    if (memory) {
-      return imageResponse(memory, `${provider.label}-MEMORY-CACHE`);
-    }
+  const key = memoryKey(z, x, y);
+  const memory = getMemoryTile(key);
+
+  if (memory) {
+    return imageResponse(memory, "OSM-MEMORY-CACHE");
   }
 
-  const cached = await Promise.all(
-    providers.map(async (provider) => {
-      const body = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
-      return body ? { provider, body } : null;
-    }),
-  );
+  const disk = await readTile(z, x, y);
 
-  const hit = cached.find(
-    (entry): entry is { provider: Provider; body: Buffer } => entry !== null,
-  );
+  if (!disk) return null;
 
-  if (!hit) return null;
-
-  setMemoryTile(memoryKey(hit.provider.id, z, x, y), hit.body);
-  return imageResponse(hit.body, `${hit.provider.label}-LOCAL-CACHE`);
+  setMemoryTile(key, disk);
+  return imageResponse(disk, "OSM-LOCAL-CACHE");
 }
 
-async function fetchProviderTile(
-  provider: Provider,
+async function fetchOnlineOsmTile(
   z: string,
   x: string,
   y: string,
 ): Promise<Response | null> {
-  const url = provider.buildUrl(z, x, y);
-  if (!url) return null;
+  const url = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 
   try {
-    const headers: Record<string, string> = {
-      Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
-      "User-Agent": SENTINEL_USER_AGENT,
-    };
-
-    if (provider.id === "osm") headers.Referer = SENTINEL_MAP_REFERER;
-
     const upstream = await fetch(url, {
-      headers,
+      headers: {
+        Accept: "image/png,image/*;q=0.8,*/*;q=0.5",
+        Referer: SENTINEL_MAP_REFERER,
+        "User-Agent": SENTINEL_USER_AGENT,
+      },
       signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
     if (!upstream.ok) return null;
+
     const contentType = upstream.headers.get("content-type") ?? "";
     if (!contentType.toLowerCase().startsWith("image/")) return null;
 
     const body = Buffer.from(await upstream.arrayBuffer());
     if (!body.length) return null;
 
-    setMemoryTile(memoryKey(provider.id, z, x, y), body);
-    void writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body).catch(() => {});
+    const key = memoryKey(z, x, y);
+    setMemoryTile(key, body);
 
-    return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
-  } catch {
-    return null;
-  }
-}
+    await writeCachedTile(z, x, y, body);
 
-async function fetchFastestOnlineTile(
-  z: string,
-  x: string,
-  y: string,
-): Promise<Response | null> {
-  const candidates = providers.filter((provider) => provider.buildUrl(z, x, y));
-
-  const attempts = candidates.map(async (provider) => {
-    const result = await fetchProviderTile(provider, z, x, y);
-    if (!result) throw new Error(`${provider.id} miss`);
-    return result;
-  });
-
-  try {
-    return await Promise.any(attempts);
+    return imageResponse(body, "OSM-ONLINE-CACHED");
   } catch {
     return null;
   }
@@ -220,7 +152,7 @@ export async function GET(
 
   const requestKey = `${z}/${x}/${y}`;
 
-  const cached = await readAnyCachedTile(z, x, y);
+  const cached = await readCachedTile(z, x, y);
   if (cached) return cached;
 
   const existing = inFlightTiles.get(requestKey);
@@ -229,7 +161,7 @@ export async function GET(
     if (shared) return shared.clone();
   }
 
-  const pending = fetchFastestOnlineTile(z, x, y).finally(() => {
+  const pending = fetchOnlineOsmTile(z, x, y).finally(() => {
     inFlightTiles.delete(requestKey);
   });
 
@@ -241,7 +173,7 @@ export async function GET(
   return new Response("Map tile unavailable", {
     status: 503,
     headers: {
-      "X-Sentinel-Map": "ALL-STREET-PROVIDERS-MISS",
+      "X-Sentinel-Map": "OSM-MISS",
       "Cache-Control": "no-store",
     },
   });
