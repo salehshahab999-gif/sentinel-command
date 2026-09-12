@@ -1,0 +1,1 @@
+Temporary marker: Global single-layer imagery fix is tracked in app/test-globe/page.tsx and verified by scripts/cesium-browser-smoke.mjs.
