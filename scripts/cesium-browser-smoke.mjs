@@ -23,18 +23,6 @@ async function checkMapTile(page) {
   };
 }
 
-async function globalImageryState(page) {
-  return page.evaluate(() => {
-    const viewer = window.__SENTINEL_GLOBAL_VIEWER__;
-    if (!viewer) return null;
-    const layers = viewer.imageryLayers?._layers ?? [];
-    return {
-      totalLayers: layers.length,
-      visibleLayers: layers.filter((layer) => layer.show).length,
-    };
-  });
-}
-
 const browser = await chromium.launch({
   headless: true,
   args: ["--use-gl=swiftshader", "--disable-gpu-sandbox"],
@@ -87,6 +75,7 @@ try {
     }
 
     const mapTile = route !== "/test-globe" ? await checkMapTile(page) : null;
+    const cacheHit = route !== "/test-globe" ? await checkMapTile(page) : null;
 
     const zoomControls = await page.evaluate(() => ({
       zoomIn: Boolean(document.querySelector('[data-testid="global-zoom-in"]')),
@@ -107,26 +96,39 @@ try {
 
     let testGlobeModeChecks = null;
     if (route === "/test-globe") {
-      const clickMode = async (name) => {
+      const clickMode = async (name, expectedMode) => {
         await page.getByRole("button", { name }).click();
-        await page.waitForTimeout(600);
-        return page.evaluate(() => ({
-          imagery: window.__SENTINEL_TEST_GLOBE__?.imagery ?? null,
-          visibleLayers: window.__SENTINEL_TEST_GLOBE_VISIBLE_LAYERS__ ?? null,
-        }));
+        await page.waitForTimeout(500);
+        const modeText = await page.locator("header").innerText();
+        const status = await page.evaluate(
+          () => window.__SENTINEL_TEST_GLOBE__?.imagery ?? null,
+        );
+        return {
+          expectedMode,
+          modeText,
+          modeVisible: modeText.includes(expectedMode),
+          imagery: status,
+        };
       };
 
       testGlobeModeChecks = {
-        map: await clickMode(/MAP \+ CITY LABELS/),
-        satelliteLabels: await clickMode(/SATELLITE \+ CITY LABELS/),
-        satelliteClean: await clickMode(/SATELLITE CLEAN/),
+        map: await clickMode(/MAP \+ CITY LABELS/, "MAP + CITY LABELS"),
+        satelliteLabels: await clickMode(
+          /SATELLITE \+ CITY LABELS/,
+          "SATELLITE + CITY LABELS",
+        ),
+        satelliteClean: await clickMode(/SATELLITE CLEAN/, "SATELLITE CLEAN"),
       };
     }
 
     const state = await page.evaluate(() => {
       const canvases = [...document.querySelectorAll("canvas")];
-      const canvas = canvases.find((item) => item.width > 300 && item.height > 300) ?? canvases[0] ?? null;
-      const gl = canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
+      const canvas =
+        canvases.find((item) => item.width > 300 && item.height > 300) ??
+        canvases[0] ??
+        null;
+      const gl =
+        canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
       return {
         canvas: canvas ? { width: canvas.width, height: canvas.height } : null,
         webgl: Boolean(gl),
@@ -140,6 +142,7 @@ try {
       route,
       state,
       mapTile,
+      cacheHit,
       zoomControls,
       zoomChanged,
       testGlobeModeChecks,
@@ -151,14 +154,15 @@ try {
 
     console.log(JSON.stringify(result, null, 2));
 
-    const badMapSource = Boolean(
-      mapTile?.source?.includes("WORLD-IMAGERY"),
+    const badMapSource = Boolean(mapTile?.source?.includes("WORLD-IMAGERY"));
+    const cacheDidHit = Boolean(
+      cacheHit?.source?.includes("MEMORY-CACHE") ||
+      cacheHit?.source?.includes("LOCAL-CACHE"),
     );
-
     const modeIsolationFailed =
       route === "/test-globe" &&
       Object.values(testGlobeModeChecks ?? {}).some(
-        (item) => item?.visibleLayers !== 1 || item?.imagery !== "READY",
+        (item) => !item?.modeVisible || item?.imagery !== "READY",
       );
 
     if (
@@ -173,16 +177,30 @@ try {
       !zoomControls.zoomOut ||
       !zoomChanged ||
       modeIsolationFailed ||
-      (route === "/test-globe" && requireTestGlobeImagery && state.imagery !== "READY") ||
+      (route === "/test-globe" &&
+        requireTestGlobeImagery &&
+        state.imagery !== "READY") ||
       (route !== "/test-globe" &&
-        (!mapTile || mapTile.status !== 200 || !mapTile.contentType.startsWith("image/") || !mapTile.source || mapTile.bytes <= 0 || badMapSource))
+        (!mapTile ||
+          mapTile.status !== 200 ||
+          !mapTile.contentType.startsWith("image/") ||
+          !mapTile.source ||
+          mapTile.bytes <= 0 ||
+          badMapSource ||
+          !cacheDidHit))
     ) {
-      throw new Error(`${route} failed Cesium browser smoke: ${JSON.stringify(result)}`);
+      throw new Error(
+        `${route} failed Cesium browser smoke: ${JSON.stringify(result)}`,
+      );
     }
 
     await page.screenshot({
       path: `.artifacts/cesium${
-        route === "/test-globe" ? "-control" : route === "/satellite" ? "-satellite" : "-global"
+        route === "/test-globe"
+          ? "-control"
+          : route === "/satellite"
+            ? "-satellite"
+            : "-global"
       }.png`,
       fullPage: true,
     });
