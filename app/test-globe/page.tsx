@@ -19,11 +19,10 @@ declare global {
 }
 
 const CESIUM_VERSION = "1.145";
-const STREET_TILE_URL =
-  "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const MAP_TILE_URL = "/api/map/tile/{z}/{x}/{y}.png";
 const SATELLITE_TILE_URL =
   "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg";
-const STREET_MAX_LEVEL = 19;
+const MAP_MAX_LEVEL = 19;
 const SATELLITE_MAX_LEVEL = 9;
 
 const CESIUM_SCRIPT = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Cesium.js`;
@@ -81,11 +80,9 @@ function loadCesium(): Promise<any> {
     ) as HTMLScriptElement | null;
 
     if (existing) {
-      existing.addEventListener(
-        "load",
-        () => resolve(window.Cesium),
-        { once: true },
-      );
+      existing.addEventListener("load", () => resolve(window.Cesium), {
+        once: true,
+      });
       existing.addEventListener(
         "error",
         () => reject(new Error("Cesium script failed to load")),
@@ -101,11 +98,8 @@ function loadCesium(): Promise<any> {
     script.onload = () =>
       window.Cesium
         ? resolve(window.Cesium)
-        : reject(
-            new Error("Cesium loaded but window.Cesium is unavailable"),
-          );
-    script.onerror = () =>
-      reject(new Error("Failed to load CesiumJS"));
+        : reject(new Error("Cesium loaded but window.Cesium is unavailable"));
+    script.onerror = () => reject(new Error("Failed to load CesiumJS"));
     document.head.appendChild(script);
   });
 }
@@ -133,11 +127,9 @@ export default function TestGlobePage() {
   const viewerRef = useRef<any>(null);
   const inputHandlerRef = useRef<any>(null);
   const zoomControllerRef = useRef<any>(null);
-  const layersRef = useRef<{
-    map: any;
-    imagery: any;
-    labels: any;
-  }>({ map: null, imagery: null, labels: null });
+  const activeImageryLayerRef = useRef<any>(null);
+  const labelsRef = useRef<any>(null);
+  const switchImageryRef = useRef<((mode: LayerMode) => void) | null>(null);
 
   const [engineState, setEngineState] = useState("BOOTING");
   const [imageryState, setImageryState] = useState("LOADING");
@@ -172,6 +164,8 @@ export default function TestGlobePage() {
           terrain: false,
         });
 
+        viewerRef.current = viewer;
+
         viewer.scene.globe.show = true;
         viewer.scene.globe.enableLighting = false;
         viewer.scene.globe.maximumScreenSpaceError = 1.0;
@@ -188,10 +182,7 @@ export default function TestGlobePage() {
         viewer.scene.moon.show = false;
         viewer.scene.backgroundColor = Cesium.Color.BLACK;
         viewer.scene.postProcessStages.fxaa.enabled = true;
-        viewer.resolutionScale = Math.min(
-          Math.max(window.devicePixelRatio || 1, 1),
-          1.5,
-        );
+        viewer.resolutionScale = Math.min(Math.max(window.devicePixelRatio || 1, 1), 1.5);
 
         const controller = viewer.scene.screenSpaceCameraController;
         controller.enableCollisionDetection = false;
@@ -215,38 +206,13 @@ export default function TestGlobePage() {
           destination: Cesium.Cartesian3.fromDegrees(35, 30, 19000000),
         });
 
-        viewer.imageryLayers.removeAll(false);
-
-        const mapLayer = viewer.imageryLayers.addImageryProvider(
-          createRasterProvider(
-            Cesium,
-            STREET_TILE_URL,
-            STREET_MAX_LEVEL,
-            "© OpenStreetMap contributors",
-          ),
-        );
-
-        const imageryLayer = viewer.imageryLayers.addImageryProvider(
-          createRasterProvider(
-            Cesium,
-            SATELLITE_TILE_URL,
-            SATELLITE_MAX_LEVEL,
-            "NASA GIBS / MODIS Terra",
-          ),
-        );
-
-        const labels = viewer.scene.primitives.add(
-          new Cesium.LabelCollection(),
-        );
+        const labels = viewer.scene.primitives.add(new Cesium.LabelCollection());
+        labelsRef.current = labels;
 
         for (const [name, country, longitude, latitude] of CITY_LABELS) {
           labels.add({
             text: `${name}\n${country}`,
-            position: Cesium.Cartesian3.fromDegrees(
-              longitude,
-              latitude,
-              12000,
-            ),
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 12000),
             font: "12px sans-serif",
             fillColor: Cesium.Color.WHITE,
             outlineColor: Cesium.Color.BLACK,
@@ -256,24 +222,43 @@ export default function TestGlobePage() {
             horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
             pixelOffset: new Cesium.Cartesian2(0, -8),
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
-            scaleByDistance: new Cesium.NearFarScalar(
-              2.0e6,
-              1.15,
-              1.8e7,
-              0.72,
-            ),
+            scaleByDistance: new Cesium.NearFarScalar(2.0e6, 1.15, 1.8e7, 0.72),
           });
         }
 
-        mapLayer.show = false;
-        imageryLayer.show = true;
-        labels.show = true;
+        const switchImagery = (nextMode: LayerMode) => {
+          const current = activeImageryLayerRef.current;
+          if (current) {
+            viewer.imageryLayers.remove(current, false);
+            activeImageryLayerRef.current = null;
+          }
 
-        layersRef.current = {
-          map: mapLayer,
-          imagery: imageryLayer,
-          labels,
+          const isMap = nextMode === "map";
+          const provider = createRasterProvider(
+            Cesium,
+            isMap ? MAP_TILE_URL : SATELLITE_TILE_URL,
+            isMap ? MAP_MAX_LEVEL : SATELLITE_MAX_LEVEL,
+            isMap
+              ? "Sentinel map cache • Esri World Street / OSM fallback"
+              : "NASA GIBS / MODIS Terra",
+          );
+
+          activeImageryLayerRef.current = viewer.imageryLayers.addImageryProvider(provider);
+          labels.show = nextMode !== "satellite-clean";
+          setMode(
+            nextMode === "map"
+              ? "MAP + CITY LABELS"
+              : nextMode === "satellite-labels"
+                ? "SATELLITE + CITY LABELS"
+                : "SATELLITE CLEAN",
+          );
+          setImageryState("READY");
+          setTestStatus({ engine: "READY", imagery: "READY" });
+          viewer.scene.requestRender();
         };
+
+        switchImageryRef.current = switchImagery;
+        switchImagery("satellite-labels");
 
         inputHandlerRef.current = new Cesium.ScreenSpaceEventHandler(
           viewer.scene.canvas,
@@ -282,20 +267,12 @@ export default function TestGlobePage() {
         inputHandlerRef.current.setInputAction(
           (movement: any) => {
             const ray = viewer.camera.getPickRay(movement.position);
-            const cartesian = ray
-              ? viewer.scene.globe.pick(ray, viewer.scene)
-              : undefined;
+            const cartesian = ray ? viewer.scene.globe.pick(ray, viewer.scene) : undefined;
             if (!cartesian) return;
 
             const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-            const height = Math.max(
-              viewer.camera.positionCartographic.height,
-              1000,
-            );
-            const targetHeight = Math.min(
-              Math.max(height * 0.42, 900),
-              1900000,
-            );
+            const height = Math.max(viewer.camera.positionCartographic.height, 1000);
+            const targetHeight = Math.min(Math.max(height * 0.42, 900), 1900000);
 
             viewer.camera.flyTo({
               destination: Cesium.Cartesian3.fromRadians(
@@ -309,16 +286,13 @@ export default function TestGlobePage() {
           Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
         );
 
-        viewerRef.current = viewer;
         setEngineState("READY");
         setImageryState("READY");
-        setMode("SATELLITE + CITY LABELS");
         setTestStatus({ engine: "READY", imagery: "READY" });
         viewer.scene.requestRender();
       } catch (error) {
         if (destroyed) return;
-        const message =
-          error instanceof Error ? error.message : "Unknown Cesium error";
+        const message = error instanceof Error ? error.message : "Unknown Cesium error";
         setEngineState("ERROR");
         setImageryState("ERROR");
         setMode("ENGINE ERROR");
@@ -333,60 +307,31 @@ export default function TestGlobePage() {
       destroyed = true;
       inputHandlerRef.current?.destroy();
       inputHandlerRef.current = null;
+      switchImageryRef.current = null;
+      activeImageryLayerRef.current = null;
+      labelsRef.current = null;
 
-      if (
-        zoomControllerRef.current &&
-        viewerRef.current &&
-        !viewerRef.current.isDestroyed()
-      ) {
+      if (zoomControllerRef.current && viewerRef.current && !viewerRef.current.isDestroyed()) {
         viewerRef.current.removeController(zoomControllerRef.current);
       }
 
       zoomControllerRef.current = null;
       viewerRef.current?.destroy();
       viewerRef.current = null;
-      layersRef.current = { map: null, imagery: null, labels: null };
     };
   }, []);
 
   const chooseMode = (nextMode: LayerMode) => {
-    const layers = layersRef.current;
-    const viewer = viewerRef.current;
-    if (!viewer || !layers.map || !layers.imagery || !layers.labels) return;
-
-    layers.map.show = false;
-    layers.imagery.show = false;
-    layers.labels.show = false;
-
-    if (nextMode === "map") {
-      layers.map.show = true;
-      setMode("MAP + CITY LABELS");
-    } else if (nextMode === "satellite-labels") {
-      layers.imagery.show = true;
-      layers.labels.show = true;
-      setMode("SATELLITE + CITY LABELS");
-    } else {
-      layers.imagery.show = true;
-      setMode("SATELLITE CLEAN");
-    }
-
-    setImageryState("READY");
-    setTestStatus({ engine: "READY", imagery: "READY" });
-    viewer.scene.requestRender();
+    if (!viewerRef.current || !switchImageryRef.current) return;
+    switchImageryRef.current(nextMode);
   };
 
   const zoom = (direction: "in" | "out") => {
     const viewer = viewerRef.current;
     if (!viewer) return;
 
-    const height = Math.max(
-      viewer.camera.positionCartographic.height,
-      900,
-    );
-    const distance = Math.min(
-      Math.max(height * 0.45, 900),
-      6500000,
-    );
+    const height = Math.max(viewer.camera.positionCartographic.height, 900);
+    const distance = Math.min(Math.max(height * 0.45, 900), 6500000);
 
     if (direction === "in") {
       viewer.camera.zoomIn(distance);
@@ -418,33 +363,23 @@ export default function TestGlobePage() {
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-4 md:p-6">
         <div className="rounded-xl border border-gray-800 bg-gray-900/92 px-4 py-3 shadow-lg backdrop-blur-xl">
-          <div className="text-[9px] font-bold tracking-[.34em] text-cyan-400">
-            SENTINEL TEST GLOBE
-          </div>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight md:text-2xl">
-            EARTH VISUAL TEST
-          </h1>
-          <p className="mt-1 text-[9px] tracking-[.18em] text-slate-500">
-            CESIUMJS {CESIUM_VERSION} • NO ION API KEY • 3 ISOLATED MAP MODES
-          </p>
+          <div className="text-[9px] font-bold tracking-[.34em] text-cyan-400">SENTINEL TEST GLOBE</div>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight md:text-2xl">EARTH VISUAL TEST</h1>
+          <p className="mt-1 text-[9px] tracking-[.18em] text-slate-500">CESIUMJS {CESIUM_VERSION} • SENTINEL MAP CACHE • 3 ISOLATED MAP MODES</p>
         </div>
-        <div className="rounded-xl border border-gray-800 bg-gray-900/92 px-3 py-2 text-[9px] font-bold tracking-[.14em] text-cyan-300 backdrop-blur-xl">
-          {mode}
-        </div>
+        <div className="rounded-xl border border-gray-800 bg-gray-900/92 px-3 py-2 text-[9px] font-bold tracking-[.14em] text-cyan-300 backdrop-blur-xl">{mode}</div>
       </header>
 
       <aside className="absolute left-4 top-28 z-20 w-[300px] max-w-[calc(100vw-2rem)] space-y-3 md:left-6">
         <section className="rounded-xl border border-gray-800 bg-gray-900/92 p-4 shadow-lg backdrop-blur-xl">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[10px] font-bold tracking-[.22em] text-cyan-400">
-              MAP SOURCES
-            </span>
-            <span className="text-[9px] text-emerald-400">3 ONLINE</span>
+            <span className="text-[10px] font-bold tracking-[.22em] text-cyan-400">MAP SOURCES</span>
+            <span className="text-[9px] text-emerald-400">NO ION KEY</span>
           </div>
           <div className="space-y-2">
             <button type="button" onClick={() => chooseMode("map")} className="flex w-full items-center justify-between rounded-lg border border-gray-800 bg-black/30 px-3 py-2.5 text-left text-xs text-gray-200 hover:border-cyan-900 hover:text-cyan-200">
               <span>MAP + CITY LABELS</span>
-              <span className="text-cyan-400">OSM STREET</span>
+              <span className="text-cyan-400">SENTINEL CACHE</span>
             </button>
             <button type="button" onClick={() => chooseMode("satellite-labels")} className="flex w-full items-center justify-between rounded-lg border border-gray-800 bg-black/30 px-3 py-2.5 text-left text-xs text-gray-200 hover:border-cyan-900 hover:text-cyan-200">
               <span>SATELLITE + CITY LABELS</span>
@@ -455,9 +390,7 @@ export default function TestGlobePage() {
               <span className="text-violet-400">NASA GIBS</span>
             </button>
           </div>
-          <p className="mt-3 text-[8px] leading-relaxed text-slate-600">
-            One imagery layer is visible at a time. City labels are Cesium vector labels, not a second map tile layer.
-          </p>
+          <p className="mt-3 text-[8px] leading-relaxed text-slate-600">Only one imagery layer exists at a time. Switching removes the previous provider before adding the new one.</p>
         </section>
 
         <section className="rounded-xl border border-gray-800 bg-gray-900/92 p-4 shadow-lg backdrop-blur-xl">
@@ -467,19 +400,14 @@ export default function TestGlobePage() {
             <button type="button" onClick={resetView} className="rounded-lg border border-gray-800 bg-black/30 py-2 text-[9px] font-bold tracking-[.12em] text-slate-400 hover:border-cyan-900">RESET</button>
             <button type="button" onClick={() => zoom("in")} className="rounded-lg border border-gray-800 bg-black/30 py-2 text-xs text-slate-400 hover:border-cyan-900">+</button>
           </div>
-          <div className="mt-3 text-xs text-slate-500">
-            ZOOM <span className="text-cyan-300">{zoomLevel}%</span>
-            <span className="ml-3">{imageryState}</span>
-          </div>
-          <div className="mt-1 text-[8px] text-slate-600">
-            ENGINE {engineState} • NO API KEY
-          </div>
+          <div className="mt-3 text-xs text-slate-500">ZOOM <span className="text-cyan-300">{zoomLevel}%</span><span className="ml-3">{imageryState}</span></div>
+          <div className="mt-1 text-[8px] text-slate-600">ENGINE {engineState} • CACHE ROUTE ACTIVE</div>
         </section>
       </aside>
 
       <div className="absolute bottom-5 inset-x-4 z-20">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-xl border border-gray-800 bg-gray-900/92 px-4 py-3 text-[8px] tracking-[.16em] backdrop-blur-xl">
-          <span className="text-cyan-400">● OSM STREET</span>
+          <span className="text-cyan-400">● SENTINEL MAP CACHE</span>
           <span className="text-emerald-400">● NASA GIBS + LABELS</span>
           <span className="text-violet-400">● NASA GIBS CLEAN</span>
           <span className="text-slate-500">● NO ION KEY</span>
