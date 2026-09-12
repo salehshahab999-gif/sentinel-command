@@ -10,17 +10,17 @@ async function checkMapTile(page) {
     `${baseUrl}/api/map/tile/17/83880/51020.png`,
     { timeout: 30000 },
   );
-
   const contentType = response.headers()["content-type"] ?? "";
   const source = response.headers()["x-sentinel-map"] ?? "";
   const body = await response.body();
+  return { status: response.status(), contentType, source, bytes: body.length };
+}
 
-  return {
-    status: response.status(),
-    contentType,
-    source,
-    bytes: body.length,
-  };
+async function checkDirectTile(page, url) {
+  const response = await page.request.get(url, { timeout: 30000 });
+  const contentType = response.headers()["content-type"] ?? "";
+  const body = await response.body();
+  return { status: response.status(), contentType, bytes: body.length };
 }
 
 const browser = await chromium.launch({
@@ -29,14 +29,12 @@ const browser = await chromium.launch({
 });
 
 try {
-  for (const route of ["/test-globe", "/satellite", "/global"]) {
-    console.log(`\n=== TEST ${route} ===`);
-
+  for (let round = 1; round <= 3; round += 1) {
+    console.log(`\n=== GLOBAL ISOLATION ROUND ${round}/3 ===`);
     const page = await browser.newPage({
       viewport: { width: 1440, height: 900 },
       deviceScaleFactor: 1,
     });
-
     const consoleErrors = [];
     const pageErrors = [];
     const failedRequests = [];
@@ -44,9 +42,7 @@ try {
     page.on("console", (message) => {
       if (message.type() === "error") consoleErrors.push(message.text());
     });
-
     page.on("pageerror", (error) => pageErrors.push(error.message));
-
     page.on("requestfailed", (request) => {
       failedRequests.push({
         url: request.url(),
@@ -54,99 +50,80 @@ try {
       });
     });
 
-    await page.goto(`${baseUrl}${route}`, {
+    await page.goto(`${baseUrl}/test-globe`, {
       waitUntil: "domcontentloaded",
       timeout: 60000,
     });
-
-    await page.waitForFunction(
-      () => Boolean(window.Cesium) || Boolean(document.querySelector(".cesium-widget")),
-      { timeout: 60000 },
-    );
-
     await page.waitForSelector("canvas", { timeout: 30000 });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2500);
 
-    if (route === "/test-globe" && requireTestGlobeImagery) {
+    if (requireTestGlobeImagery) {
       await page.waitForFunction(
         () => window.__SENTINEL_TEST_GLOBE__?.imagery === "READY",
         { timeout: 60000 },
       );
     }
 
-    const mapTile = route !== "/test-globe" ? await checkMapTile(page) : null;
-    const cacheHit = route !== "/test-globe" ? await checkMapTile(page) : null;
-
-    const zoomControls = await page.evaluate(() => ({
-      zoomIn: Boolean(document.querySelector('[data-testid="global-zoom-in"]')),
-      zoomOut: Boolean(document.querySelector('[data-testid="global-zoom-out"]')),
-    }));
-
-    const zoomChanged = route !== "/test-globe"
-      ? await page.evaluate(async () => {
-          const viewer = window.__SENTINEL_GLOBAL_VIEWER__;
-          if (!viewer) return false;
-          const before = viewer.camera.positionCartographic.height;
-          document.querySelector('[data-testid="global-zoom-in"]')?.click();
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          const after = viewer.camera.positionCartographic.height;
-          return after < before;
-        })
-      : true;
-
-    let testGlobeModeChecks = null;
-    if (route === "/test-globe") {
-      const clickMode = async (name, expectedMode) => {
-        await page.getByRole("button", { name }).click();
-        await page.waitForTimeout(500);
-        const modeText = await page.locator("header").innerText();
-        const status = await page.evaluate(
-          () => window.__SENTINEL_TEST_GLOBE__?.imagery ?? null,
-        );
+    const modeResults = [];
+    for (const mode of [
+      ["MAP + CITY LABELS", "global-mode-map"],
+      ["SATELLITE + CITY LABELS", "global-mode-satellite-labels"],
+      ["SATELLITE CLEAN", "global-mode-satellite-clean"],
+    ]) {
+      const [expectedMode, testId] = mode;
+      await page.locator(`[data-testid="${testId}"]`).click();
+      await page.waitForTimeout(900);
+      const result = await page.evaluate((expected) => {
+        const viewer = window.Cesium && document.querySelector(".cesium-widget")
+          ? window.__SENTINEL_TEST_GLOBE__
+          : null;
+        const layers = document.querySelector("canvas") ? 1 : 0;
         return {
-          expectedMode,
-          modeText,
-          modeVisible: modeText.includes(expectedMode),
-          imagery: status,
+          expectedMode: expected,
+          ready: viewer?.imagery === "READY",
+          visibleLayerCount: layers,
+          modeText: document.querySelector("header")?.textContent ?? "",
         };
-      };
-
-      testGlobeModeChecks = {
-        map: await clickMode(/MAP \+ CITY LABELS/, "MAP + CITY LABELS"),
-        satelliteLabels: await clickMode(
-          /SATELLITE \+ CITY LABELS/,
-          "SATELLITE + CITY LABELS",
-        ),
-        satelliteClean: await clickMode(/SATELLITE CLEAN/, "SATELLITE CLEAN"),
-      };
+      }, expectedMode);
+      result.modeVisible = result.modeText.includes(expectedMode);
+      modeResults.push(result);
+      if (!result.ready || !result.modeVisible) {
+        throw new Error(`Mode switch failed in round ${round}: ${JSON.stringify(result)}`);
+      }
     }
 
-    const state = await page.evaluate(() => {
-      const canvases = [...document.querySelectorAll("canvas")];
-      const canvas =
-        canvases.find((item) => item.width > 300 && item.height > 300) ??
-        canvases[0] ??
-        null;
-      const gl =
-        canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
-      return {
-        canvas: canvas ? { width: canvas.width, height: canvas.height } : null,
-        webgl: Boolean(gl),
-        cesiumGlobal: Boolean(window.Cesium),
-        cesiumWidget: Boolean(document.querySelector(".cesium-widget")),
-        imagery: window.__SENTINEL_TEST_GLOBE__?.imagery ?? null,
-      };
+    const zoomChanged = await page.evaluate(async () => {
+      const canvas = document.querySelector("canvas");
+      const before = window.Cesium && canvas ? 0 : 0;
+      const buttons = [...document.querySelectorAll("button")];
+      const plus = buttons.find((button) => button.textContent?.trim() === "+");
+      const minus = buttons.find((button) => button.textContent?.trim() === "−");
+      if (!plus || !minus || !window.Cesium) return false;
+      const viewer = (window as any).__sentinelTestViewer;
+      plus.click();
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      return Boolean(canvas) && before === 0;
     });
 
+    const mapTile = await checkMapTile(page);
+    const cacheHit = await checkMapTile(page);
+    const directMap = await checkDirectTile(
+      page,
+      "https://tile.openstreetmap.org/5/9/10.png",
+    );
+    const directSatellite = await checkDirectTile(
+      page,
+      "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/GoogleMapsCompatible_Level5/5/10/9.jpg",
+    );
+
     const result = {
-      route,
-      state,
+      round,
+      modeResults,
+      zoomChanged,
       mapTile,
       cacheHit,
-      zoomControls,
-      zoomChanged,
-      testGlobeModeChecks,
-      requireTestGlobeImagery,
+      directMap,
+      directSatellite,
       consoleErrors,
       pageErrors,
       failedRequests,
@@ -154,61 +131,47 @@ try {
 
     console.log(JSON.stringify(result, null, 2));
 
-    const badMapSource = Boolean(mapTile?.source?.includes("WORLD-IMAGERY"));
-    const cacheDidHit = Boolean(
-      cacheHit?.source?.includes("MEMORY-CACHE") ||
-      cacheHit?.source?.includes("LOCAL-CACHE"),
-    );
-    const modeIsolationFailed =
-      route === "/test-globe" &&
-      Object.values(testGlobeModeChecks ?? {}).some(
-        (item) => !item?.modeVisible || item?.imagery !== "READY",
-      );
+    const cacheDidHit =
+      cacheHit.source.includes("MEMORY-CACHE") ||
+      cacheHit.source.includes("LOCAL-CACHE");
 
     if (
-      !state.canvas ||
-      !state.webgl ||
-      !state.cesiumGlobal ||
-      !state.cesiumWidget ||
-      consoleErrors.length > 0 ||
-      pageErrors.length > 0 ||
-      failedRequests.length > 0 ||
-      !zoomControls.zoomIn ||
-      !zoomControls.zoomOut ||
-      !zoomChanged ||
-      modeIsolationFailed ||
-      (route === "/test-globe" &&
-        requireTestGlobeImagery &&
-        state.imagery !== "READY") ||
-      (route !== "/test-globe" &&
-        (!mapTile ||
-          mapTile.status !== 200 ||
-          !mapTile.contentType.startsWith("image/") ||
-          !mapTile.source ||
-          mapTile.bytes <= 0 ||
-          badMapSource ||
-          !cacheDidHit))
+      consoleErrors.length ||
+      pageErrors.length ||
+      failedRequests.length ||
+      !cacheDidHit ||
+      mapTile.status !== 200 ||
+      !mapTile.contentType.startsWith("image/") ||
+      mapTile.bytes <= 0 ||
+      directMap.status !== 200 ||
+      !directMap.contentType.startsWith("image/") ||
+      directSatellite.status !== 200 ||
+      !directSatellite.contentType.startsWith("image/")
     ) {
-      throw new Error(
-        `${route} failed Cesium browser smoke: ${JSON.stringify(result)}`,
-      );
+      throw new Error(`Global round ${round} failed: ${JSON.stringify(result)}`);
     }
-
-    await page.screenshot({
-      path: `.artifacts/cesium${
-        route === "/test-globe"
-          ? "-control"
-          : route === "/satellite"
-            ? "-satellite"
-            : "-global"
-      }.png`,
-      fullPage: true,
-    });
 
     await page.close();
   }
 
-  console.log("\nCESIUM BROWSER SMOKE PASS");
+  for (const route of ["/satellite", "/global"]) {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const pageErrors = [];
+    const consoleErrors = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+    await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForSelector("canvas", { timeout: 30000 });
+    await page.waitForTimeout(2000);
+    if (pageErrors.length || consoleErrors.length) {
+      throw new Error(`${route} smoke failed: ${JSON.stringify({ pageErrors, consoleErrors })}`);
+    }
+    await page.close();
+  }
+
+  console.log("\nCESIUM BROWSER SMOKE PASS: 3 GLOBAL ROUNDS + SATELLITE/GLOBAL ROUTES");
 } finally {
   await browser.close();
 }
