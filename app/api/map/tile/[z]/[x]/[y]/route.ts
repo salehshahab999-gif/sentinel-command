@@ -94,7 +94,8 @@ const providers: Provider[] = [
 ];
 
 const memoryCache = new Map<string, Buffer>();
-const MEMORY_CACHE_LIMIT = 128;
+const MEMORY_CACHE_LIMIT = 512;
+const inFlightTiles = new Map<string, Promise<Response | null>>();
 
 function memoryKey(providerId: string, z: string, x: string, y: string): string {
   return `${providerId}/${z}/${x}/${y}`;
@@ -118,7 +119,42 @@ function setMemoryTile(key: string, body: Buffer): void {
   }
 }
 
-async function fetchProviderTile(provider: Provider, z: string, x: string, y: string): Promise<Response | null> {
+async function readAnyCachedTile(
+  z: string,
+  x: string,
+  y: string,
+): Promise<Response | null> {
+  for (const provider of providers) {
+    const key = memoryKey(provider.id, z, x, y);
+    const memory = getMemoryTile(key);
+    if (memory) {
+      return imageResponse(memory, `${provider.label}-MEMORY-CACHE`);
+    }
+  }
+
+  const cached = await Promise.all(
+    providers.map(async (provider) => {
+      const body = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
+      return body ? { provider, body } : null;
+    }),
+  );
+
+  const hit = cached.find(
+    (entry): entry is { provider: Provider; body: Buffer } => entry !== null,
+  );
+
+  if (!hit) return null;
+
+  setMemoryTile(memoryKey(hit.provider.id, z, x, y), hit.body);
+  return imageResponse(hit.body, `${hit.provider.label}-LOCAL-CACHE`);
+}
+
+async function fetchProviderTile(
+  provider: Provider,
+  z: string,
+  x: string,
+  y: string,
+): Promise<Response | null> {
   const url = provider.buildUrl(z, x, y);
   if (!url) return null;
 
@@ -143,9 +179,29 @@ async function fetchProviderTile(provider: Provider, z: string, x: string, y: st
     if (!body.length) return null;
 
     setMemoryTile(memoryKey(provider.id, z, x, y), body);
-    await writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body);
+    void writeCachedTile(PROVIDER_CACHES[provider.id], z, x, y, body).catch(() => {});
 
     return imageResponse(body, `${provider.label}-ONLINE-CACHED`);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchFastestOnlineTile(
+  z: string,
+  x: string,
+  y: string,
+): Promise<Response | null> {
+  const candidates = providers.filter((provider) => provider.buildUrl(z, x, y));
+
+  const attempts = candidates.map(async (provider) => {
+    const result = await fetchProviderTile(provider, z, x, y);
+    if (!result) throw new Error(`${provider.id} miss`);
+    return result;
+  });
+
+  try {
+    return await Promise.any(attempts);
   } catch {
     return null;
   }
@@ -162,24 +218,25 @@ export async function GET(
     return new Response("Invalid tile", { status: 400 });
   }
 
-  // Strict MAP contract: cached street maps first. Never read the old World Imagery cache.
-  for (const provider of providers) {
-    const key = memoryKey(provider.id, z, x, y);
-    const memory = getMemoryTile(key);
-    if (memory) return imageResponse(memory, `${provider.label}-MEMORY-CACHE`);
+  const requestKey = `${z}/${x}/${y}`;
 
-    const cached = await readTile(PROVIDER_CACHES[provider.id], z, x, y);
-    if (cached) {
-      setMemoryTile(key, cached);
-      return imageResponse(cached, `${provider.label}-LOCAL-CACHE`);
-    }
+  const cached = await readAnyCachedTile(z, x, y);
+  if (cached) return cached;
+
+  const existing = inFlightTiles.get(requestKey);
+  if (existing) {
+    const shared = await existing;
+    if (shared) return shared.clone();
   }
 
-  // Fast primary street map, then OSM, then optional keyed CARTO.
-  for (const provider of providers) {
-    const online = await fetchProviderTile(provider, z, x, y);
-    if (online) return online;
-  }
+  const pending = fetchFastestOnlineTile(z, x, y).finally(() => {
+    inFlightTiles.delete(requestKey);
+  });
+
+  inFlightTiles.set(requestKey, pending);
+
+  const online = await pending;
+  if (online) return online;
 
   return new Response("Map tile unavailable", {
     status: 503,
