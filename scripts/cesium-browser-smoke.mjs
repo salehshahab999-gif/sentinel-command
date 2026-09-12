@@ -23,6 +23,18 @@ async function checkMapTile(page) {
   };
 }
 
+async function globalImageryState(page) {
+  return page.evaluate(() => {
+    const viewer = window.__SENTINEL_GLOBAL_VIEWER__;
+    if (!viewer) return null;
+    const layers = viewer.imageryLayers?._layers ?? [];
+    return {
+      totalLayers: layers.length,
+      visibleLayers: layers.filter((layer) => layer.show).length,
+    };
+  });
+}
+
 const browser = await chromium.launch({
   headless: true,
   args: ["--use-gl=swiftshader", "--disable-gpu-sandbox"],
@@ -93,6 +105,24 @@ try {
         })
       : true;
 
+    let testGlobeModeChecks = null;
+    if (route === "/test-globe") {
+      const clickMode = async (name) => {
+        await page.getByRole("button", { name }).click();
+        await page.waitForTimeout(600);
+        return page.evaluate(() => ({
+          imagery: window.__SENTINEL_TEST_GLOBE__?.imagery ?? null,
+          visibleLayers: window.__SENTINEL_TEST_GLOBE_VISIBLE_LAYERS__ ?? null,
+        }));
+      };
+
+      testGlobeModeChecks = {
+        map: await clickMode(/MAP \+ CITY LABELS/),
+        satelliteLabels: await clickMode(/SATELLITE \+ CITY LABELS/),
+        satelliteClean: await clickMode(/SATELLITE CLEAN/),
+      };
+    }
+
     const state = await page.evaluate(() => {
       const canvases = [...document.querySelectorAll("canvas")];
       const canvas = canvases.find((item) => item.width > 300 && item.height > 300) ?? canvases[0] ?? null;
@@ -112,6 +142,7 @@ try {
       mapTile,
       zoomControls,
       zoomChanged,
+      testGlobeModeChecks,
       requireTestGlobeImagery,
       consoleErrors,
       pageErrors,
@@ -124,6 +155,12 @@ try {
       mapTile?.source?.includes("WORLD-IMAGERY"),
     );
 
+    const modeIsolationFailed =
+      route === "/test-globe" &&
+      Object.values(testGlobeModeChecks ?? {}).some(
+        (item) => item?.visibleLayers !== 1 || item?.imagery !== "READY",
+      );
+
     if (
       !state.canvas ||
       !state.webgl ||
@@ -135,6 +172,7 @@ try {
       !zoomControls.zoomIn ||
       !zoomControls.zoomOut ||
       !zoomChanged ||
+      modeIsolationFailed ||
       (route === "/test-globe" && requireTestGlobeImagery && state.imagery !== "READY") ||
       (route !== "/test-globe" &&
         (!mapTile || mapTile.status !== 200 || !mapTile.contentType.startsWith("image/") || !mapTile.source || mapTile.bytes <= 0 || badMapSource))
