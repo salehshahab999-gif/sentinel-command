@@ -181,7 +181,18 @@ This result is best described as an **open-source analytical geolocation estimat
 
 ---
 
-### Keywords
+## Reuse and Attribution
+
+This report may be linked, quoted, translated, or republished for **non-commercial research, educational, journalistic, and analytical purposes**, provided that the original GitHub source and author are clearly credited.
+
+Please preserve the original coordinate, uncertainty range, methodology, and the distinction between an analytical estimate and an officially confirmed location when reproducing this work.
+
+**Original source:**
+https://github.com/salehshahab999-gif/sentinel-command/blob/master/Jabal-Haylan-F15-Geolocation-Assessment.md
+
+**Author:** salehshahab999-gif
+
+## Keywords
 
 F-15 crash Yemen  
 Jabal Haylan  
