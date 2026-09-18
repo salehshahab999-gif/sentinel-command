@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app:
+    PYTHONPATH=/app \
     CELERY_BROKER=redis://redis:6379/0 \
     CELERY_RESULT=redis://redis:6379/0 \
     SENTINEL_RTL_ADAPTER=1
