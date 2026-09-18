@@ -21,7 +21,6 @@ const BACKEND_URL =
   "http://localhost:11009";
 
 const MAX_FILE_BYTES = 1024 * 1024 * 1024;
-const MAX_PAGES = 5000;
 
 function formatSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
