@@ -31,6 +31,7 @@ for directory in (INPUT_DIR, OUTPUT_DIR, CACHE_DIR):
 REDIS_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 RESULT_URL = os.environ.get("CELERY_RESULT", REDIS_URL)
 SHARED_SECRET_FALLBACK = "sentinel-translet-local-dev-secret"
+MAX_PAGES = 5000
 
 app = Flask("sentinel-translet")
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
@@ -581,6 +582,24 @@ def create_translate():
     job_id = str(__import__("uuid").uuid4())
     input_path = INPUT_DIR / f"{job_id}.pdf"
     uploaded.save(input_path)
+
+    try:
+        with fitz.open(input_path) as uploaded_doc:
+            page_count = len(uploaded_doc)
+    except Exception as exc:
+        input_path.unlink(missing_ok=True)
+        return jsonify({"error": f"Invalid PDF: {exc}"}), 400
+
+    if page_count > MAX_PAGES:
+        input_path.unlink(missing_ok=True)
+        return jsonify(
+            {
+                "error": (
+                    f"PDF has {page_count} pages; "
+                    f"maximum is {MAX_PAGES}."
+                )
+            }
+        ), 413
 
     translate_task.apply_async(
         args=(
