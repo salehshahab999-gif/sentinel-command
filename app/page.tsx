@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import SystemMetrics from "./components/SystemMetrics";
 import MonitorCard from "./components/MonitorCard";
 
@@ -434,6 +435,17 @@ export default function Home() {
               <span className="text-sm text-gray-300 font-bold tracking-wider">
                 OPEN
               </span>
+            </div>
+          </div>
+
+          <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
+            <div className="flex h-full min-h-40 items-end justify-end">
+              <Link
+                href="/translet"
+                className="text-sm font-bold tracking-wider text-gray-300 transition hover:text-cyan-400"
+              >
+                OPEN
+              </Link>
             </div>
           </div>
 
