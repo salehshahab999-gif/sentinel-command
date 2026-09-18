@@ -387,7 +387,7 @@ def rtl_html(text: str, font_size: float) -> str:
 
     return (
         f'<div dir="rtl" style="direction:rtl;text-align:right;'
-        f'unicode-bidi:plaintext;'
+        
         f'font-family:"Noto Naskh Arabic","Noto Sans Arabic",'
         f'"DejaVu Sans",sans-serif;font-size:{font_size:.2f}pt;'
         f'line-height:1.22;overflow-wrap:break-word;">{escaped}</div>'
