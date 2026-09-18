@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
+    PYTHONPATH=/app:
     CELERY_BROKER=redis://redis:6379/0 \
     CELERY_RESULT=redis://redis:6379/0 \
     SENTINEL_RTL_ADAPTER=1
@@ -26,6 +27,7 @@ RUN pip install --no-cache-dir \
 WORKDIR /app
 
 COPY rtl_sitecustomize.py /app/sitecustomize.py
+COPY translet_api.py /app/translet_api.py
 COPY test_rtl_adapter.py /app/test_rtl_adapter.py
 
 RUN python /app/test_rtl_adapter.py
