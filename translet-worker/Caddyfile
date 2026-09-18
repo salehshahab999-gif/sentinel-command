@@ -1,4 +1,8 @@
 :80 {
+    request_body {
+        max_size 512MB
+    }
+
     @options method OPTIONS
     handle @options {
         header Access-Control-Allow-Origin "*"
@@ -13,11 +17,5 @@
         Access-Control-Allow-Headers "Content-Type"
     }
 
-    handle /health {
-        respond "ok" 200
-    }
-
-    handle {
-        reverse_proxy pdf2zh-api:11008
-    }
+    reverse_proxy translet-api:11008
 }
