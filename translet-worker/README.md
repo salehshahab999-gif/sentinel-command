@@ -1,23 +1,24 @@
 # Sentinel Translet Worker
 
-این پوشه موتور ترجمه PDF را جدا از Next.js اجرا می‌کند.
+موتور ترجمه PDF جدا از Next.js اجرا می‌شود تا فایل‌های بزرگ از محدودیت payload
+Vercel عبور نکنند.
 
-## چرا جداست؟
+## Architecture
 
-Vercel Functions برای request body سقف 4.5MB دارند، بنابراین PDFهای بزرگ نباید از
-Route Handler پروژه عبور کنند. صفحه `/translet` مرورگر را مستقیماً به این Worker وصل می‌کند.
+- Sentinel `/translet` و `/teranslet`: رابط کاربری
+- Sentinel `/api/translet/token`: صدور توکن کوتاه‌عمر HMAC
+- Caddy: gateway و CORS
+- Flask: API ترجمه
+- Celery + Redis: صف پردازش
+- SQLite: cache ترجمه روی Worker
+- PyMuPDF HTML renderer: خروجی RTL فارسی
+- Google Translate endpoint: ترجمه متن
 
-## موتور
+Vercel برای Function request body سقف 4.5MB دارد، بنابراین PDF مستقیم از
+مرورگر به Worker ارسال می‌شود. این معماری فایل بزرگ را از Route Handler عبور
+نمی‌دهد.
 
-Worker از `pdf2zh 1.9.12` با Flask + Celery + Redis استفاده می‌کند:
-
-- POST `/v1/translate`
-- GET `/v1/translate/<id>`
-- DELETE `/v1/translate/<id>`
-- GET `/v1/translate/<id>/mono`
-- GET `/v1/translate/<id>/dual`
-
-## اجرای محلی روی VPS یا کامپیوتر
+## Local run
 
 داخل این پوشه:
 
@@ -25,7 +26,7 @@ Worker از `pdf2zh 1.9.12` با Flask + Celery + Redis استفاده می‌ک
 docker compose up -d --build
 ```
 
-بعد:
+Health:
 
 ```
 http://localhost:11009/health
@@ -33,25 +34,60 @@ http://localhost:11009/health
 
 باید `ok` برگرداند.
 
-سپس در پروژه Sentinel:
+## Sentinel environment
+
+در `.env.local`:
 
 ```env
 NEXT_PUBLIC_PDF_TRANSLATOR_URL=http://localhost:11009
+PDF_TRANSLATOR_SHARED_SECRET=sentinel-translet-local-dev-secret
 ```
 
-برای محیط عمومی، همین آدرس را با دامنه HTTPS Worker عوض کن.
+در محیط عمومی مقدار secret را عوض کن و همان مقدار را روی Worker قرار بده.
 
-## نکات فایل خیلی بزرگ
+## Routes
 
-Worker از صف Celery استفاده می‌کند و وضعیت ترجمه را صفحه به صفحه گزارش می‌دهد.
-برای PDFهای بسیار بزرگ، اول با 1 یا 2 thread آزمایش کن.
+Sentinel:
 
-این compose خودش Redis را هم بالا می‌آورد و Redis به اینترنت publish نشده است.
+- `/translet`
+- `/teranslet`
+- `/api/translet/token`
 
-## منبع موتور
+Worker:
 
-هسته ترجمه بر پایه PDFMathTranslate / pdf2zh است:
-https://github.com/PDFMathTranslate/PDFMathTranslate
+- `GET /health`
+- `POST /v1/translate`
+- `GET /v1/translate/<id>`
+- `DELETE /v1/translate/<id>`
+- `GET /v1/translate/<id>/mono`
+- `GET /v1/translate/<id>/dual`
 
-پروژه اصلی تحت AGPL-3.0 منتشر شده است. این پوشه کد آن پروژه را کپی نمی‌کند و
-آن را به‌صورت dependency نصب می‌کند؛ برای هر نوع انتشار عمومی، شرایط مجوز آن dependency را رعایت کن.
+تمام endpointهای ترجمه به Bearer token کوتاه‌عمر نیاز دارند.
+
+## PDF handling
+
+- سقف ورودی Worker: 1GB
+- ترجمه متن‌های طولانی به قطعات کوچک‌تر از سقف درخواست Google شکسته می‌شود.
+- cache محلی باعث می‌شود متن تکراری دوباره ترجمه نشود.
+- همزمانی قابل تنظیم است ولی Worker پیش‌فرض با concurrency=1 اجرا می‌شود.
+- فایل‌های اسکن‌شده که text layer ندارند فعلاً با هشدار رد می‌شوند و OCR جداگانه
+  باید بعداً اضافه شود.
+
+## Output
+
+`mono` یک PDF فارسی است.
+
+`dual` برای هر صفحه یک صفحه اصلی و سپس صفحه ترجمه‌شده تولید می‌کند، بنابراین
+تعداد صفحات آن دو برابر سند ورودی است.
+
+## RTL Persian
+
+برای فارسی و عربی، متن خروجی با HTML renderer داخلی PyMuPDF و CSS
+`direction: rtl` و فونت‌های Noto رندر می‌شود. این مسیر عمداً از renderer
+قدیمی low-level pdf2zh جدا شده است، چون upstream PDFMathTranslate هنوز یک issue
+باز برای shaping/BiDi فارسی و عربی دارد.
+
+## License
+
+این Worker کد اختصاصی Sentinel است و از Google Translate و PyMuPDF استفاده می‌کند.
+شرایط مجوز هر dependency باید رعایت شود.
