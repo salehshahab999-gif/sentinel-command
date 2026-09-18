@@ -20,6 +20,12 @@ services:
       PDF_TRANSLATOR_SHARED_SECRET: ${PDF_TRANSLATOR_SHARED_SECRET:-sentinel-translet-local-dev-secret}
       TRANSLET_ENV: ${TRANSLET_ENV:-development}
       TRANSLET_DATA_DIR: /data
+      TRANSLET_OCR_ENABLED: "1"
+      TRANSLET_OCR_LANGUAGE: eng
+      TRANSLET_OCR_DPI: "200"
+      TRANSLET_OCR_ENABLED: "1"
+      TRANSLET_OCR_LANGUAGE: eng
+      TRANSLET_OCR_DPI: "200"
     command: ["python", "/app/server.py"]
     depends_on:
       redis:
