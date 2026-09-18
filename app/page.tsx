@@ -439,9 +439,19 @@ export default function Home() {
           </div>
 
           <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
-            <div className="flex h-full min-h-40 items-end justify-end">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl">📄</div>
+                <h2 className="mt-2 text-lg font-bold text-cyan-400">
+                  PDF TRANSLATOR
+                </h2>
+                <p className="mt-1 text-xs text-gray-500">
+                  English → فارسی
+                </p>
+              </div>
+
               <Link
-                href="/translet"
+                href="/TERANSLET"
                 className="text-sm font-bold tracking-wider text-gray-300 transition hover:text-cyan-400"
               >
                 OPEN
