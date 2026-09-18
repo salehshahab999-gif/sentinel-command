@@ -1,9 +1,11 @@
 import os
+import tempfile
 from pathlib import Path
 
 import fitz
 
 os.environ["TRANSLET_ENV"] = "development"
+os.environ["TRANSLET_DATA_DIR"] = os.path.join(tempfile.gettempdir(), "sentinel-translet-test-data")
 
 from server import (
     _validate_token,
