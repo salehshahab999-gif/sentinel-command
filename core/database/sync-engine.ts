@@ -1,5 +1,5 @@
 import { prisma } from "./prisma-client";
-import { remotePrisma } from "./remote-prisma-client";
+import { getRemotePrisma } from "./remote-prisma-client";
 import { checkRemoteConnectivity } from "./remote-connectivity";
 
 export type SyncQueueStatus =
@@ -119,7 +119,7 @@ async function syncAlertCreate(
 ): Promise<void> {
   const id = requireString(payload, "id");
 
-  await remotePrisma.alert.upsert({
+  await getRemotePrisma().alert.upsert({
     where: { id },
     update: {
       eventId: requireString(payload, "eventId"),
@@ -156,7 +156,7 @@ async function syncAlertUpdate(
 ): Promise<void> {
   const id = requireString(payload, "id");
 
-  await remotePrisma.alert.update({
+  await getRemotePrisma().alert.update({
     where: { id },
     data: {
       status: requireString(payload, "status"),
@@ -172,7 +172,7 @@ async function syncAlertHistoryCreate(
 ): Promise<void> {
   const id = requireString(payload, "id");
 
-  await remotePrisma.alertHistory.upsert({
+  await getRemotePrisma().alertHistory.upsert({
     where: { id },
     update: {
       alertId: requireString(payload, "alertId"),
