@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEvent, DragEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type TranslateState =
   | "IDLE"
@@ -19,33 +12,19 @@ type TranslateState =
 
 type TranslateStatus = {
   state: TranslateState;
-  info?: {
-    n?: number;
-    total?: number;
-  };
+  info?: { n?: number; total?: number; warnings?: number };
+  error?: string;
 };
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_PDF_TRANSLATOR_URL?.replace(/\/$/, "") ||
   "http://localhost:11009";
 
-const SOURCE_LANGUAGES = [
-  { code: "auto", label: "تشخیص خودکار" },
-  { code: "en", label: "English" },
-  { code: "ar", label: "العربية" },
-  { code: "ru", label: "Русский" },
-  { code: "tr", label: "Türkçe" },
-  { code: "zh", label: "中文" },
-  { code: "de", label: "Deutsch" },
-  { code: "fr", label: "Français" },
-  { code: "es", label: "Español" },
-];
+const MAX_FILE_BYTES = 1024 * 1024 * 1024;
+const MAX_PAGES = 5000;
 
 function formatSize(bytes: number) {
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
@@ -55,26 +34,22 @@ export default function TransletPage() {
   const tokenExpiryRef = useRef(0);
 
   const [file, setFile] = useState<File | null>(null);
-  const [source, setSource] = useState("en");
-  const [threads, setThreads] = useState("2");
+  const [dragging, setDragging] = useState(false);
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState<TranslateStatus>({ state: "IDLE" });
   const [message, setMessage] = useState(
-    "PDF را انتخاب کن؛ مقصد همیشه فارسی است.",
+    "یک فایل PDF انگلیسی را انتخاب یا اینجا رها کن.",
   );
   const [busy, setBusy] = useState(false);
   const [workerHealth, setWorkerHealth] = useState("checking");
 
-  const percent = useMemo(() => {
-    const n = status.info?.n ?? 0;
-    const total = status.info?.total ?? 0;
-
-    if (!total) {
-      return 0;
-    }
-
-    return Math.min(100, Math.round((n / total) * 100));
-  }, [status]);
+  const percent =
+    status.info?.total && status.info.total > 0
+      ? Math.min(
+          100,
+          Math.round(((status.info.n ?? 0) / status.info.total) * 100),
+        )
+      : 0;
 
   const getWorkerToken = useCallback(async () => {
     const now = Math.floor(Date.now() / 1000);
@@ -98,12 +73,11 @@ export default function TransletPage() {
     };
 
     if (!data.token || !data.expiresAt) {
-      throw new Error("Sentinel توکن Worker را برنگرداند.");
+      throw new Error("توکن Worker دریافت نشد.");
     }
 
     tokenRef.current = data.token;
     tokenExpiryRef.current = data.expiresAt;
-
     return data.token;
   }, []);
 
@@ -111,7 +85,7 @@ export default function TransletPage() {
     async (path: string, init: RequestInit = {}) => {
       let token = await getWorkerToken();
 
-      const doRequest = (authToken: string) =>
+      const request = (authToken: string) =>
         fetch(`${BACKEND_URL}${path}`, {
           ...init,
           headers: {
@@ -120,13 +94,13 @@ export default function TransletPage() {
           },
         });
 
-      let response = await doRequest(token);
+      let response = await request(token);
 
       if (response.status === 401) {
         tokenRef.current = "";
         tokenExpiryRef.current = 0;
         token = await getWorkerToken();
-        response = await doRequest(token);
+        response = await request(token);
       }
 
       return response;
@@ -163,9 +137,7 @@ export default function TransletPage() {
   }, []);
 
   useEffect(() => {
-    if (!jobId) {
-      return;
-    }
+    if (!jobId) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -177,23 +149,20 @@ export default function TransletPage() {
           { cache: "no-store" },
         );
 
-        if (!response.ok) {
-          throw new Error(`status ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`status ${response.status}`);
 
         const data = (await response.json()) as TranslateStatus;
-
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         setStatus(data);
 
         if (data.state === "PROGRESS") {
+          const n = data.info?.n ?? 0;
+          const total = data.info?.total ?? 0;
           setMessage(
-            data.info?.total
-              ? `در حال ترجمه: ${data.info.n ?? 0} / ${data.info.total} صفحه`
-              : "در حال ترجمه...",
+            total
+              ? `در حال ترجمه صفحه ${n.toLocaleString()} از ${total.toLocaleString()}`
+              : "در حال آماده‌سازی موتور ترجمه...",
           );
           timer = setTimeout(poll, 1800);
           return;
@@ -201,33 +170,28 @@ export default function TransletPage() {
 
         if (data.state === "SUCCESS") {
           setBusy(false);
-          setMessage("ترجمه کامل شد. فایل خروجی را دانلود کن.");
+          setMessage("ترجمه کامل شد. PDF فارسی آماده دانلود است.");
           return;
         }
 
         if (data.state === "FAILURE") {
           setBusy(false);
-          setMessage("Worker ترجمه را با خطا متوقف کرد.");
+          setMessage(data.error || "ترجمه با خطا متوقف شد.");
           return;
         }
 
         if (data.state === "REVOKED") {
           setBusy(false);
-          setMessage("کار ترجمه متوقف شد.");
+          setMessage("ترجمه متوقف شد.");
           return;
         }
 
         timer = setTimeout(poll, 1800);
       } catch (error) {
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         setBusy(false);
         setStatus({ state: "FAILURE" });
-        setMessage(
-          `ارتباط با Translation Worker برقرار نشد: ${String(error)}`,
-        );
+        setMessage(`ارتباط با Worker برقرار نشد: ${String(error)}`);
       }
     };
 
@@ -235,57 +199,68 @@ export default function TransletPage() {
 
     return () => {
       cancelled = true;
-
-      if (timer) {
-        clearTimeout(timer);
-      }
+      if (timer) clearTimeout(timer);
     };
   }, [jobId, workerRequest]);
 
-  const onFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const nextFile = event.target.files?.[0] ?? null;
-
-    setFile(nextFile);
+  const acceptFile = (nextFile: File | null) => {
     setJobId("");
     setStatus({ state: "IDLE" });
     setBusy(false);
 
     if (!nextFile) {
-      setMessage("PDF را انتخاب کن؛ مقصد همیشه فارسی است.");
+      setFile(null);
+      setMessage("یک فایل PDF انگلیسی را انتخاب یا اینجا رها کن.");
       return;
     }
 
-    if (nextFile.type !== "application/pdf") {
+    if (
+      nextFile.type !== "application/pdf" &&
+      !nextFile.name.toLowerCase().endsWith(".pdf")
+    ) {
       setFile(null);
       setMessage("فقط فایل PDF پذیرفته می‌شود.");
       return;
     }
 
+    if (nextFile.size > MAX_FILE_BYTES) {
+      setFile(null);
+      setMessage("حجم فایل بیشتر از ۱ گیگابایت است.");
+      return;
+    }
+
+    setFile(nextFile);
     setMessage(
       `فایل آماده است: ${nextFile.name} • ${formatSize(nextFile.size)}`,
     );
   };
 
+  const onFile = (event: ChangeEvent<HTMLInputElement>) => {
+    acceptFile(event.target.files?.[0] ?? null);
+  };
+
+  const onDrop = (event: DragEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setDragging(false);
+    acceptFile(event.dataTransfer.files?.[0] ?? null);
+  };
+
   const startTranslation = async () => {
-    if (!file || busy) {
-      return;
-    }
+    if (!file || busy) return;
 
     setBusy(true);
     setStatus({ state: "UPLOADING" });
-    setMessage("در حال ارسال مستقیم PDF به Translation Worker...");
+    setMessage("در حال ارسال PDF مستقیم به Worker...");
 
     try {
       const form = new FormData();
-
       form.append("file", file);
       form.append(
         "data",
         JSON.stringify({
-          lang_in: source,
+          lang_in: "en",
           lang_out: "fa",
-          service: "google",
-          thread: Number(threads),
+          thread: 1,
         }),
       );
 
@@ -307,7 +282,7 @@ export default function TransletPage() {
 
       setJobId(data.id);
       setStatus({ state: "PROGRESS", info: { n: 0, total: 0 } });
-      setMessage("کار ثبت شد؛ وضعیت را لحظه‌به‌لحظه می‌خوانم...");
+      setMessage("کار ثبت شد؛ پردازش صفحه‌به‌صفحه شروع می‌شود...");
     } catch (error) {
       setBusy(false);
       setStatus({ state: "FAILURE" });
@@ -316,18 +291,14 @@ export default function TransletPage() {
   };
 
   const cancelTranslation = async () => {
-    if (!jobId) {
-      return;
-    }
-
-    setBusy(true);
+    if (!jobId) return;
 
     try {
       await workerRequest(
         `/v1/translate/${encodeURIComponent(jobId)}`,
         { method: "DELETE" },
       );
-
+      setBusy(false);
       setStatus({ state: "REVOKED" });
       setMessage("درخواست توقف ارسال شد.");
     } catch (error) {
@@ -337,16 +308,10 @@ export default function TransletPage() {
   };
 
   const downloadResult = async (format: "mono" | "dual") => {
-    if (!jobId) {
-      return;
-    }
+    if (!jobId) return;
 
     try {
-      setMessage(
-        format === "mono"
-          ? "در حال آماده‌سازی PDF فارسی..."
-          : "در حال آماده‌سازی PDF دو زبانه...",
-      );
+      setMessage("در حال آماده‌سازی فایل دانلود...");
 
       const response = await workerRequest(
         `/v1/translate/${encodeURIComponent(jobId)}/${format}`,
@@ -362,7 +327,9 @@ export default function TransletPage() {
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
       anchor.download =
-        format === "mono" ? "sentinel-persian.pdf" : "sentinel-bilingual.pdf";
+        format === "mono"
+          ? "sentinel-english-to-persian.pdf"
+          : "sentinel-english-persian-bilingual.pdf";
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -370,7 +337,7 @@ export default function TransletPage() {
 
       setMessage("فایل آماده و دانلود شد.");
     } catch (error) {
-      setMessage(`دانلود فایل ناموفق بود: ${String(error)}`);
+      setMessage(`دانلود ناموفق بود: ${String(error)}`);
     }
   };
 
@@ -381,195 +348,235 @@ export default function TransletPage() {
         ? "OFFLINE"
         : "CHECKING";
 
+  const statusLabel =
+    status.state === "SUCCESS"
+      ? "Completed"
+      : status.state === "FAILURE"
+        ? "Failed"
+        : status.state === "PROGRESS"
+          ? "Translating"
+          : status.state === "UPLOADING"
+            ? "Uploading"
+            : "Ready";
+
   return (
-    <main className="min-h-screen bg-black px-5 py-10 font-mono text-white">
-      <section className="mx-auto max-w-4xl">
-        <div className="mb-8 border-b border-cyan-500/20 pb-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs tracking-[0.35em] text-cyan-400">
-              SENTINEL / TRANSLET
+    <main className="min-h-screen bg-[#f7f8fa] px-4 py-8 text-[#172033]">
+      <section className="mx-auto max-w-5xl">
+        <header className="mb-7 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-sm font-semibold tracking-tight text-cyan-700">
+              SENTINEL
+            </div>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              English → Persian PDF Translator
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              فایل PDF را بده، ترجمه فارسی را با حفظ ساختار تحویل بگیر.
             </p>
-            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1 text-[10px] text-cyan-300">
-              WORKER {workerLabel}
-            </span>
           </div>
 
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">
-            PDF → فارسی
-          </h1>
-
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-            مترجم جدا از داشبورد اصلی. فایل بزرگ مستقیم به Worker می‌رود و
-            مسیرهای اصلی Sentinel و Satellite دست‌نخورده می‌مانند.
-          </p>
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr]">
-          <section className="rounded-2xl border border-gray-800 bg-gray-950 p-6 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="w-full rounded-xl border border-dashed border-cyan-500/30 bg-gray-900/70 px-5 py-12 text-center transition hover:border-cyan-400/60 hover:bg-gray-900"
+          <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold shadow-sm">
+            Worker:{" "}
+            <span
+              className={
+                workerHealth === "online"
+                  ? "text-green-600"
+                  : workerHealth === "offline"
+                    ? "text-red-600"
+                    : "text-slate-500"
+              }
             >
-              <div className="text-4xl">📄</div>
-              <div className="mt-3 text-lg font-semibold">PDF را انتخاب کن</div>
-              <div className="mt-1 text-xs text-gray-500">
-                محدودیت مصنوعی از سمت این صفحه اعمال نشده است.
+              {workerLabel}
+            </span>
+          </div>
+        </header>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <div className="grid gap-6 lg:grid-cols-[1.55fr_0.85fr]">
+            <div>
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setDragging(true);
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={() => setDragging(false)}
+                onDrop={onDrop}
+                className={[
+                  "w-full rounded-2xl border-2 border-dashed px-6 py-16 text-center transition",
+                  dragging
+                    ? "border-cyan-500 bg-cyan-50"
+                    : "border-slate-300 bg-slate-50 hover:border-cyan-400 hover:bg-cyan-50/50",
+                ].join(" ")}
+              >
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm">
+                  📄
+                </div>
+
+                <div className="mt-5 text-xl font-bold">
+                  Drag & Drop PDF here
+                </div>
+
+                <div className="mt-2 text-sm text-slate-500">
+                  or click to choose a file
+                </div>
+
+                <div className="mt-5 text-xs text-slate-400">
+                  PDF only · up to 1 GB · up to 5,000 pages
+                </div>
+
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={onFile}
+                  className="hidden"
+                />
+              </button>
+
+              {file && (
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-slate-800">
+                        {file.name}
+                      </div>
+                      <div className="mt-1 text-xs text-slate-500">
+                        {formatSize(file.size)}
+                      </div>
+                    </div>
+
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-[10px] font-bold text-green-700">
+                      READY
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-600">
+                    {statusLabel}
+                  </span>
+                  <span className="text-slate-400">{percent}%</span>
+                </div>
+
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-cyan-600 transition-all duration-500"
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+
+                <p className="mt-3 min-h-5 text-xs text-slate-500">
+                  {message}
+                </p>
               </div>
 
-              <input
-                ref={inputRef}
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={onFile}
-                className="hidden"
-              />
-            </button>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={startTranslation}
+                  disabled={!file || busy || workerHealth === "offline"}
+                  className="rounded-xl bg-cyan-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {busy ? "Translating..." : "Translate to Persian"}
+                </button>
 
-            {file && (
-              <div className="mt-4 rounded-xl border border-gray-800 bg-black/60 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="break-all text-sm font-semibold text-gray-200">
-                      {file.name}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      {formatSize(file.size)}
-                    </p>
-                  </div>
+                <button
+                  type="button"
+                  onClick={cancelTranslation}
+                  disabled={!jobId || !busy}
+                  className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
 
-                  <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-[10px] text-green-400">
-                    PDF READY
-                  </span>
+            <aside className="rounded-2xl bg-slate-50 p-5">
+              <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Translation
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="text-xs text-slate-400">Source</div>
+                <div className="mt-1 text-lg font-bold">English</div>
+              </div>
+
+              <div className="my-3 text-center text-xl text-slate-300">↓</div>
+
+              <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+                <div className="text-xs text-cyan-700/70">Target</div>
+                <div className="mt-1 text-lg font-bold text-cyan-800">
+                  فارسی (Persian)
+                </div>
+                <div className="mt-1 text-xs text-cyan-700" dir="rtl">
+                  راست‌به‌چپ
                 </div>
               </div>
-            )}
 
-            <div className="mt-5 rounded-xl border border-gray-800 bg-gray-900/40 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm text-gray-400">وضعیت</span>
-                <span className="text-sm font-semibold text-cyan-300">
-                  {status.state}
-                </span>
+              <div className="mt-5 space-y-3 text-sm">
+                <div className="flex items-center gap-3">
+                  <span>✓</span>
+                  <span className="text-slate-600">Layout preservation</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span>✓</span>
+                  <span className="text-slate-600">Persian RTL rendering</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span>✓</span>
+                  <span className="text-slate-600">Large PDF queue</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span>✓</span>
+                  <span className="text-slate-600">No sign-up in Sentinel</span>
+                </div>
               </div>
 
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-800">
-                <div
-                  className="h-full rounded-full bg-cyan-400 transition-all duration-500"
-                  style={{ width: `${percent}%` }}
-                />
-              </div>
+              {status.state === "SUCCESS" && jobId && (
+                <div className="mt-6 space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => downloadResult("mono")}
+                    className="w-full rounded-xl bg-green-600 px-4 py-3 text-sm font-bold text-white hover:bg-green-700"
+                  >
+                    Download Persian PDF
+                  </button>
 
-              <p className="mt-3 break-words text-xs leading-5 text-gray-400">
-                {message}
-              </p>
+                  <button
+                    type="button"
+                    onClick={() => downloadResult("dual")}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                  >
+                    Download bilingual PDF
+                  </button>
+                </div>
+              )}
+            </aside>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-2xl font-bold">1 GB</div>
+            <div className="mt-1 text-xs text-slate-500">maximum file size</div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-2xl font-bold">5,000</div>
+            <div className="mt-1 text-xs text-slate-500">pages target</div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-2xl font-bold">1 → 1</div>
+            <div className="mt-1 text-xs text-slate-500">
+              English to Persian only
             </div>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={startTranslation}
-                disabled={!file || busy || workerHealth === "offline"}
-                className="rounded-xl bg-cyan-500 px-5 py-3 text-sm font-bold text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {busy ? "در حال پردازش..." : "شروع ترجمه فارسی"}
-              </button>
-
-              <button
-                type="button"
-                onClick={cancelTranslation}
-                disabled={!jobId || !busy}
-                className="rounded-xl border border-red-500/30 px-5 py-3 text-sm font-bold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                توقف
-              </button>
-            </div>
-
-            {status.state === "SUCCESS" && jobId && (
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => downloadResult("mono")}
-                  className="rounded-xl border border-green-500/30 bg-green-500/5 px-4 py-3 text-center text-sm font-bold text-green-300 hover:bg-green-500/10"
-                >
-                  دانلود PDF فارسی
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => downloadResult("dual")}
-                  className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-center text-sm font-bold text-amber-200 hover:bg-amber-500/10"
-                >
-                  دانلود دو زبانه
-                </button>
-              </div>
-            )}
-          </section>
-
-          <aside className="rounded-2xl border border-gray-800 bg-gray-950 p-6">
-            <div>
-              <label className="text-xs uppercase tracking-widest text-gray-500">
-                زبان مبدا
-              </label>
-
-              <select
-                value={source}
-                onChange={(event) => setSource(event.target.value)}
-                disabled={busy}
-                className="mt-2 w-full rounded-xl border border-gray-800 bg-gray-900 px-3 py-3 text-sm text-white outline-none focus:border-cyan-500"
-              >
-                {SOURCE_LANGUAGES.map((language) => (
-                  <option key={language.code} value={language.code}>
-                    {language.label} ({language.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mt-5">
-              <label className="text-xs uppercase tracking-widest text-gray-500">
-                مقصد
-              </label>
-
-              <div className="mt-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-3 py-3 text-sm font-semibold text-cyan-200">
-                فارسی (fa)
-              </div>
-            </div>
-
-            <div className="mt-5">
-              <label className="text-xs uppercase tracking-widest text-gray-500">
-                همزمانی Worker
-              </label>
-
-              <select
-                value={threads}
-                onChange={(event) => setThreads(event.target.value)}
-                disabled={busy}
-                className="mt-2 w-full rounded-xl border border-gray-800 bg-gray-900 px-3 py-3 text-sm text-white outline-none focus:border-cyan-500"
-              >
-                <option value="1">1 thread</option>
-                <option value="2">2 threads</option>
-                <option value="4">4 threads</option>
-              </select>
-            </div>
-
-            <div className="mt-6 border-t border-gray-800 pt-5 text-xs leading-6 text-gray-500">
-              <p>
-                Backend:{" "}
-                <span className="break-all text-gray-400">{BACKEND_URL}</span>
-              </p>
-
-              <p className="mt-2">
-                موتور ترجمه Worker از pdf2zh استفاده می‌کند و خروجی mono و dual
-                تولید می‌کند.
-              </p>
-
-              <p className="mt-2 text-amber-200/70">
-                PDF از Next.js عبور نمی‌کند؛ فقط توکن کوتاه‌عمر از Sentinel گرفته
-                می‌شود و فایل مستقیم به Worker ارسال می‌شود.
-              </p>
-            </div>
-          </aside>
+          </div>
         </div>
       </section>
     </main>
