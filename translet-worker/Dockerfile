@@ -7,7 +7,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        fonts-noto-core \
        fontconfig \
-       ca-certificates \
+       ca-certificates        tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
