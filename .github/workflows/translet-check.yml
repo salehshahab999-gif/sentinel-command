@@ -12,6 +12,8 @@ on:
 jobs:
   next-check:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/sentinel?schema=public
     steps:
       - uses: actions/checkout@v4
 
