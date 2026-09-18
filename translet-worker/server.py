@@ -32,6 +32,9 @@ REDIS_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 RESULT_URL = os.environ.get("CELERY_RESULT", REDIS_URL)
 SHARED_SECRET_FALLBACK = "sentinel-translet-local-dev-secret"
 MAX_PAGES = 5000
+OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {"0", "false", "no"}
+OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
+OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
 
 app = Flask("sentinel-translet")
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
@@ -384,29 +387,91 @@ def rtl_html(text: str, font_size: float) -> str:
 
     return (
         f'<div dir="rtl" style="direction:rtl;text-align:right;'
+        f'unicode-bidi:plaintext;'
         f'font-family:"Noto Naskh Arabic","Noto Sans Arabic",'
         f'"DejaVu Sans",sans-serif;font-size:{font_size:.2f}pt;'
-        f'line-height:1.22;">{escaped}</div>'
+        f'line-height:1.22;overflow-wrap:break-word;">{escaped}</div>'
     )
 
 
 def render_translated_page(
     page: fitz.Page,
     translated_blocks: list[tuple[fitz.Rect, str, float]],
-) -> None:
+) -> int:
     for rect, _, _ in translated_blocks:
         page.add_redact_annot(rect, fill=(1, 1, 1))
 
     if translated_blocks:
         page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
 
+    failed = 0
+
     for rect, translated, font_size in translated_blocks:
-        page.insert_htmlbox(
+        result = page.insert_htmlbox(
             rect,
             rtl_html(translated, font_size),
-            scale_low=0.65,
+            scale_low=0.35,
             overlay=True,
         )
+
+        if result[0] < 0:
+            expanded = fitz.Rect(
+                max(page.rect.x0, rect.x0 - 2),
+                max(page.rect.y0, rect.y0 - 1),
+                min(page.rect.x1, rect.x1 + 2),
+                min(page.rect.y1, rect.y1 + 2),
+            )
+
+            result = page.insert_htmlbox(
+                expanded,
+                rtl_html(translated, max(6.0, font_size * 0.9)),
+                scale_low=0.15,
+                overlay=True,
+            )
+
+        if result[0] < 0:
+            failed += 1
+
+    return failed
+
+
+def extract_page_blocks(
+    page: fitz.Page,
+) -> tuple[list[dict[str, Any]], bool, str | None]:
+    text_page = page.get_text(
+        "dict",
+        flags=fitz.TEXTFLAGS_TEXT,
+    )
+
+    blocks = [
+        block
+        for block in text_page.get("blocks", [])
+        if block.get("type") == 0 and block_text(block)
+    ]
+
+    if blocks or not OCR_ENABLED:
+        return blocks, False, None
+
+    try:
+        ocr_page = page.get_textpage_ocr(
+            flags=fitz.TEXTFLAGS_TEXT,
+            language=OCR_LANGUAGE,
+            dpi=OCR_DPI,
+            full=True,
+        )
+        ocr_dict = page.get_text(
+            "dict",
+            flags=fitz.TEXTFLAGS_TEXT,
+            textpage=ocr_page,
+        )
+        ocr_blocks = [
+            block
+            for block in ocr_dict.get("blocks", [])
+            if block.get("type") == 0 and block_text(block)
+        ]
+        return ocr_blocks, True, None
+    except Exception as exc:
+        return [], False, f"OCR page fallback failed: {exc}"
 
 
 def translate_document(
@@ -424,21 +489,22 @@ def translate_document(
 
     total_pages = len(source_doc)
     warnings: list[str] = []
+    ocr_pages = 0
+    render_failures = 0
 
     for page_index in range(total_pages):
         source_page = source_doc[page_index]
         translated_page = translated_doc[page_index]
 
-        text_page = source_page.get_text(
-            "dict",
-            flags=fitz.TEXTFLAGS_TEXT,
-        )
+        blocks, used_ocr, ocr_error = extract_page_blocks(source_page)
 
-        blocks = [
-            block
-            for block in text_page.get("blocks", [])
-            if block.get("type") == 0 and block_text(block)
-        ]
+        if used_ocr:
+            ocr_pages += 1
+
+        if ocr_error:
+            warnings.append(
+                f"page {page_index + 1}: {ocr_error}"
+            )
 
         translated_blocks: list[tuple[fitz.Rect, str, float]] = []
 
@@ -469,10 +535,15 @@ def translate_document(
             key=lambda item: (item[0].y0, item[0].x0)
         )
 
-        render_translated_page(
+        render_failures += render_translated_page(
             translated_page,
             translated_blocks,
         )
+
+        if render_failures:
+            warnings.append(
+                f"page {page_index + 1}: {render_failures} translated block(s) did not fit"
+            )
 
         dual_doc.insert_pdf(
             source_doc,
@@ -491,6 +562,8 @@ def translate_document(
                 "n": page_index + 1,
                 "total": total_pages,
                 "warnings": len(warnings),
+                "ocr_pages": ocr_pages,
+                "render_failures": render_failures,
             },
         )
 
@@ -517,6 +590,8 @@ def translate_document(
         "pages": total_pages,
         "warning_count": len(warnings),
         "warnings": warnings[:100],
+        "ocr_pages": ocr_pages,
+        "render_failures": render_failures,
         "dual_pages": total_pages * 2,
     }
 
@@ -572,7 +647,7 @@ def create_translate():
 
     source_lang = str(
         data.get("lang_in", "en")
-    ).lower().strip() or "auto"
+    ).lower().strip() or "en"
 
     threads = max(
         1,
