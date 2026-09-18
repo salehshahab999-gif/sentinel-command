@@ -1,8 +1,21 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-type TranslateState = "IDLE" | "UPLOADING" | "PROGRESS" | "SUCCESS" | "FAILURE" | "REVOKED";
+type TranslateState =
+  | "IDLE"
+  | "UPLOADING"
+  | "PROGRESS"
+  | "SUCCESS"
+  | "FAILURE"
+  | "REVOKED";
 
 type TranslateStatus = {
   state: TranslateState;
@@ -17,6 +30,7 @@ const BACKEND_URL =
   "http://localhost:11009";
 
 const SOURCE_LANGUAGES = [
+  { code: "auto", label: "تشخیص خودکار" },
   { code: "en", label: "English" },
   { code: "ar", label: "العربية" },
   { code: "ru", label: "Русский" },
@@ -28,12 +42,17 @@ const SOURCE_LANGUAGES = [
 ];
 
 function formatSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 export default function TransletPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const tokenRef = useRef("");
+  const tokenExpiryRef = useRef(0);
 
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState("en");
@@ -41,28 +60,121 @@ export default function TransletPage() {
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState<TranslateStatus>({ state: "IDLE" });
   const [message, setMessage] = useState(
-    "PDF را انتخاب کن؛ مقصد همیشه فارسی است."
+    "PDF را انتخاب کن؛ مقصد همیشه فارسی است.",
   );
   const [busy, setBusy] = useState(false);
+  const [workerHealth, setWorkerHealth] = useState("checking");
 
   const percent = useMemo(() => {
     const n = status.info?.n ?? 0;
     const total = status.info?.total ?? 0;
-    if (!total) return 0;
+
+    if (!total) {
+      return 0;
+    }
+
     return Math.min(100, Math.round((n / total) * 100));
   }, [status]);
 
+  const getWorkerToken = useCallback(async () => {
+    const now = Math.floor(Date.now() / 1000);
+
+    if (tokenRef.current && tokenExpiryRef.current - now > 30) {
+      return tokenRef.current;
+    }
+
+    const response = await fetch("/api/translet/token", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(details || `token endpoint status ${response.status}`);
+    }
+
+    const data = (await response.json()) as {
+      token?: string;
+      expiresAt?: number;
+    };
+
+    if (!data.token || !data.expiresAt) {
+      throw new Error("Sentinel توکن Worker را برنگرداند.");
+    }
+
+    tokenRef.current = data.token;
+    tokenExpiryRef.current = data.expiresAt;
+
+    return data.token;
+  }, []);
+
+  const workerRequest = useCallback(
+    async (path: string, init: RequestInit = {}) => {
+      let token = await getWorkerToken();
+
+      const doRequest = (authToken: string) =>
+        fetch(`${BACKEND_URL}${path}`, {
+          ...init,
+          headers: {
+            ...(init.headers ?? {}),
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+      let response = await doRequest(token);
+
+      if (response.status === 401) {
+        tokenRef.current = "";
+        tokenExpiryRef.current = 0;
+        token = await getWorkerToken();
+        response = await doRequest(token);
+      }
+
+      return response;
+    },
+    [getWorkerToken],
+  );
+
   useEffect(() => {
-    if (!jobId) return;
+    let cancelled = false;
+
+    const checkHealth = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/health`, {
+          cache: "no-store",
+        });
+
+        if (!cancelled) {
+          setWorkerHealth(response.ok ? "online" : "error");
+        }
+      } catch {
+        if (!cancelled) {
+          setWorkerHealth("offline");
+        }
+      }
+    };
+
+    void checkHealth();
+    const timer = setInterval(checkHealth, 15000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!jobId) {
+      return;
+    }
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const poll = async () => {
       try {
-        const response = await fetch(
-          `${BACKEND_URL}/v1/translate/${encodeURIComponent(jobId)}`,
-          { cache: "no-store" }
+        const response = await workerRequest(
+          `/v1/translate/${encodeURIComponent(jobId)}`,
+          { cache: "no-store" },
         );
 
         if (!response.ok) {
@@ -71,7 +183,9 @@ export default function TransletPage() {
 
         const data = (await response.json()) as TranslateStatus;
 
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
         setStatus(data);
 
@@ -79,7 +193,7 @@ export default function TransletPage() {
           setMessage(
             data.info?.total
               ? `در حال ترجمه: ${data.info.n ?? 0} / ${data.info.total} صفحه`
-              : "در حال ترجمه..."
+              : "در حال ترجمه...",
           );
           timer = setTimeout(poll, 1800);
           return;
@@ -105,11 +219,14 @@ export default function TransletPage() {
 
         timer = setTimeout(poll, 1800);
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
+
         setBusy(false);
         setStatus({ state: "FAILURE" });
         setMessage(
-          `ارتباط با Translation Worker برقرار نشد: ${String(error)}`
+          `ارتباط با Translation Worker برقرار نشد: ${String(error)}`,
         );
       }
     };
@@ -118,12 +235,16 @@ export default function TransletPage() {
 
     return () => {
       cancelled = true;
-      if (timer) clearTimeout(timer);
+
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
-  }, [jobId]);
+  }, [jobId, workerRequest]);
 
   const onFile = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFile = event.target.files?.[0] ?? null;
+
     setFile(nextFile);
     setJobId("");
     setStatus({ state: "IDLE" });
@@ -141,12 +262,14 @@ export default function TransletPage() {
     }
 
     setMessage(
-      `فایل آماده است: ${nextFile.name} • ${formatSize(nextFile.size)}`
+      `فایل آماده است: ${nextFile.name} • ${formatSize(nextFile.size)}`,
     );
   };
 
   const startTranslation = async () => {
-    if (!file || busy) return;
+    if (!file || busy) {
+      return;
+    }
 
     setBusy(true);
     setStatus({ state: "UPLOADING" });
@@ -154,6 +277,7 @@ export default function TransletPage() {
 
     try {
       const form = new FormData();
+
       form.append("file", file);
       form.append(
         "data",
@@ -162,10 +286,10 @@ export default function TransletPage() {
           lang_out: "fa",
           service: "google",
           thread: Number(threads),
-        })
+        }),
       );
 
-      const response = await fetch(`${BACKEND_URL}/v1/translate`, {
+      const response = await workerRequest("/v1/translate", {
         method: "POST",
         body: form,
       });
@@ -192,14 +316,18 @@ export default function TransletPage() {
   };
 
   const cancelTranslation = async () => {
-    if (!jobId) return;
+    if (!jobId) {
+      return;
+    }
 
     setBusy(true);
+
     try {
-      await fetch(
-        `${BACKEND_URL}/v1/translate/${encodeURIComponent(jobId)}`,
-        { method: "DELETE" }
+      await workerRequest(
+        `/v1/translate/${encodeURIComponent(jobId)}`,
+        { method: "DELETE" },
       );
+
       setStatus({ state: "REVOKED" });
       setMessage("درخواست توقف ارسال شد.");
     } catch (error) {
@@ -208,19 +336,71 @@ export default function TransletPage() {
     }
   };
 
+  const downloadResult = async (format: "mono" | "dual") => {
+    if (!jobId) {
+      return;
+    }
+
+    try {
+      setMessage(
+        format === "mono"
+          ? "در حال آماده‌سازی PDF فارسی..."
+          : "در حال آماده‌سازی PDF دو زبانه...",
+      );
+
+      const response = await workerRequest(
+        `/v1/translate/${encodeURIComponent(jobId)}/${format}`,
+        { cache: "no-store" },
+      );
+
+      if (!response.ok) {
+        throw new Error(`download status ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download =
+        format === "mono" ? "sentinel-persian.pdf" : "sentinel-bilingual.pdf";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+
+      setMessage("فایل آماده و دانلود شد.");
+    } catch (error) {
+      setMessage(`دانلود فایل ناموفق بود: ${String(error)}`);
+    }
+  };
+
+  const workerLabel =
+    workerHealth === "online"
+      ? "ONLINE"
+      : workerHealth === "offline"
+        ? "OFFLINE"
+        : "CHECKING";
+
   return (
-    <main className="min-h-screen bg-black text-white px-5 py-10 font-mono">
+    <main className="min-h-screen bg-black px-5 py-10 font-mono text-white">
       <section className="mx-auto max-w-4xl">
         <div className="mb-8 border-b border-cyan-500/20 pb-5">
-          <p className="text-xs tracking-[0.35em] text-cyan-400">
-            SENTINEL / TRANSLATOR
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs tracking-[0.35em] text-cyan-400">
+              SENTINEL / TRANSLET
+            </p>
+            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1 text-[10px] text-cyan-300">
+              WORKER {workerLabel}
+            </span>
+          </div>
+
           <h1 className="mt-2 text-3xl font-bold tracking-tight">
             PDF → فارسی
           </h1>
+
           <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-            مترجم جدا از داشبورد اصلی. فایل مستقیم به Worker پردازش PDF می‌رود،
-            بنابراین مسیرهای اصلی Sentinel و Satellite دست‌نخورده می‌مانند.
+            مترجم جدا از داشبورد اصلی. فایل بزرگ مستقیم به Worker می‌رود و
+            مسیرهای اصلی Sentinel و Satellite دست‌نخورده می‌مانند.
           </p>
         </div>
 
@@ -232,12 +412,11 @@ export default function TransletPage() {
               className="w-full rounded-xl border border-dashed border-cyan-500/30 bg-gray-900/70 px-5 py-12 text-center transition hover:border-cyan-400/60 hover:bg-gray-900"
             >
               <div className="text-4xl">📄</div>
-              <div className="mt-3 text-lg font-semibold">
-                PDF را انتخاب کن
-              </div>
+              <div className="mt-3 text-lg font-semibold">PDF را انتخاب کن</div>
               <div className="mt-1 text-xs text-gray-500">
                 محدودیت مصنوعی از سمت این صفحه اعمال نشده است.
               </div>
+
               <input
                 ref={inputRef}
                 type="file"
@@ -258,6 +437,7 @@ export default function TransletPage() {
                       {formatSize(file.size)}
                     </p>
                   </div>
+
                   <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-[10px] text-green-400">
                     PDF READY
                   </span>
@@ -289,7 +469,7 @@ export default function TransletPage() {
               <button
                 type="button"
                 onClick={startTranslation}
-                disabled={!file || busy}
+                disabled={!file || busy || workerHealth === "offline"}
                 className="rounded-xl bg-cyan-500 px-5 py-3 text-sm font-bold text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {busy ? "در حال پردازش..." : "شروع ترجمه فارسی"}
@@ -307,18 +487,21 @@ export default function TransletPage() {
 
             {status.state === "SUCCESS" && jobId && (
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <a
-                  href={`${BACKEND_URL}/v1/translate/${encodeURIComponent(jobId)}/mono`}
+                <button
+                  type="button"
+                  onClick={() => downloadResult("mono")}
                   className="rounded-xl border border-green-500/30 bg-green-500/5 px-4 py-3 text-center text-sm font-bold text-green-300 hover:bg-green-500/10"
                 >
                   دانلود PDF فارسی
-                </a>
-                <a
-                  href={`${BACKEND_URL}/v1/translate/${encodeURIComponent(jobId)}/dual`}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => downloadResult("dual")}
                   className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-center text-sm font-bold text-amber-200 hover:bg-amber-500/10"
                 >
                   دانلود دو زبانه
-                </a>
+                </button>
               </div>
             )}
           </section>
@@ -328,6 +511,7 @@ export default function TransletPage() {
               <label className="text-xs uppercase tracking-widest text-gray-500">
                 زبان مبدا
               </label>
+
               <select
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
@@ -346,6 +530,7 @@ export default function TransletPage() {
               <label className="text-xs uppercase tracking-widest text-gray-500">
                 مقصد
               </label>
+
               <div className="mt-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-3 py-3 text-sm font-semibold text-cyan-200">
                 فارسی (fa)
               </div>
@@ -355,6 +540,7 @@ export default function TransletPage() {
               <label className="text-xs uppercase tracking-widest text-gray-500">
                 همزمانی Worker
               </label>
+
               <select
                 value={threads}
                 onChange={(event) => setThreads(event.target.value)}
@@ -372,13 +558,15 @@ export default function TransletPage() {
                 Backend:{" "}
                 <span className="break-all text-gray-400">{BACKEND_URL}</span>
               </p>
+
               <p className="mt-2">
                 موتور ترجمه Worker از pdf2zh استفاده می‌کند و خروجی mono و dual
                 تولید می‌کند.
               </p>
+
               <p className="mt-2 text-amber-200/70">
-                فایل‌های بزرگ را از طریق Next.js عبور نمی‌دهیم؛ آپلود مستقیم به
-                Worker انجام می‌شود.
+                PDF از Next.js عبور نمی‌کند؛ فقط توکن کوتاه‌عمر از Sentinel گرفته
+                می‌شود و فایل مستقیم به Worker ارسال می‌شود.
               </p>
             </div>
           </aside>
