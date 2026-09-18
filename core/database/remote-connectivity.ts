@@ -1,4 +1,4 @@
-import { remotePrisma } from "./remote-prisma-client";
+import { getRemotePrisma } from "./remote-prisma-client";
 
 export interface RemoteConnectivityResult {
   available: boolean;
@@ -10,7 +10,7 @@ export async function checkRemoteConnectivity(): Promise<RemoteConnectivityResul
   const checkedAt = new Date().toISOString();
 
   try {
-    await remotePrisma.$queryRaw`SELECT 1`;
+    await getRemotePrisma().$queryRaw`SELECT 1`;
 
     return {
       available: true,
