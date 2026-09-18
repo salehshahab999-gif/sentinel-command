@@ -9,7 +9,7 @@ services:
       timeout: 5s
       retries: 10
 
-  translet-api:
+  pdf2zh-api:
     build:
       context: .
       dockerfile: Dockerfile
@@ -17,16 +17,18 @@ services:
       PYTHONUNBUFFERED: "1"
       CELERY_BROKER: redis://redis:6379/0
       CELERY_RESULT: redis://redis:6379/0
-      TRANSLET_DATA_DIR: /data
-    command: ["python", "/app/server.py"]
+      PDF_TRANSLATOR_SHARED_SECRET: ${PDF_TRANSLATOR_SHARED_SECRET:-sentinel-translet-local-dev-secret}
+      TRANSLET_ENV: ${TRANSLET_ENV:-development}
+    command: ["python", "/app/translet_api.py"]
     depends_on:
       redis:
         condition: service_healthy
     restart: unless-stopped
     volumes:
+      - pdf2zh-cache:/root/.cache
       - translet-data:/data
 
-  translet-worker:
+  pdf2zh-worker:
     build:
       context: .
       dockerfile: Dockerfile
@@ -34,21 +36,16 @@ services:
       PYTHONUNBUFFERED: "1"
       CELERY_BROKER: redis://redis:6379/0
       CELERY_RESULT: redis://redis:6379/0
-      TRANSLET_DATA_DIR: /data
+      PDF_TRANSLATOR_SHARED_SECRET: ${PDF_TRANSLATOR_SHARED_SECRET:-sentinel-translet-local-dev-secret}
+      TRANSLET_ENV: ${TRANSLET_ENV:-development}
     command:
-      [
-        "celery",
-        "-A",
-        "server.celery_app",
-        "worker",
-        "--loglevel=INFO",
-        "--concurrency=1"
-      ]
+      ["pdf2zh", "--celery", "--concurrency=1", "--loglevel=INFO"]
     depends_on:
       redis:
         condition: service_healthy
     restart: unless-stopped
     volumes:
+      - pdf2zh-cache:/root/.cache
       - translet-data:/data
 
   gateway:
@@ -57,9 +54,10 @@ services:
     ports:
       - "11009:80"
     depends_on:
-      - translet-api
+      - pdf2zh-api
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
 
 volumes:
+  pdf2zh-cache:
   translet-data:
