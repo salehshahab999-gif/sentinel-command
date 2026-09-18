@@ -1,0 +1,36 @@
+name: Sentinel Translet Check
+
+on:
+  push:
+    branches:
+      - feat/translet-pdf-translator
+  pull_request:
+    branches:
+      - master
+      - feat/pnt-multi-source-switch
+
+jobs:
+  next-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  worker-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: python -m py_compile translet-worker/server.py
