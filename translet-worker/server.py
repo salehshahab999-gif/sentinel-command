@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import html
+import hmac
 import json
 import os
 import re
 import sqlite3
 import time
-import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from threading import Lock
@@ -30,11 +30,16 @@ for directory in (INPUT_DIR, OUTPUT_DIR, CACHE_DIR):
 
 REDIS_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 RESULT_URL = os.environ.get("CELERY_RESULT", REDIS_URL)
+SHARED_SECRET_FALLBACK = "sentinel-translet-local-dev-secret"
 
 app = Flask("sentinel-translet")
-app.config["MAX_CONTENT_LENGTH"] = 512 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
 
-celery_app = Celery("sentinel-translet", broker=REDIS_URL, backend=RESULT_URL)
+celery_app = Celery(
+    "sentinel-translet",
+    broker=REDIS_URL,
+    backend=RESULT_URL,
+)
 celery_app.conf.update(
     task_track_started=True,
     result_expires=24 * 60 * 60,
@@ -42,8 +47,68 @@ celery_app.conf.update(
     task_acks_late=True,
 )
 
-
 cache_init_lock = Lock()
+
+
+def _shared_secret() -> str:
+    configured = os.environ.get("PDF_TRANSLATOR_SHARED_SECRET", "")
+    if configured:
+        return configured
+
+    if os.environ.get("TRANSLET_ENV", "production").lower() != "production":
+        return SHARED_SECRET_FALLBACK
+
+    return ""
+
+
+def _validate_token(token: str) -> bool:
+    secret = _shared_secret()
+    if not secret:
+        return False
+
+    parts = token.split(".")
+    if len(parts) != 3:
+        return False
+
+    expires_raw, scope, signature = parts
+
+    if scope != "translet":
+        return False
+
+    try:
+        expires_at = int(expires_raw)
+    except ValueError:
+        return False
+
+    now = int(time.time())
+    if expires_at < now or expires_at > now + 10 * 60:
+        return False
+
+    payload = f"{expires_raw}.{scope}".encode("utf-8")
+    expected = hmac.new(
+        secret.encode("utf-8"),
+        payload,
+        hashlib.sha256,
+    ).hexdigest()
+
+    return hmac.compare_digest(signature, expected)
+
+
+@app.before_request
+def require_worker_token():
+    if request.path == "/health" or request.method == "OPTIONS":
+        return None
+
+    authorization = request.headers.get("Authorization", "")
+    if not authorization.startswith("Bearer "):
+        return jsonify({"error": "missing bearer token"}), 401
+
+    token = authorization.removeprefix("Bearer ").strip()
+
+    if not _validate_token(token):
+        return jsonify({"error": "invalid or expired token"}), 401
+
+    return None
 
 
 def init_cache() -> None:
@@ -114,7 +179,59 @@ def cache_put(
     connection.close()
 
 
-def google_translate(text: str, source_lang: str, target_lang: str) -> str:
+def split_for_google(text: str, limit: int = 4200) -> list[str]:
+    text = text.strip()
+
+    if len(text) <= limit:
+        return [text]
+
+    chunks: list[str] = []
+    current = ""
+
+    for piece in re.split(r"(\n+|(?<=[.!?])\s+)", text):
+        if not piece:
+            continue
+
+        if len(current) + len(piece) <= limit:
+            current += piece
+            continue
+
+        if current.strip():
+            chunks.append(current.strip())
+            current = ""
+
+        if len(piece) <= limit:
+            current = piece
+            continue
+
+        words = piece.split()
+        word_chunk = ""
+
+        for word in words:
+            candidate = f"{word_chunk} {word}".strip()
+
+            if len(candidate) <= limit:
+                word_chunk = candidate
+            else:
+                if word_chunk:
+                    chunks.append(word_chunk)
+
+                word_chunk = word
+
+        if word_chunk:
+            current = word_chunk
+
+    if current.strip():
+        chunks.append(current.strip())
+
+    return chunks or [text[:limit]]
+
+
+def google_translate_one(
+    text: str,
+    source_lang: str,
+    target_lang: str,
+) -> str:
     endpoints = (
         (
             "https://translate.googleapis.com/translate_a/single",
@@ -123,7 +240,7 @@ def google_translate(text: str, source_lang: str, target_lang: str) -> str:
                 "dt": "t",
                 "sl": source_lang,
                 "tl": target_lang,
-                "q": text[:4500],
+                "q": text,
             },
         ),
         (
@@ -132,7 +249,7 @@ def google_translate(text: str, source_lang: str, target_lang: str) -> str:
                 "client": "dict-chrome-ex",
                 "sl": source_lang,
                 "tl": target_lang,
-                "q": text[:4500],
+                "q": text,
             },
         ),
     )
@@ -162,12 +279,17 @@ def google_translate(text: str, source_lang: str, target_lang: str) -> str:
                     response.raise_for_status()
                     payload = response.json()
 
-                    if isinstance(payload, list) and payload and isinstance(payload[0], list):
+                    if (
+                        isinstance(payload, list)
+                        and payload
+                        and isinstance(payload[0], list)
+                    ):
                         translated = "".join(
                             str(item[0])
                             for item in payload[0]
                             if isinstance(item, list) and item and item[0]
                         )
+
                         if translated:
                             return translated.strip()
 
@@ -176,6 +298,7 @@ def google_translate(text: str, source_lang: str, target_lang: str) -> str:
                             str(item.get("trans", ""))
                             for item in payload["sentences"]
                         )
+
                         if translated:
                             return translated.strip()
 
@@ -188,18 +311,37 @@ def google_translate(text: str, source_lang: str, target_lang: str) -> str:
     raise RuntimeError(f"Google translation failed: {last_error}")
 
 
-def translate_text(text: str, source_lang: str, target_lang: str) -> str:
-    cleaned = re.sub(r"\s+", " ", text).strip()
+def translate_text(
+    text: str,
+    source_lang: str,
+    target_lang: str,
+) -> str:
+    cleaned = text.strip()
+
     if not cleaned:
         return ""
 
     key = cache_key(source_lang, target_lang, cleaned)
     cached = cache_get(key)
+
     if cached is not None:
         return cached
 
-    translated = google_translate(cleaned, source_lang, target_lang)
-    cache_put(key, source_lang, target_lang, cleaned, translated)
+    parts = split_for_google(cleaned)
+    translated_parts = [
+        google_translate_one(part, source_lang, target_lang)
+        for part in parts
+    ]
+    translated = "\n".join(translated_parts).strip()
+
+    cache_put(
+        key,
+        source_lang,
+        target_lang,
+        cleaned,
+        translated,
+    )
+
     return translated
 
 
@@ -238,15 +380,16 @@ def block_font_size(block: dict[str, Any]) -> float:
 
 def rtl_html(text: str, font_size: float) -> str:
     escaped = html.escape(text, quote=False).replace("\n", "<br/>")
+
     return (
-        f'<div style="direction:rtl;text-align:right;'
-        f'font-family:\'Noto Naskh Arabic\',\'Noto Sans Arabic\','
-        f'\'DejaVu Sans\',sans-serif;font-size:{font_size:.2f}pt;'
+        f'<div dir="rtl" style="direction:rtl;text-align:right;'
+        f'font-family:"Noto Naskh Arabic","Noto Sans Arabic",'
+        f'"DejaVu Sans",sans-serif;font-size:{font_size:.2f}pt;'
         f'line-height:1.22;">{escaped}</div>'
     )
 
 
-def render_page_blocks(
+def render_translated_page(
     page: fitz.Page,
     translated_blocks: list[tuple[fitz.Rect, str, float]],
 ) -> None:
@@ -260,11 +403,6 @@ def render_page_blocks(
         page.insert_htmlbox(
             rect,
             rtl_html(translated, font_size),
-            css=(
-                "* { direction: rtl; text-align: right; "
-                "font-family: 'Noto Naskh Arabic', 'Noto Sans Arabic', "
-                "'DejaVu Sans', sans-serif; }"
-            ),
             scale_low=0.65,
             overlay=True,
         )
@@ -280,15 +418,21 @@ def translate_document(
     task: Task,
 ) -> dict[str, Any]:
     source_doc = fitz.open(input_path)
-    dual_doc = fitz.open(input_path)
+    translated_doc = fitz.open(input_path)
+    dual_doc = fitz.open()
+
     total_pages = len(source_doc)
     warnings: list[str] = []
 
     for page_index in range(total_pages):
         source_page = source_doc[page_index]
-        dual_page = dual_doc[page_index]
+        translated_page = translated_doc[page_index]
 
-        text_page = source_page.get_text("dict", flags=fitz.TEXTFLAGS_TEXT)
+        text_page = source_page.get_text(
+            "dict",
+            flags=fitz.TEXTFLAGS_TEXT,
+        )
+
         blocks = [
             block
             for block in text_page.get("blocks", [])
@@ -304,23 +448,41 @@ def translate_document(
             translated = translate_text(raw, source_lang, target_lang)
             return rect, raw, translated, size
 
-        with ThreadPoolExecutor(max_workers=max(1, min(threads, 4))) as pool:
+        with ThreadPoolExecutor(
+            max_workers=max(1, min(threads, 4))
+        ) as pool:
             futures = [pool.submit(do_one, block) for block in blocks]
 
             for future in as_completed(futures):
                 try:
                     rect, raw, translated, size = future.result()
-                    if translated:
-                        translated_blocks.append((rect, translated, size))
-                    else:
-                        translated_blocks.append((rect, raw, size))
+                    translated_blocks.append(
+                        (rect, translated or raw, size)
+                    )
                 except Exception as exc:
-                    warnings.append(f"page {page_index + 1}: {exc}")
+                    warnings.append(
+                        f"page {page_index + 1}: {exc}"
+                    )
 
-        translated_blocks.sort(key=lambda item: (item[0].y0, item[0].x0))
+        translated_blocks.sort(
+            key=lambda item: (item[0].y0, item[0].x0)
+        )
 
-        if translated_blocks:
-            render_page_blocks(dual_page, translated_blocks)
+        render_translated_page(
+            translated_page,
+            translated_blocks,
+        )
+
+        dual_doc.insert_pdf(
+            source_doc,
+            from_page=page_index,
+            to_page=page_index,
+        )
+        dual_doc.insert_pdf(
+            translated_doc,
+            from_page=page_index,
+            to_page=page_index,
+        )
 
         task.update_state(
             state="PROGRESS",
@@ -331,9 +493,21 @@ def translate_document(
             },
         )
 
-    source_doc.save(mono_path, garbage=4, deflate=True, clean=True)
-    dual_doc.save(dual_path, garbage=4, deflate=True, clean=True)
+    translated_doc.save(
+        mono_path,
+        garbage=4,
+        deflate=True,
+        clean=True,
+    )
+    dual_doc.save(
+        dual_path,
+        garbage=4,
+        deflate=True,
+        clean=True,
+    )
+
     source_doc.close()
+    translated_doc.close()
     dual_doc.close()
 
     input_path.unlink(missing_ok=True)
@@ -342,10 +516,14 @@ def translate_document(
         "pages": total_pages,
         "warning_count": len(warnings),
         "warnings": warnings[:100],
+        "dual_pages": total_pages * 2,
     }
 
 
-@celery_app.task(bind=True, name="sentinel_translet.translate")
+@celery_app.task(
+    bind=True,
+    name="sentinel_translet.translate",
+)
 def translate_task(
     self: Task,
     input_path: str,
@@ -371,7 +549,7 @@ def health():
         {
             "status": "ok",
             "service": "sentinel-translet",
-            "engine": "PyMuPDF RTL renderer + Google Translate",
+            "engine": "PyMuPDF HTML RTL renderer + Google Translate",
         }
     )
 
@@ -379,6 +557,7 @@ def health():
 @app.post("/v1/translate")
 def create_translate():
     uploaded = request.files.get("file")
+
     if uploaded is None or not uploaded.filename:
         return jsonify({"error": "PDF file is required"}), 400
 
@@ -390,22 +569,31 @@ def create_translate():
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid data JSON"}), 400
 
-    source_lang = str(data.get("lang_in", "en")).lower().strip() or "en"
-    threads = max(1, min(int(data.get("thread", 1)), 4))
+    source_lang = str(
+        data.get("lang_in", "en")
+    ).lower().strip() or "auto"
 
-    job_id = str(uuid.uuid4())
+    threads = max(
+        1,
+        min(int(data.get("thread", 1)), 4),
+    )
+
+    job_id = str(__import__("uuid").uuid4())
     input_path = INPUT_DIR / f"{job_id}.pdf"
     uploaded.save(input_path)
 
-    result = translate_task.delay(
-        str(input_path),
-        job_id,
-        source_lang,
-        "fa",
-        threads,
+    translate_task.apply_async(
+        args=(
+            str(input_path),
+            job_id,
+            source_lang,
+            "fa",
+            threads,
+        ),
+        task_id=job_id,
     )
 
-    return jsonify({"id": result.id})
+    return jsonify({"id": job_id})
 
 
 @app.get("/v1/translate/<task_id>")
@@ -413,13 +601,28 @@ def status(task_id: str):
     result = celery_app.AsyncResult(task_id)
 
     if result.state == "PROGRESS":
-        return jsonify({"state": "PROGRESS", "info": result.info or {}})
+        return jsonify(
+            {
+                "state": "PROGRESS",
+                "info": result.info or {},
+            }
+        )
 
     if result.state == "SUCCESS":
-        return jsonify({"state": "SUCCESS", "info": result.result or {}})
+        return jsonify(
+            {
+                "state": "SUCCESS",
+                "info": result.result or {},
+            }
+        )
 
     if result.state == "FAILURE":
-        return jsonify({"state": "FAILURE", "error": str(result.result)})
+        return jsonify(
+            {
+                "state": "FAILURE",
+                "error": str(result.result),
+            }
+        )
 
     return jsonify({"state": result.state})
 
@@ -439,6 +642,7 @@ def download(task_id: str, output_format: str):
         abort(404)
 
     path = OUTPUT_DIR / f"{task_id}-{output_format}.pdf"
+
     if not path.exists():
         return jsonify({"error": "Result is not ready"}), 404
 
