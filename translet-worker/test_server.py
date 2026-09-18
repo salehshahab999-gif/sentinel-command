@@ -101,6 +101,13 @@ def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
         assert len(dual) == 2
 
 
+class _DirectMonkeyPatch:
+    def setattr(self, target: str, value) -> None:
+        module_name, attr_name = target.rsplit(".", 1)
+        module = __import__(module_name)
+        setattr(module, attr_name, value)
+
+
 if __name__ == "__main__":
     test_helpers()
     test_rtl_page_render()
@@ -110,14 +117,7 @@ if __name__ == "__main__":
     with TemporaryDirectory() as directory:
         test_translation_pdf_pipeline(
             Path(directory),
-            monkeypatch=_NoMonkeyPatch(),
+            monkeypatch=_DirectMonkeyPatch(),
         )
 
     print("translet server smoke tests: ok")
-
-
-class _NoMonkeyPatch:
-    def setattr(self, target: str, value) -> None:
-        module_name, attr_name = target.rsplit(".", 1)
-        module = __import__(module_name)
-        setattr(module, attr_name, value)
