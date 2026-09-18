@@ -1,0 +1,40 @@
+name: Sentinel Translet Build
+
+on:
+  push:
+    branches:
+      - feat/translet-pdf-translator
+  pull_request:
+    branches:
+      - feat/translet-pdf-translator
+
+jobs:
+  next-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build Sentinel
+        run: npm run build
+
+  worker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile Python worker files
+        run: python3 -m compileall -q translet-worker
+
+      - name: Build translation worker image
+        run: docker build -t sentinel-translet-test ./translet-worker
