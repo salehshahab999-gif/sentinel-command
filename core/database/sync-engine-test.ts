@@ -1,13 +1,14 @@
 import "dotenv/config";
 
 import { prisma } from "./prisma-client";
-import { remotePrisma } from "./remote-prisma-client";
+import { getRemotePrisma } from "./remote-prisma-client";
 import { processSyncQueue } from "./sync-engine";
 
 async function main() {
   const eventId = "IDEMPOTENCY-TEST-EVENT-001";
   const alertId = `ALERT-${eventId}`;
   const historyId = `HISTORY-${alertId}`;
+  const remotePrisma = getRemotePrisma();
 
   try {
     await remotePrisma.alertHistory.deleteMany({

@@ -1,0 +1,57 @@
+name: Sentinel Translet Build
+
+on:
+  push:
+    branches:
+      - feat/translet-pdf-translator
+  pull_request:
+    branches:
+      - feat/translet-pdf-translator
+
+jobs:
+  next-build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/sentinel?schema=public
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate local Prisma client
+        run: npx prisma generate --schema=app/prisma/schema-local.prisma
+
+      - name: Build Sentinel
+        run: npm run build
+
+  worker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install worker dependencies
+        run: python -m pip install -r translet-worker/requirements.txt
+
+      - name: Compile Python worker files
+        run: python3 -m compileall -q translet-worker
+
+      - name: Run worker smoke tests
+        working-directory: translet-worker
+        run: python test_server.py
+
+      - name: Build translation worker image
+        run: docker build -t sentinel-translet-test ./translet-worker
