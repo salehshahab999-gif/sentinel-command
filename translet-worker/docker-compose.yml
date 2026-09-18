@@ -1,0 +1,64 @@
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  pdf2zh-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PYTHONUNBUFFERED: "1"
+      CELERY_BROKER: redis://redis:6379/0
+      CELERY_RESULT: redis://redis:6379/0
+    command: ["pdf2zh", "--flask"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - pdf2zh-cache:/root/.cache
+      - translet-data:/data
+
+  pdf2zh-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PYTHONUNBUFFERED: "1"
+      CELERY_BROKER: redis://redis:6379/0
+      CELERY_RESULT: redis://redis:6379/0
+    command:
+      [
+        "pdf2zh",
+        "--celery",
+        "--concurrency=1",
+        "--loglevel=INFO"
+      ]
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - pdf2zh-cache:/root/.cache
+      - translet-data:/data
+
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "11009:80"
+    depends_on:
+      - pdf2zh-api
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+
+volumes:
+  pdf2zh-cache:
+  translet-data:
