@@ -620,8 +620,7 @@ def rtl_html(text: str, font_size: float) -> str:
     return (
         f'<div dir="rtl" style="direction:rtl;text-align:right;'
         
-        f'font-family:"Noto Naskh Arabic","Noto Sans Arabic",'
-        f'"DejaVu Sans",sans-serif;font-size:{font_size:.2f}pt;'
+        f'font-family:Noto Naskh Arabic;font-size:{font_size:.2f}pt;'
         f'line-height:1.22;overflow-wrap:break-word;">{escaped}</div>'
     )
 
@@ -677,7 +676,7 @@ def render_translated_page(
                 rect,
                 (
                     '<div style="direction:ltr;text-align:left;'
-                    'font-family:DejaVu Sans,sans-serif;'
+                    'font-family:DejaVu Sans;'
                     f'font-size:{max(5.0, font_size * 0.65):.2f}pt;">'
                     f"{escaped}</div>"
                 ),
