@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY server.py /app/server.py
 
-RUN python -c 'import fitz; d=fitz.open(); p=d.new_page(); p.insert_htmlbox(fitz.Rect(40,40,560,120), """<div dir="rtl" style="direction:rtl;text-align:right;font-family: Noto Naskh Arabic;font-size:18pt;">سلام دنیا</div>"""); assert len(d.tobytes()) > 0; d.close(); print("PyMuPDF RTL smoke test: ok")'
+RUN python -c 'import fitz, pathlib; font_dir=pathlib.Path("/usr/share/fonts/truetype/vazirmatn"); assert (font_dir/"Vazirmatn-Regular.ttf").exists(); arch=fitz.Archive(str(font_dir)); css="""@font-face {font-family:Vazirmatn;src:url(Vazirmatn-Regular.ttf);} * {font-family:Vazirmatn;}"""; d=fitz.open(); p=d.new_page(); result=p.insert_htmlbox(fitz.Rect(40,40,560,140), """<div dir="rtl" style="direction:rtl;text-align:right;font-family:Vazirmatn;font-size:18pt;line-height:1.35;">سلام دنیا PDF API 123</div>""", css=css, archive=arch); assert result[0] >= 0; assert len(d.tobytes()) > 0; d.close(); print("PyMuPDF RTL + Vazirmatn smoke test: ok")'
 
 RUN mkdir -p /data/input /data/output /data/cache
 
