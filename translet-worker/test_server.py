@@ -233,7 +233,9 @@ class _DirectMonkeyPatch:
 
 
 if __name__ == "__main__":
+    test_celery_task_is_defined_before_flask_entrypoint()
     test_helpers()
+    test_persian_text_cleaning_and_typography()
     test_rtl_page_render()
 
     from tempfile import TemporaryDirectory
