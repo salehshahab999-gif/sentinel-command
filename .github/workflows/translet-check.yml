@@ -8,6 +8,7 @@ on:
     branches:
       - master
       - feat/pnt-multi-source-switch
+      - feat/translet-pdf-translator
 
 jobs:
   next-check:

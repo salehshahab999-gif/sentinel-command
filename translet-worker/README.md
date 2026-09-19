@@ -10,7 +10,7 @@ Vercel عبور نکنند.
 - Caddy: gateway و CORS
 - Flask: API ترجمه
 - Celery + Redis: صف پردازش
-- SQLite: cache ترجمه روی Worker
+- SQLite: cache ترجمه و checkpoint وضعیت Job روی Worker
 - PyMuPDF HTML renderer: خروجی RTL فارسی
 - Google Translate endpoint: ترجمه متن
 - Tesseract OCR + PyMuPDF OCR fallback: خواندن PDFهای image-only انگلیسی
@@ -71,6 +71,10 @@ Worker:
 - ترجمه متن‌های طولانی به قطعات کوچک‌تر از سقف درخواست Google شکسته می‌شود.
 - cache محلی باعث می‌شود متن تکراری دوباره ترجمه نشود.
 - همزمانی قابل تنظیم است ولی Worker پیش‌فرض با concurrency=1 اجرا می‌شود.
+- پردازش به checkpointهای کوچک روی دیسک تقسیم می‌شود تا مصرف حافظه با تعداد صفحات رشد خطی نداشته باشد.
+- اگر Worker یا Container وسط کار قطع شود، Job از آخرین checkpoint کامل ادامه پیدا می‌کند.
+- ادغام نهایی PDF با qpdf در Docker انجام می‌شود و fallback به PyMuPDF نیز وجود دارد.
+- درخواست‌های ترجمه برای خطاهای موقت و HTTP 429 با backoff و jitter-like spacing دوباره امتحان می‌شوند.
 - اگر صفحه text layer نداشته باشد، Worker به‌صورت خودکار یک بار OCR انگلیسی با
   Tesseract/PyMuPDF را امتحان می‌کند.
 - OCR فقط روی صفحه‌هایی اجرا می‌شود که استخراج متن عادی برای آن‌ها خالی باشد،
@@ -100,6 +104,14 @@ Worker:
 
 Docker image includes Python 3.12, PyMuPDF, Flask, Celery, Redis client,
 Noto fonts, and Tesseract OCR. The normal text path does not require OCR.
+
+Checkpoint and recovery settings are controlled with:
+
+```env
+TRANSLET_CHECKPOINT_PAGES=25
+TRANSLET_MIN_REQUEST_INTERVAL=0.08
+TRANSLET_REDIS_VISIBILITY_TIMEOUT=604800
+```
 
 OCR settings are controlled with:
 
