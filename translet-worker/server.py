@@ -27,6 +27,7 @@ INPUT_DIR = DATA_DIR / "input"
 OUTPUT_DIR = DATA_DIR / "output"
 CACHE_DIR = DATA_DIR / "cache"
 DB_PATH = CACHE_DIR / "translations.sqlite3"
+TRANSLATION_CACHE_VERSION = "v2-rtl-clean"
 
 for directory in (INPUT_DIR, OUTPUT_DIR, CACHE_DIR):
     directory.mkdir(parents=True, exist_ok=True)
@@ -241,6 +242,16 @@ def init_cache() -> None:
             )
             """
         )
+
+        job_columns = {
+            row[1]
+            for row in connection.execute("PRAGMA table_info(jobs)").fetchall()
+        }
+        if "source_filename" not in job_columns:
+            connection.execute(
+                "ALTER TABLE jobs ADD COLUMN source_filename TEXT"
+            )
+
         connection.commit()
         connection.close()
 
@@ -258,7 +269,7 @@ def _cache_connection() -> sqlite3.Connection:
 
 def cache_key(source_lang: str, target_lang: str, text: str) -> str:
     return hashlib.sha256(
-        f"{source_lang}\n{target_lang}\n{text}".encode("utf-8")
+        f"{TRANSLATION_CACHE_VERSION}\n{source_lang}\n{target_lang}\n{text}".encode("utf-8")
     ).hexdigest()
 
 
@@ -306,7 +317,8 @@ def _job_get(job_id: str) -> dict[str, Any] | None:
     row = connection.execute(
         """
         SELECT job_id, input_path, total_pages, completed_pages, status,
-               warning_count, ocr_pages, render_failures, error, updated_at
+               warning_count, ocr_pages, render_failures, error,
+               updated_at, source_filename
         FROM jobs
         WHERE job_id = ?
         """,
@@ -328,6 +340,7 @@ def _job_get(job_id: str) -> dict[str, Any] | None:
         "render_failures",
         "error",
         "updated_at",
+        "source_filename",
     )
     return dict(zip(keys, row))
 
@@ -343,6 +356,7 @@ def _job_upsert(
     ocr_pages: int = 0,
     render_failures: int = 0,
     error: str | None = None,
+    source_filename: str | None = None,
 ) -> None:
     connection = sqlite3.connect(DB_PATH, timeout=30)
     connection.execute("PRAGMA busy_timeout=30000")
@@ -350,9 +364,10 @@ def _job_upsert(
         """
         INSERT INTO jobs (
             job_id, input_path, total_pages, completed_pages, status,
-            warning_count, ocr_pages, render_failures, error, updated_at
+            warning_count, ocr_pages, render_failures, error, updated_at,
+            source_filename
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(job_id) DO UPDATE SET
             input_path=excluded.input_path,
             total_pages=excluded.total_pages,
@@ -362,7 +377,8 @@ def _job_upsert(
             ocr_pages=excluded.ocr_pages,
             render_failures=excluded.render_failures,
             error=excluded.error,
-            updated_at=excluded.updated_at
+            updated_at=excluded.updated_at,
+            source_filename=excluded.source_filename
         """,
         (
             job_id,
@@ -375,6 +391,7 @@ def _job_upsert(
             render_failures,
             error,
             int(time.time()),
+            source_filename,
         ),
     )
     connection.commit()
@@ -409,6 +426,7 @@ def _job_update(
         ocr_pages=current["ocr_pages"] + ocr_delta,
         render_failures=current["render_failures"] + render_failure_delta,
         error=current["error"] if error is None else error,
+        source_filename=current.get("source_filename"),
     )
     return _job_get(job_id)
 
@@ -613,7 +631,7 @@ def translate_text(
         google_translate_one(part, source_lang, target_lang)
         for part in parts
     ]
-    translated = "\n".join(translated_parts).strip()
+    translated = clean_source_text("\n".join(translated_parts))
 
     cache_put(
         key,
@@ -1178,6 +1196,8 @@ def create_translate():
     if not uploaded.filename.lower().endswith(".pdf"):
         return jsonify({"error": "Only PDF files are supported"}), 400
 
+    original_filename = Path(uploaded.filename).name
+
     try:
         data = json.loads(request.form.get("data", "{}"))
     except json.JSONDecodeError:
@@ -1219,6 +1239,7 @@ def create_translate():
         input_path,
         page_count,
         status="QUEUED",
+        source_filename=original_filename,
     )
 
     translate_task.apply_async(
@@ -1332,11 +1353,22 @@ def download(task_id: str, output_format: str):
     if not path.exists():
         return jsonify({"error": "Result is not ready"}), 404
 
+    job = _job_get(task_id) or {}
+    source_filename = str(job.get("source_filename") or "").strip()
+    base_name = Path(source_filename).stem if source_filename else "translated-document"
+    base_name = base_name.strip() or "translated-document"
+
+    download_name = (
+        f"{base_name} (1).pdf"
+        if output_format == "mono"
+        else f"{base_name} (1) - bilingual.pdf"
+    )
+
     return send_file(
         path,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=f"sentinel-translet-{output_format}.pdf",
+        download_name=download_name,
         max_age=0,
     )
 
