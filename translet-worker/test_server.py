@@ -29,6 +29,14 @@ class FakeTask:
         self.updates.append((state, meta))
 
 
+def test_celery_task_is_defined_before_flask_entrypoint() -> None:
+    source = Path(server.__file__).read_text(encoding="utf-8")
+    assert hasattr(server, "translate_task")
+    assert source.index("@celery_app.task(") < source.index(
+        'if __name__ == "__main__":'
+    )
+
+
 def test_helpers() -> None:
     assert _validate_token("bad-token") is False
 
