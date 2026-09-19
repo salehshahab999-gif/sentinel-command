@@ -150,7 +150,8 @@ def test_checkpoint_resume_pipeline(tmp_path: Path, monkeypatch) -> None:
                 from_page=0,
                 to_page=9,
             )
-            first_dual_doc.insert_pdf(first_mono)
+            with fitz.open(first_mono) as first_mono_doc:
+                first_dual_doc.insert_pdf(first_mono_doc)
             first_dual_doc.save(first_dual, garbage=2, deflate=True)
             first_dual_doc.close()
 
