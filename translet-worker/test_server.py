@@ -15,7 +15,6 @@ from server import (
     _validate_token,
     cache_key,
     render_translated_page,
-    rtl_html,
     clean_source_text,
     rtl_html,
     split_for_google,
@@ -64,8 +63,8 @@ def test_helpers() -> None:
 
 
 def test_persian_text_cleaning_and_typography() -> None:
-    cleaned = clean_source_text("Hello  \\uE004   world\\nPDF API 123")
-    assert "\\uE004" not in cleaned
+    cleaned = clean_source_text("Hello  \ue004   world\nPDF API 123")
+    assert "\ue004" not in cleaned
     assert cleaned == "Hello world PDF API 123"
 
     rendered = rtl_html("سلام PDF API 123", 16.0)
