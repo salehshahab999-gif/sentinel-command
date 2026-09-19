@@ -112,8 +112,8 @@ def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
 
 def test_checkpoint_resume_pipeline(tmp_path: Path, monkeypatch) -> None:
     source_path = tmp_path / "large-input.pdf"
-    mono_path = tmp_path / "large-mono.pdf"
-    dual_path = tmp_path / "large-dual.pdf"
+    mono_path = tmp_path / "checkpoint-test-job-mono.pdf"
+    dual_path = tmp_path / "checkpoint-test-job-dual.pdf"
 
     old_checkpoint = server.CHECKPOINT_PAGES
     server.CHECKPOINT_PAGES = 10
