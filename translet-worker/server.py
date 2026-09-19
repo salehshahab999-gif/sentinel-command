@@ -1286,9 +1286,7 @@ def download(task_id: str, output_format: str):
         max_age=0,
     )
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=11008)@celery_app.task(
+@celery_app.task(
     bind=True,
     name="sentinel_translet.translate",
     max_retries=5,
@@ -1335,3 +1333,6 @@ def translate_task(
                 2 ** max(0, self.request.retries),
             ),
         )
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=11008)
