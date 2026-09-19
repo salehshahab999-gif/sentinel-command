@@ -8,6 +8,7 @@ RUN apt-get update \
        fonts-noto-core \
        fontconfig \
        ca-certificates \
+       qpdf \
        tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
