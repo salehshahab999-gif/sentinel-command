@@ -86,6 +86,7 @@ def clean_source_text(text: str) -> str:
     cleaned = _PUA_RE.sub(" ", text)
     cleaned = _CONTROL_RE.sub(" ", cleaned)
     cleaned = cleaned.replace("\u00a0", " ")
+    cleaned = cleaned.replace("\r", " ").replace("\n", " ")
     return re.sub(r"[ \t]{2,}", " ", cleaned).strip()
 
 
