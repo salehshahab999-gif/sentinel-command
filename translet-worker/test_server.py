@@ -7,7 +7,11 @@ import fitz
 os.environ["TRANSLET_ENV"] = "development"
 os.environ["TRANSLET_DATA_DIR"] = os.path.join(tempfile.gettempdir(), "sentinel-translet-test-data")
 
+import server
+
 from server import (
+    _chunk_paths,
+    _job_upsert,
     _validate_token,
     cache_key,
     render_translated_page,
@@ -37,6 +41,9 @@ def test_helpers() -> None:
     assert "direction:rtl" in html
     assert "<br/>" in html
 
+    assert server.CHECKPOINT_PAGES >= 1
+    assert server.MAX_PAGES == 5000
+
     assert cache_key("en", "fa", "hello") == cache_key(
         "en", "fa", "hello"
     )
@@ -52,7 +59,7 @@ def test_rtl_page_render() -> None:
 
     failures = render_translated_page(
         page,
-        [(rect, "سلام دنیا", 18.0)],
+        [(rect, "Hello world", "سلام دنیا", 18.0)],
     )
 
     assert failures == 0
@@ -103,6 +110,98 @@ def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
         assert len(dual) == 2
 
 
+def test_checkpoint_resume_pipeline(tmp_path: Path, monkeypatch) -> None:
+    source_path = tmp_path / "large-input.pdf"
+    mono_path = tmp_path / "large-mono.pdf"
+    dual_path = tmp_path / "large-dual.pdf"
+
+    old_checkpoint = server.CHECKPOINT_PAGES
+    server.CHECKPOINT_PAGES = 10
+
+    try:
+        source_doc = fitz.open()
+        for index in range(23):
+            page = source_doc.new_page(width=320, height=220)
+            page.insert_text(
+                (30, 55),
+                f"Hello page {index + 1}",
+                fontsize=16,
+            )
+        source_doc.save(source_path)
+        source_doc.close()
+
+        job_id = "checkpoint-test-job"
+        chunk_dir = server._chunk_dir(job_id)
+        first_mono, first_dual = _chunk_paths(job_id, 0)
+
+        with fitz.open(source_path) as source:
+            first_mono_doc = fitz.open()
+            first_mono_doc.insert_pdf(
+                source,
+                from_page=0,
+                to_page=9,
+            )
+            first_mono_doc.save(first_mono, garbage=2, deflate=True)
+            first_mono_doc.close()
+
+            first_dual_doc = fitz.open()
+            first_dual_doc.insert_pdf(
+                source,
+                from_page=0,
+                to_page=9,
+            )
+            first_dual_doc.insert_pdf(first_mono)
+            first_dual_doc.save(first_dual, garbage=2, deflate=True)
+            first_dual_doc.close()
+
+        _job_upsert(
+            job_id,
+            source_path,
+            23,
+            completed_pages=10,
+            status="RUNNING",
+        )
+
+        calls = []
+
+        def fake_translate(text, source_lang, target_lang):
+            calls.append(text)
+            return text.replace("Hello", "سلام")
+
+        monkeypatch.setattr(
+            "server.translate_text",
+            fake_translate,
+        )
+
+        task = FakeTask()
+        result = translate_document(
+            source_path,
+            mono_path,
+            dual_path,
+            "en",
+            "fa",
+            1,
+            task,
+        )
+
+        assert result["pages"] == 23
+        assert result["resumed_from_page"] == 10
+        assert len(calls) == 13
+        assert mono_path.exists()
+        assert dual_path.exists()
+
+        with fitz.open(mono_path) as mono:
+            assert len(mono) == 23
+
+        with fitz.open(dual_path) as dual:
+            assert len(dual) == 46
+
+        assert not chunk_dir.exists()
+        assert not source_path.exists()
+    finally:
+        server.CHECKPOINT_PAGES = old_checkpoint
+
+
 class _DirectMonkeyPatch:
     def setattr(self, target: str, value) -> None:
         module_name, attr_name = target.rsplit(".", 1)
@@ -118,6 +217,12 @@ if __name__ == "__main__":
 
     with TemporaryDirectory() as directory:
         test_translation_pdf_pipeline(
+        Path(directory),
+        monkeypatch=_DirectMonkeyPatch(),
+    )
+
+    with TemporaryDirectory() as directory:
+        test_checkpoint_resume_pipeline(
             Path(directory),
             monkeypatch=_DirectMonkeyPatch(),
         )
