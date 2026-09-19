@@ -64,6 +64,50 @@ OCR_DPI = max(
     min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400),
 )
 
+PERSIAN_FONT_DIR = Path("/usr/share/fonts/truetype/vazirmatn")
+PERSIAN_FONT_ARCHIVE = (
+    fitz.Archive(str(PERSIAN_FONT_DIR))
+    if PERSIAN_FONT_DIR.exists()
+    else None
+)
+PERSIAN_FONT_CSS = """
+@font-face {font-family: Vazirmatn; src: url(Vazirmatn-Regular.ttf);}
+@font-face {font-family: Vazirmatn; src: url(Vazirmatn-Bold.ttf); font-weight:700;}
+@font-face {font-family: Vazirmatn; src: url(Vazirmatn-SemiBold.ttf); font-weight:600;}
+* {font-family: Vazirmatn, sans-serif;}
+"""
+
+_PUA_RE = re.compile(r"[\uE000-\uF8FF\U000F0000-\U000FFFFD\U00100000-\U0010FFFD]")
+_CONTROL_RE = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]")
+_LTR_RUN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/%+\-]*")
+
+
+def clean_source_text(text: str) -> str:
+    cleaned = _PUA_RE.sub(" ", text)
+    cleaned = _CONTROL_RE.sub(" ", cleaned)
+    cleaned = cleaned.replace("\u00a0", " ")
+    return re.sub(r"[ \t]{2,}", " ", cleaned).strip()
+
+
+def _bidi_html_text(text: str) -> str:
+    pieces: list[str] = []
+    cursor = 0
+
+    for match in _LTR_RUN_RE.finditer(text):
+        if match.start() > cursor:
+            pieces.append(html.escape(text[cursor:match.start()], quote=False))
+        pieces.append(
+            '<span dir="ltr">'
+            + html.escape(match.group(0), quote=False)
+            + "</span>"
+        )
+        cursor = match.end()
+
+    if cursor < len(text):
+        pieces.append(html.escape(text[cursor:], quote=False))
+
+    return "".join(pieces)
+
 app = Flask("sentinel-translet")
 app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_BYTES
 
@@ -592,9 +636,9 @@ def block_text(block: dict[str, Any]) -> str:
         ).strip()
 
         if text:
-            lines.append(text)
+            lines.append(clean_source_text(text))
 
-    return "\n".join(lines).strip()
+    return clean_source_text(" ".join(lines))
 
 
 def block_font_size(block: dict[str, Any]) -> float:
@@ -615,13 +659,14 @@ def block_font_size(block: dict[str, Any]) -> float:
 
 
 def rtl_html(text: str, font_size: float) -> str:
-    escaped = html.escape(text, quote=False).replace("\n", "<br/>")
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    escaped = "<br/>".join(_bidi_html_text(line) for line in lines)
 
     return (
         f'<div dir="rtl" style="direction:rtl;text-align:right;'
-        
-        f'font-family:Noto Naskh Arabic;font-size:{font_size:.2f}pt;'
-        f'line-height:1.22;overflow-wrap:break-word;">{escaped}</div>'
+        f'font-family:Vazirmatn, sans-serif;font-size:{font_size:.2f}pt;'
+        f'line-height:1.35;overflow-wrap:break-word;word-break:normal;">'
+        f"{escaped}</div>"
     )
 
 
@@ -637,49 +682,56 @@ def render_translated_page(
 
     failed = 0
 
-    for rect, raw, translated, font_size in translated_blocks:
+    def render_box(
+        rect: fitz.Rect,
+        text: str,
+        size: float,
+        scale_low: float,
+    ) -> tuple[int, float]:
         result = page.insert_htmlbox(
             rect,
-            rtl_html(translated, font_size),
-            scale_low=0.35,
+            rtl_html(text, size),
+            css=PERSIAN_FONT_CSS,
+            archive=PERSIAN_FONT_ARCHIVE,
+            scale_low=scale_low,
             overlay=True,
         )
+        return result
+
+    for rect, raw, translated, font_size in translated_blocks:
+        result = render_box(rect, translated, font_size, 0.60)
 
         if result[0] < 0:
-            expanded = fitz.Rect(
-                max(page.rect.x0, rect.x0 - 4),
-                max(page.rect.y0, rect.y0 - 2),
-                min(page.rect.x1, rect.x1 + 4),
-                min(page.rect.y1, rect.y1 + 4),
-            )
-            result = page.insert_htmlbox(
-                expanded,
-                rtl_html(translated, max(6.0, font_size * 0.9)),
-                scale_low=0.12,
-                overlay=True,
-            )
-
-        if result[0] < 0:
-            result = page.insert_htmlbox(
+            result = render_box(
                 rect,
-                rtl_html(translated, max(5.5, font_size * 0.75)),
-                scale_low=0.05,
-                overlay=True,
+                translated,
+                max(6.5, font_size * 0.92),
+                0.35,
             )
 
         if result[0] < 0:
-            escaped = html.escape(raw, quote=False).replace(
+            result = render_box(
+                rect,
+                translated,
+                max(5.5, font_size * 0.82),
+                0.12,
+            )
+
+        if result[0] < 0:
+            escaped = _bidi_html_text(clean_source_text(raw)).replace(
                 "\n",
                 "<br/>",
             )
             page.insert_htmlbox(
                 rect,
                 (
-                    '<div style="direction:ltr;text-align:left;'
-                    'font-family:DejaVu Sans;'
+                    '<div dir="ltr" style="direction:ltr;text-align:left;'
+                    'font-family:sans-serif;'
                     f'font-size:{max(5.0, font_size * 0.65):.2f}pt;">'
                     f"{escaped}</div>"
                 ),
+                css=PERSIAN_FONT_CSS,
+                archive=PERSIAN_FONT_ARCHIVE,
                 scale_low=0.05,
                 overlay=True,
             )
@@ -825,9 +877,10 @@ def _merge_pdf_chunks(
         for chunk_path in chunk_paths:
             with fitz.open(chunk_path) as chunk_doc:
                 merged.insert_pdf(chunk_doc)
+        merged.subset_fonts()
         merged.save(
             output_path,
-            garbage=2,
+            garbage=4,
             deflate=True,
             clean=False,
         )
@@ -992,10 +1045,10 @@ def translate_document(
                                 f"page {chunk_start + local_index + 1}: "
                                 f"{render_failures} translated block(s) required fallback rendering"
                             )
-
+                    mono_chunk.subset_fonts()
                     mono_chunk.save(
                         mono_chunk_path,
-                        garbage=2,
+                        garbage=4,
                         deflate=True,
                         clean=False,
                     )
@@ -1011,10 +1064,10 @@ def translate_document(
                     )
                     with fitz.open(mono_chunk_path) as translated_chunk:
                         dual_chunk.insert_pdf(translated_chunk)
-
+                    dual_chunk.subset_fonts()
                     dual_chunk.save(
                         dual_chunk_path,
-                        garbage=2,
+                        garbage=4,
                         deflate=True,
                         clean=False,
                     )
