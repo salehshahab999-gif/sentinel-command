@@ -16,6 +16,8 @@ from server import (
     cache_key,
     render_translated_page,
     rtl_html,
+    clean_source_text,
+    rtl_html,
     split_for_google,
     translate_document,
 )
@@ -58,6 +60,19 @@ def test_helpers() -> None:
     assert cache_key("en", "fa", "hello") != cache_key(
         "en", "fa", "goodbye"
     )
+
+
+
+def test_persian_text_cleaning_and_typography() -> None:
+    cleaned = clean_source_text("Hello  \\uE004   world\\nPDF API 123")
+    assert "\\uE004" not in cleaned
+    assert cleaned == "Hello world PDF API 123"
+
+    rendered = rtl_html("سلام PDF API 123", 16.0)
+    assert 'font-family:Vazirmatn' in rendered
+    assert 'dir="rtl"' in rendered
+    assert 'dir="ltr"' in rendered
+    assert "line-height:1.35" in rendered
 
 
 def test_rtl_page_render() -> None:
