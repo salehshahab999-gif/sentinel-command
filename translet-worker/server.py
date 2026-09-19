@@ -6,11 +6,14 @@ import hmac
 import json
 import os
 import re
+import shutil
 import sqlite3
+import subprocess
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from threading import Lock
+from threading import Lock, local
 from typing import Any
 
 import fitz
@@ -32,12 +35,37 @@ REDIS_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 RESULT_URL = os.environ.get("CELERY_RESULT", REDIS_URL)
 SHARED_SECRET_FALLBACK = "sentinel-translet-local-dev-secret"
 MAX_PAGES = 5000
-OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {"0", "false", "no"}
+MAX_FILE_BYTES = 1024 * 1024 * 1024
+CHECKPOINT_PAGES = max(
+    1,
+    min(int(os.environ.get("TRANSLET_CHECKPOINT_PAGES", "25")), 100),
+)
+MIN_REQUEST_INTERVAL = max(
+    0.0,
+    float(os.environ.get("TRANSLET_MIN_REQUEST_INTERVAL", "0.08")),
+)
+REDIS_VISIBILITY_TIMEOUT = max(
+    6 * 60 * 60,
+    int(
+        os.environ.get(
+            "TRANSLET_REDIS_VISIBILITY_TIMEOUT",
+            str(7 * 24 * 60 * 60),
+        )
+    ),
+)
+OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {
+    "0",
+    "false",
+    "no",
+}
 OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
-OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
+OCR_DPI = max(
+    120,
+    min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400),
+)
 
 app = Flask("sentinel-translet")
-app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_BYTES
 
 celery_app = Celery(
     "sentinel-translet",
@@ -49,9 +77,17 @@ celery_app.conf.update(
     result_expires=24 * 60 * 60,
     worker_prefetch_multiplier=1,
     task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    broker_transport_options={"visibility_timeout": REDIS_VISIBILITY_TIMEOUT},
+    result_backend_transport_options={"visibility_timeout": REDIS_VISIBILITY_TIMEOUT},
+    visibility_timeout=REDIS_VISIBILITY_TIMEOUT,
 )
 
 cache_init_lock = Lock()
+cache_thread_local = local()
+session_thread_local = local()
+translation_rate_lock = Lock()
+translation_next_allowed = 0.0
 
 
 def _shared_secret() -> str:
@@ -115,9 +151,23 @@ def require_worker_token():
     return None
 
 
+def _open_cache_connection() -> sqlite3.Connection:
+    connection = sqlite3.connect(
+        DB_PATH,
+        timeout=30,
+        check_same_thread=False,
+    )
+    connection.execute("PRAGMA busy_timeout=30000")
+    connection.execute("PRAGMA synchronous=NORMAL")
+    return connection
+
+
 def init_cache() -> None:
     with cache_init_lock:
-        connection = sqlite3.connect(DB_PATH)
+        connection = sqlite3.connect(DB_PATH, timeout=30)
+        connection.execute("PRAGMA journal_mode=WAL")
+        connection.execute("PRAGMA synchronous=NORMAL")
+        connection.execute("PRAGMA busy_timeout=30000")
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS translations (
@@ -130,11 +180,35 @@ def init_cache() -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS jobs (
+                job_id TEXT PRIMARY KEY,
+                input_path TEXT NOT NULL,
+                total_pages INTEGER NOT NULL,
+                completed_pages INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL,
+                warning_count INTEGER NOT NULL DEFAULT 0,
+                ocr_pages INTEGER NOT NULL DEFAULT 0,
+                render_failures INTEGER NOT NULL DEFAULT 0,
+                error TEXT,
+                updated_at INTEGER NOT NULL
+            )
+            """
+        )
         connection.commit()
         connection.close()
 
 
 init_cache()
+
+
+def _cache_connection() -> sqlite3.Connection:
+    connection = getattr(cache_thread_local, "connection", None)
+    if connection is None:
+        connection = _open_cache_connection()
+        cache_thread_local.connection = connection
+    return connection
 
 
 def cache_key(source_lang: str, target_lang: str, text: str) -> str:
@@ -144,12 +218,11 @@ def cache_key(source_lang: str, target_lang: str, text: str) -> str:
 
 
 def cache_get(key: str) -> str | None:
-    connection = sqlite3.connect(DB_PATH)
+    connection = _cache_connection()
     row = connection.execute(
         "SELECT translated_text FROM translations WHERE cache_key = ?",
         (key,),
     ).fetchone()
-    connection.close()
     return row[0] if row else None
 
 
@@ -160,7 +233,7 @@ def cache_put(
     source_text: str,
     translated_text: str,
 ) -> None:
-    connection = sqlite3.connect(DB_PATH)
+    connection = _cache_connection()
     connection.execute(
         """
         INSERT INTO translations
@@ -180,7 +253,119 @@ def cache_put(
         ),
     )
     connection.commit()
+
+
+def _job_get(job_id: str) -> dict[str, Any] | None:
+    connection = sqlite3.connect(DB_PATH, timeout=30)
+    connection.execute("PRAGMA busy_timeout=30000")
+    row = connection.execute(
+        """
+        SELECT job_id, input_path, total_pages, completed_pages, status,
+               warning_count, ocr_pages, render_failures, error, updated_at
+        FROM jobs
+        WHERE job_id = ?
+        """,
+        (job_id,),
+    ).fetchone()
     connection.close()
+
+    if row is None:
+        return None
+
+    keys = (
+        "job_id",
+        "input_path",
+        "total_pages",
+        "completed_pages",
+        "status",
+        "warning_count",
+        "ocr_pages",
+        "render_failures",
+        "error",
+        "updated_at",
+    )
+    return dict(zip(keys, row))
+
+
+def _job_upsert(
+    job_id: str,
+    input_path: Path,
+    total_pages: int,
+    *,
+    completed_pages: int = 0,
+    status: str = "QUEUED",
+    warning_count: int = 0,
+    ocr_pages: int = 0,
+    render_failures: int = 0,
+    error: str | None = None,
+) -> None:
+    connection = sqlite3.connect(DB_PATH, timeout=30)
+    connection.execute("PRAGMA busy_timeout=30000")
+    connection.execute(
+        """
+        INSERT INTO jobs (
+            job_id, input_path, total_pages, completed_pages, status,
+            warning_count, ocr_pages, render_failures, error, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(job_id) DO UPDATE SET
+            input_path=excluded.input_path,
+            total_pages=excluded.total_pages,
+            completed_pages=excluded.completed_pages,
+            status=excluded.status,
+            warning_count=excluded.warning_count,
+            ocr_pages=excluded.ocr_pages,
+            render_failures=excluded.render_failures,
+            error=excluded.error,
+            updated_at=excluded.updated_at
+        """,
+        (
+            job_id,
+            str(input_path),
+            total_pages,
+            completed_pages,
+            status,
+            warning_count,
+            ocr_pages,
+            render_failures,
+            error,
+            int(time.time()),
+        ),
+    )
+    connection.commit()
+    connection.close()
+
+
+def _job_update(
+    job_id: str,
+    *,
+    completed_pages: int | None = None,
+    status: str | None = None,
+    warning_delta: int = 0,
+    ocr_delta: int = 0,
+    render_failure_delta: int = 0,
+    error: str | None = None,
+) -> dict[str, Any] | None:
+    current = _job_get(job_id)
+    if current is None:
+        return None
+
+    _job_upsert(
+        job_id,
+        Path(current["input_path"]),
+        current["total_pages"],
+        completed_pages=(
+            current["completed_pages"]
+            if completed_pages is None
+            else completed_pages
+        ),
+        status=current["status"] if status is None else status,
+        warning_count=current["warning_count"] + warning_delta,
+        ocr_pages=current["ocr_pages"] + ocr_delta,
+        render_failures=current["render_failures"] + render_failure_delta,
+        error=current["error"] if error is None else error,
+    )
+    return _job_get(job_id)
 
 
 def split_for_google(text: str, limit: int = 4200) -> list[str]:
@@ -231,6 +416,48 @@ def split_for_google(text: str, limit: int = 4200) -> list[str]:
     return chunks or [text[:limit]]
 
 
+def _translation_session() -> requests.Session:
+    session = getattr(session_thread_local, "session", None)
+    if session is None:
+        session = requests.Session()
+        session.headers.update(
+            {
+                "User-Agent": (
+                    "Mozilla/5.0 (X11; Linux x86_64) "
+                    "AppleWebKit/537.36 Chrome/153 Safari/537.36"
+                )
+            }
+        )
+        session_thread_local.session = session
+    return session
+
+
+def _translation_rate_limit() -> None:
+    global translation_next_allowed
+
+    if MIN_REQUEST_INTERVAL <= 0:
+        return
+
+    with translation_rate_lock:
+        now = time.monotonic()
+        wait_for = max(0.0, translation_next_allowed - now)
+        if wait_for:
+            time.sleep(wait_for)
+        translation_next_allowed = time.monotonic() + MIN_REQUEST_INTERVAL
+
+
+def _retry_delay(
+    response: requests.Response | None,
+    attempt: int,
+) -> float:
+    if response is not None:
+        retry_after = response.headers.get("Retry-After", "").strip()
+        if retry_after.isdigit():
+            return min(60.0, max(0.5, float(retry_after)))
+
+    return min(30.0, 0.75 * (2**attempt))
+
+
 def google_translate_one(
     text: str,
     source_lang: str,
@@ -258,59 +485,64 @@ def google_translate_one(
         ),
     )
 
+    session = _translation_session()
     last_error: Exception | None = None
 
-    with requests.Session() as session:
-        for url, params in endpoints:
-            for attempt in range(5):
-                try:
-                    response = session.get(
-                        url,
-                        params=params,
-                        timeout=(10, 45),
-                        headers={
-                            "User-Agent": (
-                                "Mozilla/5.0 (X11; Linux x86_64) "
-                                "AppleWebKit/537.36 Chrome/153 Safari/537.36"
-                            )
-                        },
+    for url, params in endpoints:
+        for attempt in range(5):
+            response = None
+            try:
+                _translation_rate_limit()
+                response = session.get(
+                    url,
+                    params=params,
+                    timeout=(10, 45),
+                )
+
+                if response.status_code in {
+                    408,
+                    425,
+                    429,
+                    500,
+                    502,
+                    503,
+                    504,
+                }:
+                    time.sleep(_retry_delay(response, attempt))
+                    continue
+
+                response.raise_for_status()
+                payload = response.json()
+
+                if (
+                    isinstance(payload, list)
+                    and payload
+                    and isinstance(payload[0], list)
+                ):
+                    translated = "".join(
+                        str(item[0])
+                        for item in payload[0]
+                        if isinstance(item, list) and item and item[0]
                     )
+                    if translated:
+                        return translated.strip()
 
-                    if response.status_code == 429:
-                        time.sleep(min(16, 2**attempt))
-                        continue
+                if isinstance(payload, dict) and payload.get("sentences"):
+                    translated = "".join(
+                        str(item.get("trans", ""))
+                        for item in payload["sentences"]
+                    )
+                    if translated:
+                        return translated.strip()
 
-                    response.raise_for_status()
-                    payload = response.json()
+                raise RuntimeError("Unexpected translation response")
 
-                    if (
-                        isinstance(payload, list)
-                        and payload
-                        and isinstance(payload[0], list)
-                    ):
-                        translated = "".join(
-                            str(item[0])
-                            for item in payload[0]
-                            if isinstance(item, list) and item and item[0]
-                        )
-
-                        if translated:
-                            return translated.strip()
-
-                    if isinstance(payload, dict) and payload.get("sentences"):
-                        translated = "".join(
-                            str(item.get("trans", ""))
-                            for item in payload["sentences"]
-                        )
-
-                        if translated:
-                            return translated.strip()
-
-                    raise RuntimeError("Unexpected translation response")
-
-                except Exception as exc:
-                    last_error = exc
-                    time.sleep(min(8, 2**attempt))
+            except requests.RequestException as exc:
+                last_error = exc
+                time.sleep(_retry_delay(response, attempt))
+            except (ValueError, RuntimeError) as exc:
+                last_error = exc
+                time.sleep(_retry_delay(response, attempt))
 
     raise RuntimeError(f"Google translation failed: {last_error}")
 
@@ -396,9 +628,9 @@ def rtl_html(text: str, font_size: float) -> str:
 
 def render_translated_page(
     page: fitz.Page,
-    translated_blocks: list[tuple[fitz.Rect, str, float]],
+    translated_blocks: list[tuple[fitz.Rect, str, str, float]],
 ) -> int:
-    for rect, _, _ in translated_blocks:
+    for rect, _, _, _ in translated_blocks:
         page.add_redact_annot(rect, fill=(1, 1, 1))
 
     if translated_blocks:
@@ -406,7 +638,7 @@ def render_translated_page(
 
     failed = 0
 
-    for rect, translated, font_size in translated_blocks:
+    for rect, raw, translated, font_size in translated_blocks:
         result = page.insert_htmlbox(
             rect,
             rtl_html(translated, font_size),
@@ -416,20 +648,42 @@ def render_translated_page(
 
         if result[0] < 0:
             expanded = fitz.Rect(
-                max(page.rect.x0, rect.x0 - 2),
-                max(page.rect.y0, rect.y0 - 1),
-                min(page.rect.x1, rect.x1 + 2),
-                min(page.rect.y1, rect.y1 + 2),
+                max(page.rect.x0, rect.x0 - 4),
+                max(page.rect.y0, rect.y0 - 2),
+                min(page.rect.x1, rect.x1 + 4),
+                min(page.rect.y1, rect.y1 + 4),
             )
-
             result = page.insert_htmlbox(
                 expanded,
                 rtl_html(translated, max(6.0, font_size * 0.9)),
-                scale_low=0.15,
+                scale_low=0.12,
                 overlay=True,
             )
 
         if result[0] < 0:
+            result = page.insert_htmlbox(
+                rect,
+                rtl_html(translated, max(5.5, font_size * 0.75)),
+                scale_low=0.05,
+                overlay=True,
+            )
+
+        if result[0] < 0:
+            escaped = html.escape(raw, quote=False).replace(
+                "\n",
+                "<br/>",
+            )
+            page.insert_htmlbox(
+                rect,
+                (
+                    '<div style="direction:ltr;text-align:left;'
+                    'font-family:DejaVu Sans,sans-serif;'
+                    f'font-size:{max(5.0, font_size * 0.65):.2f}pt;">'
+                    f"{escaped}</div>"
+                ),
+                scale_low=0.05,
+                overlay=True,
+            )
             failed += 1
 
     return failed
@@ -474,6 +728,133 @@ def extract_page_blocks(
         return [], False, f"OCR page fallback failed: {exc}"
 
 
+def _job_id_from_output(mono_path: Path) -> str:
+    name = mono_path.name
+    suffix = "-mono.pdf"
+    return name[:-len(suffix)] if name.endswith(suffix) else mono_path.stem
+
+
+def _chunk_dir(job_id: str) -> Path:
+    directory = OUTPUT_DIR / f".{job_id}-chunks"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+def _chunk_paths(job_id: str, chunk_index: int) -> tuple[Path, Path]:
+    directory = _chunk_dir(job_id)
+    stem = f"{chunk_index:06d}"
+    return (
+        directory / f"{stem}-mono.pdf",
+        directory / f"{stem}-dual.pdf",
+    )
+
+
+def _valid_chunk(
+    mono_chunk: Path,
+    dual_chunk: Path,
+    expected_pages: int,
+) -> bool:
+    if not mono_chunk.exists() or not dual_chunk.exists():
+        return False
+
+    try:
+        with fitz.open(mono_chunk) as mono:
+            if len(mono) != expected_pages:
+                return False
+        with fitz.open(dual_chunk) as dual:
+            return len(dual) == expected_pages * 2
+    except Exception:
+        return False
+
+
+def _completed_checkpoint_page(
+    job_id: str,
+    total_pages: int,
+    checkpoint_pages: int,
+) -> int:
+    completed = 0
+    chunk_index = 0
+
+    while completed < total_pages:
+        expected = min(checkpoint_pages, total_pages - completed)
+        mono_chunk, dual_chunk = _chunk_paths(job_id, chunk_index)
+
+        if not _valid_chunk(mono_chunk, dual_chunk, expected):
+            break
+
+        completed += expected
+        chunk_index += 1
+
+    return completed
+
+
+def _merge_pdf_chunks(
+    chunk_paths: list[Path],
+    output_path: Path,
+) -> None:
+    if output_path.exists():
+        output_path.unlink()
+
+    qpdf = shutil.which("qpdf")
+    if qpdf:
+        temporary_path = output_path.with_suffix(".merging.pdf")
+        if temporary_path.exists():
+            temporary_path.unlink()
+
+        command = [qpdf, "--empty", "--pages"]
+        for chunk_path in chunk_paths:
+            command.extend([str(chunk_path), "1-z"])
+        command.extend(["--", str(temporary_path)])
+
+        try:
+            subprocess.run(
+                command,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or exc.stdout or "qpdf merge failed").strip()
+            raise RuntimeError(detail) from exc
+
+        os.replace(temporary_path, output_path)
+        return
+
+    merged = fitz.open()
+    try:
+        for chunk_path in chunk_paths:
+            with fitz.open(chunk_path) as chunk_doc:
+                merged.insert_pdf(chunk_doc)
+        merged.save(
+            output_path,
+            garbage=2,
+            deflate=True,
+            clean=False,
+        )
+    finally:
+        merged.close()
+
+
+def _remove_chunk_dir(job_id: str) -> None:
+    shutil.rmtree(
+        OUTPUT_DIR / f".{job_id}-chunks",
+        ignore_errors=True,
+    )
+
+
+def self_translate_block(
+    block: dict[str, Any],
+    source_lang: str,
+    target_lang: str,
+) -> tuple[fitz.Rect, str, str, float]:
+    raw = block_text(block)
+    rect = fitz.Rect(block["bbox"])
+    size = block_font_size(block)
+    translated = translate_text(raw, source_lang, target_lang)
+    return rect, raw, translated or raw, size
+
+
 def translate_document(
     input_path: Path,
     mono_path: Path,
@@ -483,141 +864,245 @@ def translate_document(
     threads: int,
     task: Task,
 ) -> dict[str, Any]:
-    source_doc = fitz.open(input_path)
-    translated_doc = fitz.open(input_path)
-    dual_doc = fitz.open()
+    job_id = _job_id_from_output(mono_path)
+    checkpoint_pages = CHECKPOINT_PAGES
 
-    total_pages = len(source_doc)
-    warnings: list[str] = []
-    ocr_pages = 0
-    render_failures = 0
+    with fitz.open(input_path) as source_doc:
+        total_pages = len(source_doc)
 
-    for page_index in range(total_pages):
-        source_page = source_doc[page_index]
-        translated_page = translated_doc[page_index]
-
-        blocks, used_ocr, ocr_error = extract_page_blocks(source_page)
-
-        if used_ocr:
-            ocr_pages += 1
-
-        if ocr_error:
-            warnings.append(
-                f"page {page_index + 1}: {ocr_error}"
+        job = _job_get(job_id)
+        if job is None:
+            _job_upsert(
+                job_id,
+                input_path,
+                total_pages,
+                status="RUNNING",
+            )
+            job = _job_get(job_id)
+        elif job["total_pages"] != total_pages:
+            raise RuntimeError(
+                f"Job page count changed: expected {job['total_pages']}, got {total_pages}"
             )
 
-        translated_blocks: list[tuple[fitz.Rect, str, float]] = []
+        _job_update(job_id, status="RUNNING", error=None)
 
-        def do_one(block: dict[str, Any]):
-            raw = block_text(block)
-            rect = fitz.Rect(block["bbox"])
-            size = block_font_size(block)
-            translated = translate_text(raw, source_lang, target_lang)
-            return rect, raw, translated, size
+        completed_pages = _completed_checkpoint_page(
+            job_id,
+            total_pages,
+            checkpoint_pages,
+        )
 
-        with ThreadPoolExecutor(
+        if completed_pages != job["completed_pages"]:
+            _job_update(
+                job_id,
+                completed_pages=completed_pages,
+            )
+
+        warnings: list[str] = []
+        executor = ThreadPoolExecutor(
             max_workers=max(1, min(threads, 4))
-        ) as pool:
-            futures = [pool.submit(do_one, block) for block in blocks]
+        )
 
-            for future in as_completed(futures):
+        try:
+            for chunk_start in range(
+                completed_pages,
+                total_pages,
+                checkpoint_pages,
+            ):
+                chunk_end = min(
+                    total_pages,
+                    chunk_start + checkpoint_pages,
+                )
+
+                chunk_index = chunk_start // checkpoint_pages
+                mono_chunk_path, dual_chunk_path = _chunk_paths(
+                    job_id,
+                    chunk_index,
+                )
+
+                mono_chunk = fitz.open()
+                warning_delta = 0
+                ocr_delta = 0
+                render_failure_delta = 0
+
                 try:
-                    rect, raw, translated, size = future.result()
-                    translated_blocks.append(
-                        (rect, translated or raw, size)
-                    )
-                except Exception as exc:
-                    warnings.append(
-                        f"page {page_index + 1}: {exc}"
+                    mono_chunk.insert_pdf(
+                        source_doc,
+                        from_page=chunk_start,
+                        to_page=chunk_end - 1,
                     )
 
-        translated_blocks.sort(
-            key=lambda item: (item[0].y0, item[0].x0)
-        )
+                    future_map = {}
+                    translated_by_page = {}
 
-        render_failures += render_translated_page(
-            translated_page,
-            translated_blocks,
-        )
+                    for local_index, absolute_index in enumerate(
+                        range(chunk_start, chunk_end)
+                    ):
+                        source_page = source_doc[absolute_index]
+                        blocks, used_ocr, ocr_error = extract_page_blocks(
+                            source_page
+                        )
 
-        if render_failures:
-            warnings.append(
-                f"page {page_index + 1}: {render_failures} translated block(s) did not fit"
+                        if used_ocr:
+                            ocr_delta += 1
+
+                        if ocr_error:
+                            warning_delta += 1
+                            warnings.append(
+                                f"page {absolute_index + 1}: {ocr_error}"
+                            )
+
+                        for block in blocks:
+                            future = executor.submit(
+                                self_translate_block,
+                                block,
+                                source_lang,
+                                target_lang,
+                            )
+                            future_map[future] = local_index
+
+                    for future in as_completed(future_map):
+                        local_index = future_map[future]
+                        try:
+                            translated_by_page.setdefault(
+                                local_index,
+                                [],
+                            ).append(future.result())
+                        except Exception as exc:
+                            warning_delta += 1
+                            warnings.append(
+                                f"page {chunk_start + local_index + 1}: {exc}"
+                            )
+
+                    for local_index in range(chunk_end - chunk_start):
+                        translated_blocks = translated_by_page.get(
+                            local_index,
+                            [],
+                        )
+                        translated_blocks.sort(
+                            key=lambda item: (item[0].y0, item[0].x0)
+                        )
+                        render_failures = render_translated_page(
+                            mono_chunk[local_index],
+                            translated_blocks,
+                        )
+                        render_failure_delta += render_failures
+                        if render_failures:
+                            warning_delta += 1
+                            warnings.append(
+                                f"page {chunk_start + local_index + 1}: "
+                                f"{render_failures} translated block(s) required fallback rendering"
+                            )
+
+                    mono_chunk.save(
+                        mono_chunk_path,
+                        garbage=2,
+                        deflate=True,
+                        clean=False,
+                    )
+                finally:
+                    mono_chunk.close()
+
+                dual_chunk = fitz.open()
+                try:
+                    dual_chunk.insert_pdf(
+                        source_doc,
+                        from_page=chunk_start,
+                        to_page=chunk_end - 1,
+                    )
+                    with fitz.open(mono_chunk_path) as translated_chunk:
+                        dual_chunk.insert_pdf(translated_chunk)
+
+                    dual_chunk.save(
+                        dual_chunk_path,
+                        garbage=2,
+                        deflate=True,
+                        clean=False,
+                    )
+                finally:
+                    dual_chunk.close()
+
+                _job_update(
+                    job_id,
+                    completed_pages=chunk_end,
+                    warning_delta=warning_delta,
+                    ocr_delta=ocr_delta,
+                    render_failure_delta=render_failure_delta,
+                    status="RUNNING",
+                )
+
+                current_job = _job_get(job_id) or {}
+                task.update_state(
+                    state="PROGRESS",
+                    meta={
+                        "n": chunk_end,
+                        "total": total_pages,
+                        "warnings": current_job.get("warning_count", 0),
+                        "ocr_pages": current_job.get("ocr_pages", 0),
+                        "render_failures": current_job.get(
+                            "render_failures",
+                            0,
+                        ),
+                        "checkpoint_pages": checkpoint_pages,
+                    },
+                )
+        finally:
+            executor.shutdown(wait=True)
+
+        chunk_count = (
+            (total_pages + checkpoint_pages - 1)
+            // checkpoint_pages
+        )
+        mono_chunks = [
+            _chunk_paths(job_id, index)[0]
+            for index in range(chunk_count)
+        ]
+        dual_chunks = [
+            _chunk_paths(job_id, index)[1]
+            for index in range(chunk_count)
+        ]
+
+        _merge_pdf_chunks(mono_chunks, mono_path)
+        _merge_pdf_chunks(dual_chunks, dual_path)
+
+        with fitz.open(mono_path) as final_mono:
+            mono_pages = len(final_mono)
+        with fitz.open(dual_path) as final_dual:
+            dual_pages = len(final_dual)
+
+        if mono_pages != total_pages:
+            raise RuntimeError(
+                f"Final Persian PDF page count mismatch: {mono_pages}/{total_pages}"
+            )
+        if dual_pages != total_pages * 2:
+            raise RuntimeError(
+                f"Final bilingual PDF page count mismatch: {dual_pages}/{total_pages * 2}"
             )
 
-        dual_doc.insert_pdf(
-            source_doc,
-            from_page=page_index,
-            to_page=page_index,
-        )
-        dual_doc.insert_pdf(
-            translated_doc,
-            from_page=page_index,
-            to_page=page_index,
-        )
-
-        task.update_state(
-            state="PROGRESS",
-            meta={
-                "n": page_index + 1,
-                "total": total_pages,
-                "warnings": len(warnings),
-                "ocr_pages": ocr_pages,
-                "render_failures": render_failures,
-            },
-        )
-
-    translated_doc.save(
-        mono_path,
-        garbage=4,
-        deflate=True,
-        clean=True,
+    _job_update(
+        job_id,
+        completed_pages=total_pages,
+        status="SUCCESS",
+        error=None,
     )
-    dual_doc.save(
-        dual_path,
-        garbage=4,
-        deflate=True,
-        clean=True,
-    )
-
-    source_doc.close()
-    translated_doc.close()
-    dual_doc.close()
-
+    _remove_chunk_dir(job_id)
     input_path.unlink(missing_ok=True)
+
+    final_job = _job_get(job_id) or {}
 
     return {
         "pages": total_pages,
-        "warning_count": len(warnings),
+        "warning_count": final_job.get(
+            "warning_count",
+            len(warnings),
+        ),
         "warnings": warnings[:100],
-        "ocr_pages": ocr_pages,
-        "render_failures": render_failures,
+        "ocr_pages": final_job.get("ocr_pages", 0),
+        "render_failures": final_job.get("render_failures", 0),
         "dual_pages": total_pages * 2,
+        "checkpoint_pages": checkpoint_pages,
+        "resumed_from_page": completed_pages,
     }
-
-
-@celery_app.task(
-    bind=True,
-    name="sentinel_translet.translate",
-)
-def translate_task(
-    self: Task,
-    input_path: str,
-    job_id: str,
-    source_lang: str,
-    target_lang: str,
-    threads: int,
-):
-    return translate_document(
-        Path(input_path),
-        OUTPUT_DIR / f"{job_id}-mono.pdf",
-        OUTPUT_DIR / f"{job_id}-dual.pdf",
-        source_lang,
-        target_lang,
-        threads,
-        self,
-    )
-
 
 @app.get("/health")
 def health():
@@ -676,6 +1161,13 @@ def create_translate():
             }
         ), 413
 
+    _job_upsert(
+        job_id,
+        input_path,
+        page_count,
+        status="QUEUED",
+    )
+
     translate_task.apply_async(
         args=(
             str(input_path),
@@ -693,28 +1185,69 @@ def create_translate():
 @app.get("/v1/translate/<task_id>")
 def status(task_id: str):
     result = celery_app.AsyncResult(task_id)
+    job = _job_get(task_id)
 
     if result.state == "PROGRESS":
+        info = result.info or {}
         return jsonify(
             {
                 "state": "PROGRESS",
-                "info": result.info or {},
+                "info": {
+                    **info,
+                    "n": info.get(
+                        "n",
+                        job["completed_pages"] if job else 0,
+                    ),
+                    "total": info.get(
+                        "total",
+                        job["total_pages"] if job else 0,
+                    ),
+                },
             }
         )
 
-    if result.state == "SUCCESS":
+    if result.state == "SUCCESS" or (
+        job and job["status"] == "SUCCESS"
+    ):
         return jsonify(
             {
                 "state": "SUCCESS",
-                "info": result.result or {},
+                "info": result.result or {
+                    "pages": job["total_pages"],
+                    "warning_count": job["warning_count"],
+                    "ocr_pages": job["ocr_pages"],
+                    "render_failures": job["render_failures"],
+                    "dual_pages": job["total_pages"] * 2,
+                },
             }
         )
 
-    if result.state == "FAILURE":
+    if result.state == "FAILURE" or (
+        job and job["status"] == "FAILURE"
+    ):
         return jsonify(
             {
                 "state": "FAILURE",
-                "error": str(result.result),
+                "error": (
+                    str(result.result)
+                    if result.state == "FAILURE"
+                    else job.get("error")
+                ),
+            }
+        )
+
+    if job:
+        return jsonify(
+            {
+                "state": "PROGRESS",
+                "info": {
+                    "n": job["completed_pages"],
+                    "total": job["total_pages"],
+                    "warnings": job["warning_count"],
+                    "ocr_pages": job["ocr_pages"],
+                    "render_failures": job["render_failures"],
+                    "retrying": job["status"] == "RETRY",
+                },
             }
         )
 
@@ -724,6 +1257,12 @@ def status(task_id: str):
 @app.delete("/v1/translate/<task_id>")
 def cancel(task_id: str):
     celery_app.AsyncResult(task_id).revoke(terminate=True)
+    if _job_get(task_id):
+        _job_update(
+            task_id,
+            status="REVOKED",
+            error=None,
+        )
     return jsonify({"state": "REVOKED"})
 
 
@@ -750,4 +1289,50 @@ def download(task_id: str, output_format: str):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=11008)
+    app.run(host="0.0.0.0", port=11008)@celery_app.task(
+    bind=True,
+    name="sentinel_translet.translate",
+    max_retries=5,
+    acks_late=True,
+    reject_on_worker_lost=True,
+)
+def translate_task(
+    self: Task,
+    input_path: str,
+    job_id: str,
+    source_lang: str,
+    target_lang: str,
+    threads: int,
+):
+    try:
+        return translate_document(
+            Path(input_path),
+            OUTPUT_DIR / f"{job_id}-mono.pdf",
+            OUTPUT_DIR / f"{job_id}-dual.pdf",
+            source_lang,
+            target_lang,
+            threads,
+            self,
+        )
+    except Exception as exc:
+        _job_update(
+            job_id,
+            status="RETRY",
+            error=str(exc),
+        )
+
+        if self.request.retries >= self.max_retries:
+            _job_update(
+                job_id,
+                status="FAILURE",
+                error=str(exc),
+            )
+            raise
+
+        raise self.retry(
+            exc=exc,
+            countdown=min(
+                300,
+                2 ** max(0, self.request.retries),
+            ),
+        )
