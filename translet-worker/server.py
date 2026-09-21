@@ -667,6 +667,16 @@ def rtl_html(text: str, font_size: float) -> str:
     )
 
 
+def remove_page_images(page: fitz.Page) -> None:
+    """Remove visible images while leaving the page's text geometry intact."""
+    xrefs = {int(item[0]) for item in page.get_images(full=True) if item and item[0]}
+    for xref in xrefs:
+        try:
+            page.delete_image(xref)
+        except Exception:
+            pass
+
+
 def render_translated_page(
     page: fitz.Page,
     translated_blocks: list[tuple[fitz.Rect, str, float]],
@@ -786,6 +796,10 @@ def translate_document(
         translated_page = translated_doc[page_index]
 
         blocks, used_ocr, ocr_error = extract_page_blocks(source_page)
+
+        # OCR must run before images are removed. The final outputs are text-only PDFs.
+        remove_page_images(source_page)
+        remove_page_images(translated_page)
 
         if used_ocr:
             ocr_pages += 1
@@ -943,8 +957,8 @@ def create_translate():
         return jsonify({"error": "Invalid data JSON"}), 400
 
     source_lang = str(
-        data.get("lang_in", "en")
-    ).lower().strip() or "en"
+        data.get("lang_in", "auto")
+    ).lower().strip() or "auto"
 
     threads = max(
         1,
