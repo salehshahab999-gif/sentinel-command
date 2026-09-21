@@ -9,6 +9,7 @@ RUN apt-get update \
        fontconfig \
        ca-certificates \
        tesseract-ocr \
+       calibre \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
