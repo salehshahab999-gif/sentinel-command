@@ -35,8 +35,9 @@ def test_helpers() -> None:
 
     html = rtl_html("سلام\nدنیا", 18)
     assert 'dir="rtl"' in html
-    assert "direction:rtl" in html
+    assert 'class="sentinel-fa"' in html
     assert "<br/>" in html
+    assert "font-family" not in html
 
     assert cache_key("en", "fa", "hello") == cache_key(
         "en", "fa", "hello"
