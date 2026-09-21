@@ -454,10 +454,15 @@ def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | No
         entries_to_pdf(entries, normalized_pdf)
         return normalized_pdf, normalized_pdf
 
-    if extension in {".epub", ".mobi", ".azw", ".azw3"}:
+    if extension == ".epub":
+        entries = epub_to_entries(input_path)
+        entries_to_pdf(entries, normalized_pdf)
+        return normalized_pdf, normalized_pdf
+
+    if extension in {".mobi", ".azw", ".azw3"}:
         if not CALIBRE_CONVERTER:
             raise RuntimeError(
-                f"برای {extension} باید Calibre و دستور ebook-convert در Worker نصب باشد."
+                "برای MOBI/AZW/AZW3 باید Calibre و دستور ebook-convert در Worker نصب باشد."
             )
         result = subprocess.run(
             [CALIBRE_CONVERTER, str(input_path), str(normalized_pdf), "--output-profile", "tablet"],
