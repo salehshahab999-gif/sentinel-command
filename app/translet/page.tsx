@@ -312,13 +312,14 @@ export default function TransletPage() {
     try {
       setMessage("در حال آماده‌سازی فایل دانلود...");
 
-      const response = await workerRequest(
-        `/v1/translate/${encodeURIComponent(jobId)}/${format}`,
+      const response = await fetch(
+        `/api/translet/download/${encodeURIComponent(jobId)}/${format}`,
         { cache: "no-store" },
       );
 
       if (!response.ok) {
-        throw new Error(`download status ${response.status}`);
+        const details = await response.text();
+        throw new Error(details || `download status ${response.status}`);
       }
 
       const blob = await response.blob();
