@@ -11,6 +11,7 @@ from server import (
     _validate_token,
     cache_key,
     render_translated_page,
+    remove_page_images,
     rtl_html,
     split_for_google,
     translate_document,
@@ -57,6 +58,17 @@ def test_rtl_page_render() -> None:
 
     assert failures == 0
     assert len(doc.tobytes()) > 0
+    doc.close()
+
+
+def test_output_is_text_only() -> None:
+    doc = fitz.open()
+    page = doc.new_page(width=320, height=220)
+    pix = fitz.Pixmap(fitz.csRGB, (0, 0, 20, 20), 0)
+    page.insert_image(fitz.Rect(20, 20, 80, 80), pixmap=pix)
+    assert page.get_images(full=True)
+    remove_page_images(page)
+    assert not page.get_images(full=True)
     doc.close()
 
 
@@ -114,6 +126,7 @@ class _DirectMonkeyPatch:
 if __name__ == "__main__":
     test_helpers()
     test_rtl_page_render()
+    test_output_is_text_only()
 
     from tempfile import TemporaryDirectory
 
