@@ -326,10 +326,13 @@ export default function TransletPage() {
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
+      const originalBaseName =
+        file?.name.replace(/\.pdf$/i, "") || "translated-document";
+
       anchor.download =
         format === "mono"
-          ? "sentinel-english-to-persian.pdf"
-          : "sentinel-english-persian-bilingual.pdf";
+          ? `${originalBaseName} (1).pdf`
+          : `${originalBaseName} (1) - bilingual.pdf`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
