@@ -21,6 +21,7 @@ const BACKEND_URL =
   "http://localhost:11009";
 
 const MAX_FILE_BYTES = 1024 * 1024 * 1024;
+const SUPPORTED_EXTENSIONS = [".pdf", ".epub", ".txt", ".html", ".htm", ".mobi", ".azw", ".azw3"];
 
 function formatSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -37,7 +38,7 @@ export default function TransletPage() {
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState<TranslateStatus>({ state: "IDLE" });
   const [message, setMessage] = useState(
-    "یک فایل PDF انگلیسی را انتخاب یا اینجا رها کن.",
+    "یک فایل کتاب انگلیسی را انتخاب یا اینجا رها کن.",
   );
   const [busy, setBusy] = useState(false);
   const [workerHealth, setWorkerHealth] = useState("checking");
@@ -209,16 +210,16 @@ export default function TransletPage() {
 
     if (!nextFile) {
       setFile(null);
-      setMessage("یک فایل PDF انگلیسی را انتخاب یا اینجا رها کن.");
+      setMessage("یک فایل کتاب انگلیسی را انتخاب یا اینجا رها کن.");
       return;
     }
 
-    if (
-      nextFile.type !== "application/pdf" &&
-      !nextFile.name.toLowerCase().endsWith(".pdf")
-    ) {
+    const lowerName = nextFile.name.toLowerCase();
+    const extension = SUPPORTED_EXTENSIONS.find((item) => lowerName.endsWith(item));
+
+    if (!extension) {
       setFile(null);
-      setMessage("فقط فایل PDF پذیرفته می‌شود.");
+      setMessage("فرمت پشتیبانی نمی‌شود. PDF / EPUB / TXT / HTML / MOBI / AZW / AZW3 مجاز است.");
       return;
     }
 
@@ -249,7 +250,7 @@ export default function TransletPage() {
 
     setBusy(true);
     setStatus({ state: "UPLOADING" });
-    setMessage("در حال ارسال PDF مستقیم به Worker...");
+    setMessage("در حال ارسال کتاب مستقیم به Worker...");
 
     try {
       const form = new FormData();
@@ -368,10 +369,10 @@ export default function TransletPage() {
               SENTINEL
             </div>
             <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              English → Persian PDF Translator
+              English → Persian Book Translator
             </h1>
             <p className="mt-2 text-sm text-slate-500">
-              فایل PDF را بده، ترجمه فارسی را با حفظ ساختار تحویل بگیر.
+              PDF یا فایل کتاب را بده، ترجمه فارسی را به‌صورت PDF تحویل بگیر.
             </p>
           </div>
 
@@ -416,7 +417,7 @@ export default function TransletPage() {
                 </div>
 
                 <div className="mt-5 text-xl font-bold">
-                  Drag & Drop PDF here
+                  Drag & Drop Book / PDF here
                 </div>
 
                 <div className="mt-2 text-sm text-slate-500">
@@ -424,13 +425,13 @@ export default function TransletPage() {
                 </div>
 
                 <div className="mt-5 text-xs text-slate-400">
-                  PDF only · up to 1 GB · up to 5,000 pages
+                  PDF / EPUB / TXT / HTML / MOBI / AZW / AZW3 · up to 1 GB · up to 10,000 pages
                 </div>
 
                 <input
                   ref={inputRef}
                   type="file"
-                  accept="application/pdf,.pdf"
+                  accept=".pdf,.epub,.txt,.html,.htm,.mobi,.azw,.azw3,application/pdf,text/plain,text/html"
                   onChange={onFile}
                   className="hidden"
                 />
@@ -529,7 +530,7 @@ export default function TransletPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
-                  <span className="text-slate-600">Large PDF queue</span>
+                  <span className="text-slate-600">Large book queue</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
@@ -567,7 +568,7 @@ export default function TransletPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="text-2xl font-bold">5,000</div>
+            <div className="text-2xl font-bold">10,000</div>
             <div className="mt-1 text-xs text-slate-500">pages target</div>
           </div>
 
