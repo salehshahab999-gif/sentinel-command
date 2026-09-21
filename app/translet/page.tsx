@@ -38,7 +38,7 @@ export default function TransletPage() {
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState<TranslateStatus>({ state: "IDLE" });
   const [message, setMessage] = useState(
-    "یک فایل کتاب انگلیسی را انتخاب یا اینجا رها کن.",
+    "یک فایل کتاب با هر زبان را انتخاب یا اینجا رها کن.",
   );
   const [busy, setBusy] = useState(false);
   const [workerHealth, setWorkerHealth] = useState("checking");
@@ -258,7 +258,7 @@ export default function TransletPage() {
       form.append(
         "data",
         JSON.stringify({
-          lang_in: "en",
+          lang_in: "auto",
           lang_out: "fa",
           thread: 1,
         }),
@@ -369,7 +369,7 @@ export default function TransletPage() {
               SENTINEL
             </div>
             <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              English → Persian Book Translator
+              Any Language → Persian Book Translator
             </h1>
             <p className="mt-2 text-sm text-slate-500">
               PDF یا فایل کتاب را بده، ترجمه فارسی را به‌صورت PDF تحویل بگیر.
@@ -504,7 +504,7 @@ export default function TransletPage() {
 
               <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="text-xs text-slate-400">Source</div>
-                <div className="mt-1 text-lg font-bold">English</div>
+                <div className="mt-1 text-lg font-bold">Auto-detect</div>
               </div>
 
               <div className="my-3 text-center text-xl text-slate-300">↓</div>
@@ -575,7 +575,7 @@ export default function TransletPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="text-2xl font-bold">1 → 1</div>
             <div className="mt-1 text-xs text-slate-500">
-              English to Persian only
+              Any language to Persian
             </div>
           </div>
         </div>
