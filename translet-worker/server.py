@@ -16,7 +16,7 @@ from html.parser import HTMLParser
 from pathlib import PurePosixPath
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from threading import Lock
+from threading import Lock, local
 from typing import Any
 
 import fitz
@@ -43,6 +43,8 @@ CALIBRE_CONVERTER = shutil.which("ebook-convert")
 OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {"0", "false", "no"}
 OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
 OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
+TRANSLATION_WORKERS = max(1, min(int(os.environ.get("TRANSLET_TRANSLATION_WORKERS", "4")), 4))
+PROGRESS_UPDATE_PAGES = max(1, min(int(os.environ.get("TRANSLET_PROGRESS_UPDATE_PAGES", "10")), 100))
 
 app = Flask("sentinel-translet")
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
@@ -60,6 +62,21 @@ celery_app.conf.update(
 )
 
 cache_init_lock = Lock()
+translation_local = local()
+
+def _translation_session() -> requests.Session:
+    session = getattr(translation_local, "session", None)
+    if session is None:
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) "
+                "AppleWebKit/537.36 Chrome/153 Safari/537.36"
+            )
+        })
+        translation_local.session = session
+    return session
+
 
 
 def _shared_secret() -> str:
@@ -533,8 +550,8 @@ def google_translate_one(
 
     last_error: Exception | None = None
 
-    with requests.Session() as session:
-        for url, params in endpoints:
+    session = _translation_session()
+    for url, params in endpoints:
             for attempt in range(5):
                 try:
                     response = session.get(
@@ -791,7 +808,10 @@ def translate_document(
     ocr_pages = 0
     render_failures = 0
 
-    for page_index in range(total_pages):
+    workers = min(max(1, threads), TRANSLATION_WORKERS)
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+      for page_index in range(total_pages):
         source_page = source_doc[page_index]
         translated_page = translated_doc[page_index]
 
@@ -818,12 +838,9 @@ def translate_document(
             translated = translate_text(raw, source_lang, target_lang)
             return rect, raw, translated, size
 
-        with ThreadPoolExecutor(
-            max_workers=max(1, min(threads, 4))
-        ) as pool:
-            futures = [pool.submit(do_one, block) for block in blocks]
+        futures = [executor.submit(do_one, block) for block in blocks]
 
-            for future in as_completed(futures):
+        for future in as_completed(futures):
                 try:
                     rect, raw, translated, size = future.result()
                     translated_blocks.append(
@@ -859,16 +876,21 @@ def translate_document(
             to_page=page_index,
         )
 
-        task.update_state(
-            state="PROGRESS",
-            meta={
-                "n": page_index + 1,
-                "total": total_pages,
-                "warnings": len(warnings),
-                "ocr_pages": ocr_pages,
-                "render_failures": render_failures,
-            },
-        )
+        current_page = page_index + 1
+        if current_page % PROGRESS_UPDATE_PAGES == 0 or current_page == total_pages:
+            task.update_state(
+                state="PROGRESS",
+                meta={
+                    "n": current_page,
+                    "total": total_pages,
+                    "warnings": len(warnings),
+                    "ocr_pages": ocr_pages,
+                    "render_failures": render_failures,
+                },
+            )
+
+    finally:
+        executor.shutdown(wait=True, cancel_futures=False)
 
     translated_doc.save(
         mono_path,
@@ -962,7 +984,7 @@ def create_translate():
 
     threads = max(
         1,
-        min(int(data.get("thread", 1)), 4),
+        min(int(data.get("thread", TRANSLATION_WORKERS)), TRANSLATION_WORKERS),
     )
 
     job_id = str(__import__("uuid").uuid4())
