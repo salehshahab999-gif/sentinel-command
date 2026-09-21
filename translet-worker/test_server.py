@@ -85,6 +85,7 @@ def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
         "fa",
         1,
         task,
+        "test-job",
     )
 
     assert result["pages"] == 1
