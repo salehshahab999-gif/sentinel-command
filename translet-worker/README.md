@@ -70,9 +70,8 @@ Worker:
 - سقف ورودی Worker: 1GB
 - ترجمه متن‌های طولانی به قطعات کوچک‌تر از سقف درخواست Google شکسته می‌شود.
 - cache محلی باعث می‌شود متن تکراری دوباره ترجمه نشود.
-- همزمانی قابل تنظیم است ولی Worker پیش‌فرض با concurrency=1 اجرا می‌شود.
-- اگر صفحه text layer نداشته باشد، Worker به‌صورت خودکار یک بار OCR انگلیسی با
-  Tesseract/PyMuPDF را امتحان می‌کند.
+- ترجمهٔ شبکه‌ای به‌صورت پیش‌فرض با 4 درخواست همزمان انجام می‌شود و sessionهای HTTP بین درخواست‌ها reused می‌شوند.
+- برای PDFهای image-only، قبل از حذف تصاویر یک بار OCR انگلیسی با Tesseract/PyMuPDF امتحان می‌شود؛ خروجی نهایی متن‌محور و بدون تصاویر است.
 - OCR فقط روی صفحه‌هایی اجرا می‌شود که استخراج متن عادی برای آن‌ها خالی باشد،
   چون OCR بسیار کندتر از استخراج متن استاندارد است.
 
@@ -109,5 +108,11 @@ TRANSLET_OCR_LANGUAGE=eng
 TRANSLET_OCR_DPI=200
 ```
 
-The current Sentinel UI is intentionally fixed to English → Persian, so English
-OCR is the only OCR language enabled by default.
+The Sentinel UI auto-detects the source language for extractable text and always translates to Persian. OCR remains English-only by default for image-only PDFs.
+
+
+## Book input behavior
+
+- EPUB text is parsed directly from the EPUB spine rather than rendered through Calibre, because Sentinel intentionally produces a text-only Persian PDF and does not need source images.
+- MOBI/AZW/AZW3 use Calibre when available.
+- Source language is sent as `auto`; Google Translate-compatible endpoints perform language detection.
