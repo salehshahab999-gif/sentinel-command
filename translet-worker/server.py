@@ -533,19 +533,19 @@ def google_translate_one(
 ) -> str:
     endpoints = (
         (
-            "https://translate.googleapis.com/translate_a/single",
+            "https://clients5.google.com/translate_a/t",
             {
-                "client": "gtx",
-                "dt": "t",
+                "client": "dict-chrome-ex",
                 "sl": source_lang,
                 "tl": target_lang,
                 "q": text,
             },
         ),
         (
-            "https://clients5.google.com/translate_a/t",
+            "https://translate.googleapis.com/translate_a/single",
             {
-                "client": "dict-chrome-ex",
+                "client": "gtx",
+                "dt": "t",
                 "sl": source_lang,
                 "tl": target_lang,
                 "q": text,
@@ -572,8 +572,9 @@ def google_translate_one(
                     )
 
                     if response.status_code == 429:
-                        time.sleep(min(16, 2**attempt))
-                        continue
+                        if attempt == 0:
+                            time.sleep(0.5)
+                        break
 
                     response.raise_for_status()
                     payload = response.json()
