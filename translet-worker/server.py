@@ -44,6 +44,46 @@ OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {"0", "
 OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
 OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
 
+PERSIAN_FONT_DIR = Path(
+    os.environ.get("TRANSLET_PERSIAN_FONT_DIR", "/usr/share/fonts/truetype/noto")
+)
+PERSIAN_FONT_REGULAR = PERSIAN_FONT_DIR / "NotoNaskhArabic-Regular.ttf"
+PERSIAN_FONT_BOLD = PERSIAN_FONT_DIR / "NotoNaskhArabic-Bold.ttf"
+
+if PERSIAN_FONT_REGULAR.exists():
+    PERSIAN_FONT_ARCHIVE = fitz.Archive(str(PERSIAN_FONT_DIR))
+    PERSIAN_FONT_CSS = """
+    @font-face {
+        font-family: SentinelPersianNaskh;
+        src: url(NotoNaskhArabic-Regular.ttf);
+    }
+    @font-face {
+        font-family: SentinelPersianNaskh;
+        src: url(NotoNaskhArabic-Bold.ttf);
+        font-weight: bold;
+    }
+    .sentinel-fa {
+        direction: rtl;
+        text-align: right;
+        font-family: SentinelPersianNaskh;
+        line-height: 1.38;
+        overflow-wrap: normal;
+        white-space: normal;
+    }
+    """
+else:
+    PERSIAN_FONT_ARCHIVE = None
+    PERSIAN_FONT_CSS = """
+    .sentinel-fa {
+        direction: rtl;
+        text-align: right;
+        font-family: "Noto Naskh Arabic", "Noto Sans Arabic", sans-serif;
+        line-height: 1.38;
+        overflow-wrap: normal;
+        white-space: normal;
+    }
+    """
+
 app = Flask("sentinel-translet")
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
 
@@ -659,11 +699,8 @@ def rtl_html(text: str, font_size: float) -> str:
     escaped = html.escape(text, quote=False).replace("\n", "<br/>")
 
     return (
-        f'<div dir="rtl" style="direction:rtl;text-align:right;'
-        
-        f'font-family:"Noto Naskh Arabic","Noto Sans Arabic",'
-        f'"DejaVu Sans",sans-serif;font-size:{font_size:.2f}pt;'
-        f'line-height:1.22;overflow-wrap:break-word;">{escaped}</div>'
+        f'<div dir="rtl" class="sentinel-fa" '
+        f'style="font-size:{font_size:.2f}pt;">{escaped}</div>'
     )
 
 
@@ -675,6 +712,68 @@ def remove_page_images(page: fitz.Page) -> None:
             page.delete_image(xref)
         except Exception:
             pass
+
+
+def rtl_layout_rects(
+    page: fitz.Page,
+    blocks: list[dict[str, Any]],
+) -> list[fitz.Rect]:
+    """
+    Give Persian text the full width of its detected text column instead of
+    the source line's actual ink width. This keeps RTL paragraphs anchored
+    to the right page margin and still avoids collapsing two-column books.
+    """
+    if not blocks:
+        return []
+
+    rects = [fitz.Rect(block["bbox"]) for block in blocks]
+    centers = sorted((rect.x0 + rect.x1) / 2 for rect in rects)
+
+    columns: list[list[fitz.Rect]]
+    if len(centers) >= 4:
+        gaps = [
+            (centers[index + 1] - centers[index], index)
+            for index in range(len(centers) - 1)
+        ]
+        gap, split_index = max(gaps, key=lambda item: item[0])
+        split = (centers[split_index] + centers[split_index + 1]) / 2
+
+        left = [rect for rect in rects if (rect.x0 + rect.x1) / 2 <= split]
+        right = [rect for rect in rects if (rect.x0 + rect.x1) / 2 > split]
+
+        if gap >= page.rect.width * 0.18 and len(left) >= 2 and len(right) >= 2:
+            columns = [left, right]
+        else:
+            columns = [rects]
+    else:
+        columns = [rects]
+
+    bounds = []
+    for column in columns:
+        left = max(page.rect.x0 + 28, min(rect.x0 for rect in column))
+        right = min(page.rect.x1 - 28, max(rect.x1 for rect in column))
+        bounds.append((left, right))
+
+    result: list[fitz.Rect] = []
+    for rect in rects:
+        center = (rect.x0 + rect.x1) / 2
+
+        if len(bounds) == 1:
+            left, right = bounds[0]
+        else:
+            column_index = 0 if center <= sum(bounds[0]) / 2 else 1
+            left, right = bounds[column_index]
+
+        result.append(
+            fitz.Rect(
+                left,
+                rect.y0,
+                right,
+                rect.y1,
+            )
+        )
+
+    return result
 
 
 def render_translated_page(
@@ -693,6 +792,8 @@ def render_translated_page(
         result = page.insert_htmlbox(
             rect,
             rtl_html(translated, font_size),
+            css=PERSIAN_FONT_CSS,
+            archive=PERSIAN_FONT_ARCHIVE,
             scale_low=0.35,
             overlay=True,
         )
@@ -708,6 +809,8 @@ def render_translated_page(
             result = page.insert_htmlbox(
                 expanded,
                 rtl_html(translated, max(6.0, font_size * 0.9)),
+                css=PERSIAN_FONT_CSS,
+                archive=PERSIAN_FONT_ARCHIVE,
                 scale_low=0.15,
                 overlay=True,
             )
@@ -810,10 +913,11 @@ def translate_document(
             )
 
         translated_blocks: list[tuple[fitz.Rect, str, float]] = []
+        rtl_rects = rtl_layout_rects(source_page, blocks)
 
-        def do_one(block: dict[str, Any]):
+        def do_one(index: int, block: dict[str, Any]):
             raw = block_text(block)
-            rect = fitz.Rect(block["bbox"])
+            rect = rtl_rects[index]
             size = block_font_size(block)
             translated = translate_text(raw, source_lang, target_lang)
             return rect, raw, translated, size
@@ -821,7 +925,10 @@ def translate_document(
         with ThreadPoolExecutor(
             max_workers=max(1, min(threads, 4))
         ) as pool:
-            futures = [pool.submit(do_one, block) for block in blocks]
+            futures = [
+                pool.submit(do_one, index, block)
+                for index, block in enumerate(blocks)
+            ]
 
             for future in as_completed(futures):
                 try:

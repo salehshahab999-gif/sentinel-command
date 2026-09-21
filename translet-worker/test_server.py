@@ -12,6 +12,7 @@ from server import (
     cache_key,
     render_translated_page,
     rtl_html,
+    rtl_layout_rects,
     split_for_google,
     translate_document,
 )
@@ -34,8 +35,9 @@ def test_helpers() -> None:
 
     html = rtl_html("سلام\nدنیا", 18)
     assert 'dir="rtl"' in html
-    assert "direction:rtl" in html
+    assert 'class="sentinel-fa"' in html
     assert "<br/>" in html
+    assert "font-family" not in html
 
     assert cache_key("en", "fa", "hello") == cache_key(
         "en", "fa", "hello"
@@ -43,6 +45,21 @@ def test_helpers() -> None:
     assert cache_key("en", "fa", "hello") != cache_key(
         "en", "fa", "goodbye"
     )
+
+
+def test_rtl_layout_rects_expand_to_column() -> None:
+    doc = fitz.open()
+    page = doc.new_page(width=320, height=220)
+    blocks = [
+        {"bbox": [30, 30, 170, 55], "lines": [{"spans": [{"text": "Hello"}]}]},
+        {"bbox": [30, 65, 190, 90], "lines": [{"spans": [{"text": "world"}]}]},
+        {"bbox": [30, 100, 155, 125], "lines": [{"spans": [{"text": "again"}]}]},
+    ]
+    rects = rtl_layout_rects(page, blocks)
+    assert len(rects) == 3
+    assert all(rect.x0 <= 30 for rect in rects)
+    assert all(rect.x1 >= 290 for rect in rects)
+    doc.close()
 
 
 def test_rtl_page_render() -> None:
@@ -85,6 +102,7 @@ def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
         "fa",
         1,
         task,
+        "smoke-test",
     )
 
     assert result["pages"] == 1

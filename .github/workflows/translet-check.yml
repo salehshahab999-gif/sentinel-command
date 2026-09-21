@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - feat/translet-pdf-translator
+      - feat/translet-book-inputs
+      - fix/translet-rtl-layout
   pull_request:
     branches:
       - master
       - feat/pnt-multi-source-switch
+      - feat/translet-book-inputs
 
 jobs:
   next-check:

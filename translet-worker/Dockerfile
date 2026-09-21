@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY server.py /app/server.py
 
-RUN python -c 'import fitz; d=fitz.open(); p=d.new_page(); p.insert_htmlbox(fitz.Rect(40,40,560,120), """<div dir="rtl" style="direction:rtl;text-align:right;font-family: Noto Naskh Arabic;font-size:18pt;">سلام دنیا</div>"""); assert len(d.tobytes()) > 0; d.close(); print("PyMuPDF RTL smoke test: ok")'
+RUN python -c 'import fitz, server; d=fitz.open(); p=d.new_page(); failures=server.render_translated_page(p, [(fitz.Rect(40,40,560,120), "سلام دنیا", 18.0)]); assert failures == 0; assert len(d.tobytes()) > 0; d.close(); print("Sentinel RTL font + layout smoke test: ok")'
 
 RUN mkdir -p /data/input /data/output /data/cache
 
