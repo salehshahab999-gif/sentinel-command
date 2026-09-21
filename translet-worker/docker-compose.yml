@@ -23,6 +23,7 @@ services:
       TRANSLET_OCR_ENABLED: "1"
       TRANSLET_OCR_LANGUAGE: eng
       TRANSLET_OCR_DPI: "200"
+      TRANSLET_TRANSLATION_WORKERS: "4"
     command: ["python", "/app/server.py"]
     depends_on:
       redis:

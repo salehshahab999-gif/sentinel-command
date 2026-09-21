@@ -260,7 +260,7 @@ export default function TransletPage() {
         JSON.stringify({
           lang_in: "auto",
           lang_out: "fa",
-          thread: 1,
+          thread: 4,
         }),
       );
 
