@@ -7,7 +7,13 @@ import json
 import os
 import re
 import sqlite3
+import subprocess
+import shutil
 import time
+import zipfile
+import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
+from pathlib import PurePosixPath
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from threading import Lock
@@ -31,7 +37,9 @@ for directory in (INPUT_DIR, OUTPUT_DIR, CACHE_DIR):
 REDIS_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 RESULT_URL = os.environ.get("CELERY_RESULT", REDIS_URL)
 SHARED_SECRET_FALLBACK = "sentinel-translet-local-dev-secret"
-MAX_PAGES = 5000
+MAX_PAGES = int(os.environ.get("TRANSLET_MAX_PAGES", "10000"))
+SUPPORTED_EXTENSIONS = {".pdf", ".epub", ".txt", ".html", ".htm", ".mobi", ".azw", ".azw3"}
+CALIBRE_CONVERTER = shutil.which("ebook-convert")
 OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {"0", "false", "no"}
 OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
 OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
@@ -181,6 +189,276 @@ def cache_put(
     )
     connection.commit()
     connection.close()
+
+
+
+
+class BookHTMLParser(HTMLParser):
+    BLOCK_TAGS = {"p", "div", "section", "article", "li", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6", "title"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.blocks: list[tuple[str, str]] = []
+        self._current: list[str] = []
+        self._kind = "body"
+        self._depth = 0
+        self._skip_depth = 0
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        tag = tag.lower()
+        if tag in {"script", "style", "svg", "noscript"}:
+            self._skip_depth += 1
+            return
+        if self._skip_depth:
+            return
+        if tag in self.BLOCK_TAGS:
+            if self._current:
+                self._flush()
+            self._kind = "heading" if tag.startswith("h") or tag == "title" else "body"
+            self._depth = 1
+        elif self._depth:
+            self._depth += 1
+        elif tag == "br":
+            self._current.append("\n")
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if self._skip_depth:
+            if tag in {"script", "style", "svg", "noscript"}:
+                self._skip_depth -= 1
+            return
+        if tag in self.BLOCK_TAGS and self._depth:
+            self._depth -= 1
+            if self._depth == 0:
+                self._flush()
+        elif self._depth:
+            self._depth = max(0, self._depth - 1)
+
+    def handle_data(self, data: str) -> None:
+        if self._skip_depth:
+            return
+        text = re.sub(r"\s+", " ", data).strip()
+        if text:
+            if self._current and not self._current[-1].endswith((" ", "\n")):
+                self._current.append(" ")
+            self._current.append(text)
+
+    def _flush(self) -> None:
+        text = re.sub(r"[ \t]+", " ", "".join(self._current)).strip()
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        if text:
+            self.blocks.append((self._kind, text))
+        self._current = []
+        self._depth = 0
+        self._kind = "body"
+
+    def finish(self) -> list[tuple[str, str]]:
+        if self._current:
+            self._flush()
+        return self.blocks
+
+
+def decode_text_file(path: Path) -> str:
+    data = path.read_bytes()
+    for encoding in ("utf-8-sig", "utf-8", "utf-16", "cp1252", "latin-1"):
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return data.decode("utf-8", errors="replace")
+
+
+def txt_to_entries(path: Path) -> list[tuple[str, str]]:
+    text = decode_text_file(path).replace("\r\n", "\n").replace("\r", "\n")
+    heading_re = re.compile(
+        r"^(?:chapter|book|part|volume|prologue|epilogue|appendix)\b.*$",
+        re.IGNORECASE,
+    )
+    entries: list[tuple[str, str]] = []
+    paragraph: list[str] = []
+
+    def flush() -> None:
+        nonlocal paragraph
+        if paragraph:
+            text_block = " ".join(x.strip() for x in paragraph if x.strip()).strip()
+            if text_block:
+                entries.append(("body", text_block))
+        paragraph = []
+
+    for raw_line in text.split("\n"):
+        line = raw_line.strip()
+        if not line:
+            flush()
+            continue
+        if heading_re.match(line):
+            flush()
+            entries.append(("heading", line))
+        else:
+            paragraph.append(line)
+    flush()
+    return entries
+
+
+def html_to_entries(path: Path) -> list[tuple[str, str]]:
+    parser = BookHTMLParser()
+    parser.feed(decode_text_file(path))
+    return parser.finish()
+
+
+def epub_to_entries(path: Path) -> list[tuple[str, str]]:
+    with zipfile.ZipFile(path) as archive:
+        container_xml = archive.read("META-INF/container.xml")
+        container_root = ET.fromstring(container_xml)
+
+        rootfile = next(
+            node for node in container_root.iter()
+            if node.tag.rsplit("}", 1)[-1] == "rootfile"
+        )
+        opf_path = PurePosixPath(rootfile.attrib["full-path"])
+        opf_root = ET.fromstring(archive.read(str(opf_path)))
+
+        def local_name(tag: str) -> str:
+            return tag.rsplit("}", 1)[-1]
+
+        manifest: dict[str, str] = {}
+        for node in opf_root.iter():
+            if local_name(node.tag) == "item":
+                item_id = node.attrib.get("id")
+                href = node.attrib.get("href")
+                if item_id and href:
+                    manifest[item_id] = href
+
+        spine_ids: list[str] = []
+        for node in opf_root.iter():
+            if local_name(node.tag) == "itemref":
+                idref = node.attrib.get("idref")
+                if idref:
+                    spine_ids.append(idref)
+
+        entries: list[tuple[str, str]] = []
+        base = opf_path.parent
+        for item_id in spine_ids:
+            href = manifest.get(item_id)
+            if not href:
+                continue
+            target = (base / href.split("#", 1)[0]).as_posix()
+            target = str(PurePosixPath(target))
+            try:
+                data = archive.read(target)
+            except KeyError:
+                continue
+            parser = BookHTMLParser()
+            parser.feed(data.decode("utf-8", errors="replace"))
+            entries.extend(parser.finish())
+        return entries
+
+
+def wrap_pdf_text(text: str, font_name: str, font_size: float, width: float) -> list[str]:
+    words = re.split(r"(\s+)", text.strip())
+    lines: list[str] = []
+    current = ""
+
+    for piece in words:
+        if not piece:
+            continue
+        candidate = (current + piece).strip()
+        if not current or fitz.get_text_length(candidate, fontname=font_name, fontsize=font_size) <= width:
+            current = candidate
+            continue
+        lines.append(current)
+        current = piece.strip()
+
+    if current:
+        lines.append(current)
+    return lines or [""]
+
+
+def entries_to_pdf(entries: list[tuple[str, str]], output_path: Path) -> None:
+    doc = fitz.open()
+    page_width = 595
+    page_height = 842
+    margin_x = 52
+    top_y = 58
+    bottom_y = 54
+    text_width = page_width - (margin_x * 2)
+    cursor_y = top_y
+    page = doc.new_page(width=page_width, height=page_height)
+
+    def new_page() -> None:
+        nonlocal page, cursor_y
+        page = doc.new_page(width=page_width, height=page_height)
+        cursor_y = top_y
+
+    def put_block(kind: str, text: str) -> None:
+        nonlocal cursor_y
+        font_name = "helvB" if kind == "heading" else "helv"
+        font_size = 17 if kind == "heading" else 10.5
+        line_height = 22 if kind == "heading" else 15
+        gap_after = 11 if kind == "heading" else 8
+
+        for line in wrap_pdf_text(text, font_name, font_size, text_width):
+            if cursor_y + line_height > page_height - bottom_y:
+                new_page()
+            page.insert_text(
+                (margin_x, cursor_y),
+                line,
+                fontname=font_name,
+                fontsize=font_size,
+                color=(0.05, 0.06, 0.09),
+            )
+            cursor_y += line_height
+        cursor_y += gap_after
+
+    for kind, text in entries:
+        if text.strip():
+            put_block(kind, text)
+
+    doc.set_metadata({"title": output_path.stem, "subject": "Sentinel normalized book"})
+    doc.save(output_path, garbage=4, deflate=True, clean=True)
+    doc.close()
+
+
+def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | None]:
+    extension = input_path.suffix.lower()
+    if extension == ".pdf":
+        return input_path, None
+
+    normalized_dir = INPUT_DIR / "normalized"
+    normalized_dir.mkdir(parents=True, exist_ok=True)
+    normalized_pdf = normalized_dir / f"{job_id}-normalized.pdf"
+
+    if extension == ".txt":
+        entries = txt_to_entries(input_path)
+        entries_to_pdf(entries, normalized_pdf)
+        return normalized_pdf, normalized_pdf
+
+    if extension in {".html", ".htm"}:
+        entries = html_to_entries(input_path)
+        entries_to_pdf(entries, normalized_pdf)
+        return normalized_pdf, normalized_pdf
+
+    if extension == ".epub":
+        entries = epub_to_entries(input_path)
+        entries_to_pdf(entries, normalized_pdf)
+        return normalized_pdf, normalized_pdf
+
+    if extension in {".mobi", ".azw", ".azw3"}:
+        if not CALIBRE_CONVERTER:
+            raise RuntimeError(
+                "برای MOBI/AZW/AZW3 باید Calibre و دستور ebook-convert در Worker نصب باشد."
+            )
+        result = subprocess.run(
+            [CALIBRE_CONVERTER, str(input_path), str(normalized_pdf), "--output-profile", "tablet"],
+            capture_output=True,
+            text=True,
+            timeout=30 * 60,
+        )
+        if result.returncode != 0 or not normalized_pdf.exists():
+            details = (result.stderr or result.stdout or "").strip()
+            raise RuntimeError(f"تبدیل {extension} با Calibre ناموفق بود: {details[-2000:]}")
+        return normalized_pdf, normalized_pdf
+
+    raise RuntimeError(f"فرمت ورودی پشتیبانی نمی‌شود: {extension}")
 
 
 def split_for_google(text: str, limit: int = 4200) -> list[str]:
@@ -482,12 +760,28 @@ def translate_document(
     target_lang: str,
     threads: int,
     task: Task,
+    job_id: str,
 ) -> dict[str, Any]:
-    source_doc = fitz.open(input_path)
-    translated_doc = fitz.open(input_path)
+    normalized_path, normalized_cleanup = normalize_input_file(input_path, job_id)
+    source_doc = fitz.open(normalized_path)
+    translated_doc = fitz.open(normalized_path)
     dual_doc = fitz.open()
 
     total_pages = len(source_doc)
+    if total_pages > MAX_PAGES:
+        source_doc.close()
+        translated_doc.close()
+        if normalized_cleanup:
+            normalized_cleanup.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"کتاب {total_pages} صفحه دارد؛ حداکثر مجاز {MAX_PAGES} صفحه است."
+        )
+
+    task.update_state(
+        state="PROGRESS",
+        meta={"n": 0, "total": total_pages, "warnings": 0},
+    )
+
     warnings: list[str] = []
     ocr_pages = 0
     render_failures = 0
@@ -585,6 +879,8 @@ def translate_document(
     dual_doc.close()
 
     input_path.unlink(missing_ok=True)
+    if normalized_cleanup and normalized_cleanup != input_path:
+        normalized_cleanup.unlink(missing_ok=True)
 
     return {
         "pages": total_pages,
@@ -616,6 +912,7 @@ def translate_task(
         target_lang,
         threads,
         self,
+        job_id,
     )
 
 
@@ -635,10 +932,15 @@ def create_translate():
     uploaded = request.files.get("file")
 
     if uploaded is None or not uploaded.filename:
-        return jsonify({"error": "PDF file is required"}), 400
+        return jsonify({"error": "Book file is required"}), 400
 
-    if not uploaded.filename.lower().endswith(".pdf"):
-        return jsonify({"error": "Only PDF files are supported"}), 400
+    extension = Path(uploaded.filename).suffix.lower()
+    if extension not in SUPPORTED_EXTENSIONS:
+        return jsonify({
+            "error": (
+                "Unsupported format. Use PDF, EPUB, TXT, HTML, MOBI, AZW or AZW3."
+            )
+        }), 415
 
     try:
         data = json.loads(request.form.get("data", "{}"))
@@ -655,26 +957,22 @@ def create_translate():
     )
 
     job_id = str(__import__("uuid").uuid4())
-    input_path = INPUT_DIR / f"{job_id}.pdf"
+    input_path = INPUT_DIR / f"{job_id}{extension}"
     uploaded.save(input_path)
 
-    try:
-        with fitz.open(input_path) as uploaded_doc:
-            page_count = len(uploaded_doc)
-    except Exception as exc:
-        input_path.unlink(missing_ok=True)
-        return jsonify({"error": f"Invalid PDF: {exc}"}), 400
+    if extension == ".pdf":
+        try:
+            with fitz.open(input_path) as uploaded_doc:
+                page_count = len(uploaded_doc)
+        except Exception as exc:
+            input_path.unlink(missing_ok=True)
+            return jsonify({"error": f"Invalid PDF: {exc}"}), 400
 
-    if page_count > MAX_PAGES:
-        input_path.unlink(missing_ok=True)
-        return jsonify(
-            {
-                "error": (
-                    f"PDF has {page_count} pages; "
-                    f"maximum is {MAX_PAGES}."
-                )
-            }
-        ), 413
+        if page_count > MAX_PAGES:
+            input_path.unlink(missing_ok=True)
+            return jsonify({
+                "error": f"PDF has {page_count} pages; maximum is {MAX_PAGES}."
+            }), 413
 
     translate_task.apply_async(
         args=(
