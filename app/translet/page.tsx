@@ -425,7 +425,7 @@ export default function TransletPage() {
                 </div>
 
                 <div className="mt-5 text-xs text-slate-400">
-                  PDF / EPUB / TXT / HTML / MOBI / AZW / AZW3 · up to 1 GB · up to 10,000 pages
+                  PDF / EPUB / TXT / HTML / MOBI / AZW / AZW3 · up to 1 GB · up to 20,000 source pages
                 </div>
 
                 <input
@@ -522,7 +522,7 @@ export default function TransletPage() {
               <div className="mt-5 space-y-3 text-sm">
                 <div className="flex items-center gap-3">
                   <span>✓</span>
-                  <span className="text-slate-600">Layout preservation</span>
+                  <span className="text-slate-600">Text-only book layout</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
@@ -530,7 +530,7 @@ export default function TransletPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
-                  <span className="text-slate-600">Large book queue</span>
+                  <span className="text-slate-600">Large-book chunking + resume</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
@@ -548,13 +548,6 @@ export default function TransletPage() {
                     Download Persian PDF
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => downloadResult("dual")}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
-                  >
-                    Download bilingual PDF
-                  </button>
                 </div>
               )}
             </aside>
