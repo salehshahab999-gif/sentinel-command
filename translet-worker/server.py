@@ -37,12 +37,17 @@ for directory in (INPUT_DIR, OUTPUT_DIR, CACHE_DIR):
 REDIS_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 RESULT_URL = os.environ.get("CELERY_RESULT", REDIS_URL)
 SHARED_SECRET_FALLBACK = "sentinel-translet-local-dev-secret"
-MAX_PAGES = int(os.environ.get("TRANSLET_MAX_PAGES", "10000"))
+MAX_PAGES = int(os.environ.get("TRANSLET_MAX_PAGES", "20000"))
 SUPPORTED_EXTENSIONS = {".pdf", ".epub", ".txt", ".html", ".htm", ".mobi", ".azw", ".azw3"}
 CALIBRE_CONVERTER = shutil.which("ebook-convert")
 OCR_ENABLED = os.environ.get("TRANSLET_OCR_ENABLED", "1").lower() not in {"0", "false", "no"}
 OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
 OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
+BAIDU_APP_ID = os.environ.get("BAIDU_APP_ID", "").strip()
+BAIDU_SECRET_KEY = os.environ.get("BAIDU_SECRET_KEY", "").strip()
+TRANSLATION_PROVIDER = os.environ.get("TRANSLET_TRANSLATION_PROVIDER", "auto").lower().strip()
+TRANSLATION_CHUNK_LIMIT = max(1200, min(int(os.environ.get("TRANSLET_TRANSLATION_CHUNK_LIMIT", "3000")), 5000))
+GENERATE_DUAL = os.environ.get("TRANSLET_GENERATE_DUAL", "1").lower() not in {"0", "false", "no"}
 TRANSLATION_WORKERS = max(1, min(int(os.environ.get("TRANSLET_TRANSLATION_WORKERS", "4")), 4))
 PROGRESS_UPDATE_PAGES = max(1, min(int(os.environ.get("TRANSLET_PROGRESS_UPDATE_PAGES", "10")), 100))
 
@@ -437,6 +442,7 @@ def entries_to_pdf(entries: list[tuple[str, str]], output_path: Path) -> None:
 
 def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | None]:
     extension = input_path.suffix.lower()
+
     if extension == ".pdf":
         return input_path, None
 
@@ -456,29 +462,44 @@ def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | No
 
     if extension == ".epub":
         entries = epub_to_entries(input_path)
+        if not entries:
+            raise RuntimeError("EPUB contains no readable text blocks.")
         entries_to_pdf(entries, normalized_pdf)
         return normalized_pdf, normalized_pdf
 
     if extension in {".mobi", ".azw", ".azw3"}:
         if not CALIBRE_CONVERTER:
             raise RuntimeError(
-                "برای MOBI/AZW/AZW3 باید Calibre و دستور ebook-convert در Worker نصب باشد."
+                f"برای {extension} باید Calibre و دستور ebook-convert در Worker نصب باشد."
             )
-        result = subprocess.run(
-            [CALIBRE_CONVERTER, str(input_path), str(normalized_pdf), "--output-profile", "tablet"],
-            capture_output=True,
-            text=True,
-            timeout=30 * 60,
-        )
-        if result.returncode != 0 or not normalized_pdf.exists():
-            details = (result.stderr or result.stdout or "").strip()
-            raise RuntimeError(f"تبدیل {extension} با Calibre ناموفق بود: {details[-2000:]}")
-        return normalized_pdf, normalized_pdf
+
+        converted_epub = normalized_dir / f"{job_id}-source.epub"
+        try:
+            result = subprocess.run(
+                [CALIBRE_CONVERTER, str(input_path), str(converted_epub), "--output-profile", "tablet"],
+                capture_output=True,
+                text=True,
+                timeout=30 * 60,
+            )
+            if result.returncode != 0 or not converted_epub.exists():
+                details = (result.stderr or result.stdout or "").strip()
+                raise RuntimeError(
+                    f"تبدیل {extension} با Calibre ناموفق بود: {details[-2000:]}"
+                )
+
+            entries = epub_to_entries(converted_epub)
+            if not entries:
+                raise RuntimeError(f"فایل {extension} پس از تبدیل، متن قابل‌خواندن ندارد.")
+
+            entries_to_pdf(entries, normalized_pdf)
+            return normalized_pdf, normalized_pdf
+        finally:
+            converted_epub.unlink(missing_ok=True)
 
     raise RuntimeError(f"فرمت ورودی پشتیبانی نمی‌شود: {extension}")
 
 
-def split_for_google(text: str, limit: int = 4200) -> list[str]:
+def split_for_google(text: str, limit: int = TRANSLATION_CHUNK_LIMIT) -> list[str]:
     text = text.strip()
 
     if len(text) <= limit:
@@ -611,6 +632,81 @@ def google_translate_one(
     raise RuntimeError(f"Google translation failed: {last_error}")
 
 
+def baidu_translate_one(text: str, source_lang: str, target_lang: str) -> str:
+    if not BAIDU_APP_ID or not BAIDU_SECRET_KEY:
+        raise RuntimeError("Baidu translation credentials are not configured.")
+
+    salt = str(int(time.time() * 1000))
+    sign = hashlib.md5(
+        f"{BAIDU_APP_ID}{text}{salt}{BAIDU_SECRET_KEY}".encode("utf-8")
+    ).hexdigest()
+
+    response = requests.post(
+        "https://fanyi-api.baidu.com/api/trans/vip/translate",
+        data={
+            "q": text,
+            "from": source_lang or "auto",
+            "to": target_lang,
+            "appid": BAIDU_APP_ID,
+            "salt": salt,
+            "sign": sign,
+        },
+        timeout=(10, 60),
+    )
+    response.raise_for_status()
+    payload = response.json()
+
+    if payload.get("error_code"):
+        raise RuntimeError(
+            f"Baidu translation error {payload.get('error_code')}: "
+            f"{payload.get('error_msg', 'unknown error')}"
+        )
+
+    results = payload.get("trans_result")
+    if not isinstance(results, list):
+        raise RuntimeError("Baidu returned no translation result.")
+
+    translated = "\n".join(
+        str(item.get("dst", "")).strip()
+        for item in results
+        if isinstance(item, dict) and item.get("dst")
+    ).strip()
+
+    if not translated:
+        raise RuntimeError("Baidu returned an empty translation.")
+
+    return translated
+
+
+def translate_one_with_provider(
+    text: str,
+    source_lang: str,
+    target_lang: str,
+) -> str:
+    provider = TRANSLATION_PROVIDER or "auto"
+
+    if provider == "baidu":
+        return baidu_translate_one(text, source_lang, target_lang)
+
+    if provider == "google":
+        return google_translate_one(text, source_lang, target_lang)
+
+    errors: list[str] = []
+
+    if BAIDU_APP_ID and BAIDU_SECRET_KEY:
+        try:
+            return baidu_translate_one(text, source_lang, target_lang)
+        except Exception as exc:
+            errors.append(f"baidu: {exc}")
+
+    try:
+        return google_translate_one(text, source_lang, target_lang)
+    except Exception as exc:
+        errors.append(f"google: {exc}")
+
+    raise RuntimeError("All translation providers failed: " + " | ".join(errors))
+
+
 def translate_text(
     text: str,
     source_lang: str,
@@ -627,11 +723,25 @@ def translate_text(
     if cached is not None:
         return cached
 
-    parts = split_for_google(cleaned)
-    translated_parts = [
-        google_translate_one(part, source_lang, target_lang)
-        for part in parts
-    ]
+    parts = split_for_google(cleaned, TRANSLATION_CHUNK_LIMIT)
+    translated_parts: list[str] = []
+
+    for part in parts:
+        last_error: Exception | None = None
+        for attempt in range(5):
+            try:
+                translated_parts.append(
+                    translate_one_with_provider(part, source_lang, target_lang)
+                )
+                last_error = None
+                break
+            except Exception as exc:
+                last_error = exc
+                time.sleep(min(16, 2**attempt))
+
+        if last_error is not None:
+            raise RuntimeError(f"Translation failed: {last_error}")
+
     translated = "\n".join(translated_parts).strip()
 
     cache_put(
@@ -643,7 +753,6 @@ def translate_text(
     )
 
     return translated
-
 
 def block_text(block: dict[str, Any]) -> str:
     lines: list[str] = []
@@ -793,7 +902,7 @@ def translate_document(
     normalized_path, normalized_cleanup = normalize_input_file(input_path, job_id)
     source_doc = fitz.open(normalized_path)
     translated_doc = fitz.open(normalized_path)
-    dual_doc = fitz.open()
+    dual_doc = fitz.open() if GENERATE_DUAL else None
 
     total_pages = len(source_doc)
     if total_pages > MAX_PAGES:
@@ -871,16 +980,17 @@ def translate_document(
                 f"page {page_index + 1}: {render_failures} translated block(s) did not fit"
             )
 
-        dual_doc.insert_pdf(
-            source_doc,
-            from_page=page_index,
-            to_page=page_index,
-        )
-        dual_doc.insert_pdf(
-            translated_doc,
-            from_page=page_index,
-            to_page=page_index,
-        )
+        if dual_doc is not None:
+            dual_doc.insert_pdf(
+                source_doc,
+                from_page=page_index,
+                to_page=page_index,
+            )
+            dual_doc.insert_pdf(
+                translated_doc,
+                from_page=page_index,
+                to_page=page_index,
+            )
 
         current_page = page_index + 1
         if current_page % PROGRESS_UPDATE_PAGES == 0 or current_page == total_pages:
@@ -904,16 +1014,18 @@ def translate_document(
         deflate=True,
         clean=True,
     )
-    dual_doc.save(
-        dual_path,
-        garbage=4,
-        deflate=True,
-        clean=True,
-    )
+    if dual_doc is not None:
+        dual_doc.save(
+            dual_path,
+            garbage=4,
+            deflate=True,
+            clean=True,
+        )
 
     source_doc.close()
     translated_doc.close()
-    dual_doc.close()
+    if dual_doc is not None:
+        dual_doc.close()
 
     input_path.unlink(missing_ok=True)
     if normalized_cleanup and normalized_cleanup != input_path:
@@ -925,7 +1037,7 @@ def translate_document(
         "warnings": warnings[:100],
         "ocr_pages": ocr_pages,
         "render_failures": render_failures,
-        "dual_pages": total_pages * 2,
+        "dual_pages": total_pages * 2 if GENERATE_DUAL else 0,
     }
 
 
@@ -959,7 +1071,7 @@ def health():
         {
             "status": "ok",
             "service": "sentinel-translet",
-            "engine": "PyMuPDF HTML RTL renderer + Google Translate",
+            "engine": "PyMuPDF HTML RTL renderer + multi-provider translation",
         }
     )
 
