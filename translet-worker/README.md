@@ -116,3 +116,16 @@ The Sentinel UI auto-detects the source language for extractable text and always
 - EPUB text is parsed directly from the EPUB spine rather than rendered through Calibre, because Sentinel intentionally produces a text-only Persian PDF and does not need source images.
 - MOBI/AZW/AZW3 use Calibre when available.
 - Source language is sent as `auto`; Google Translate-compatible endpoints perform language detection.
+
+
+## Universal text-only translation mode
+
+- Source language is auto-detected; English, Chinese, Japanese, Russian and other supported source languages can use the same route.
+- Target language remains Persian (fa).
+- TXT, HTML and EPUB are normalized directly from their text structure.
+- MOBI/AZW/AZW3 use Calibre only as an input adapter; after conversion, only chapter/text blocks are kept and source images/CSS are discarded.
+- PDF image blocks are removed after text/OCR extraction, so the translated result is text-focused.
+- Docker deployment generates only the Persian PDF by default (TRANSLET_GENERATE_DUAL=0).
+- Default source PDF page ceiling is configurable and is now 20,000 pages.
+- Translation provider mode: auto, baidu, or google.
+- When Baidu credentials are configured, Baidu's 200+ language API is used first; provider failure falls back to the existing Google path in auto mode.
