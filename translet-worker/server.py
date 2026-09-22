@@ -413,7 +413,16 @@ def entries_to_pdf(entries: list[tuple[str, str]], output_path: Path) -> None:
 
     def put_block(kind: str, text: str) -> None:
         nonlocal cursor_y
-        font_name = "helvB" if kind == "heading" else "helv"
+
+        if re.search(r"[\\u4E00-\\u9FFF]", text):
+            font_name = "china-s"
+        elif re.search(r"[\\u3040-\\u30FF]", text):
+            font_name = "japan"
+        elif re.search(r"[\\uAC00-\\uD7AF]", text):
+            font_name = "korea"
+        else:
+            font_name = "helvB" if kind == "heading" else "helv"
+
         font_size = 17 if kind == "heading" else 10.5
         line_height = 22 if kind == "heading" else 15
         gap_after = 11 if kind == "heading" else 8
