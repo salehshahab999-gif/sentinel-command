@@ -1,7 +1,35 @@
-﻿translet-worker/*.pdf
+# --- node ---
+node_modules/
+
+# --- env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- local data / db ---
+data/
+database-backups/
+logs/
+*.db
+app/prisma/*.db
+app/prisma/sentinel-local-*.db
+app/generated/
+
+# --- next / vercel ---
+.next/
+.vercel/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# --- windows tool ---
+tools/windows-location-bridge/bin/
+tools/windows-location-bridge/obj/
+
+# --- translet worker artifacts ---
+translet-worker/*.pdf
 translet-worker/*.epub
 translet-worker/translet-output/
 translet-worker/epub-test/
-translet-worker/data.json
-translet-worker/make_token.py
 translet-worker/make_epub.py
+translet-worker/make_token.py
+translet-worker/data.json
