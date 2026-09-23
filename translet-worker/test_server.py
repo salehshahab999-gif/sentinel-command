@@ -6,6 +6,7 @@ import fitz
 
 os.environ["TRANSLET_ENV"] = "development"
 os.environ["TRANSLET_DATA_DIR"] = os.path.join(tempfile.gettempdir(), "sentinel-translet-test-data")
+os.environ["TRANSLET_GENERATE_DUAL"] = "1"
 
 from server import (
     _validate_token,
@@ -44,6 +45,18 @@ def test_helpers() -> None:
     assert cache_key("en", "fa", "hello") != cache_key(
         "en", "fa", "goodbye"
     )
+
+
+def test_local_engine_detection() -> None:
+    from local_engines import _detect
+
+    engine, source = _detect("你好，这是中文测试。")
+    assert engine == "nllb"
+    assert source == "zho_Hans"
+
+    engine, source = _detect("This is an English test.")
+    assert engine == "nllb"
+    assert source == "eng_Latn"
 
 
 def test_rtl_page_render() -> None:
