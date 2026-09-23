@@ -8,6 +8,7 @@ on:
     branches:
       - feat/translet-book-inputs
       - master
+  workflow_dispatch:
 
 jobs:
   worker-test:
@@ -16,12 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install worker dependencies
+      - name: Install worker requirements
         run: python -m pip install -r translet-worker/requirements.txt
 
       - name: Compile worker files
@@ -34,9 +35,6 @@ jobs:
       - name: Build worker image
         run: docker build -t sentinel-translet-test ./translet-worker
 
-      - name: EPUB to PDF end-to-end test
+      - name: Calibre headless smoke test
         run: |
-          docker run --rm -d --name tt-test sentinel-translet-test sleep 300
-          docker cp translet-worker/../.github/epub-smoke.py tt-test:/tmp/epub-smoke.py 2>/dev/null || true
-          docker exec tt-test python -c "import zipfile, os; print('epub check placeholder')"
-          docker stop tt-test || true
+          docker run --rm sentinel-translet-test sh -lc "export QTWEBENGINE_CHROMIUM_FLAGS='--no-sandbox --disable-gpu --headless --disable-dev-shm-usage'; export QT_QPA_PLATFORM=offscreen; export LIBGL_ALWAYS_SOFTWARE=1; ebook-convert --version"
