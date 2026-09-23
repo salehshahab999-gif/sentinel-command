@@ -343,7 +343,12 @@ def _translate_batch(
     return outputs
 
 
-def translate_local_text(text: str, source_lang: str, target_lang: str) -> str:
+def translate_local_text(
+    text: str,
+    source_lang: str,
+    target_lang: str,
+    forced_engine: str | None = None,
+) -> str:
     cleaned = text.strip()
     if not cleaned:
         return ""
@@ -355,10 +360,14 @@ def translate_local_text(text: str, source_lang: str, target_lang: str) -> str:
     else:
         engine, detected_source = "madlad", source_lang
 
+    if forced_engine in {"nllb", "madlad"}:
+        engine = forced_engine
+
     if LOCAL_ENGINE_MODE in {"nllb", "madlad"}:
         engine = LOCAL_ENGINE_MODE
-        if engine == "madlad":
-            detected_source = None
+
+    if engine == "madlad":
+        detected_source = None
 
     parts = _split_text(cleaned)
     translated: list[str | None] = [None] * len(parts)
