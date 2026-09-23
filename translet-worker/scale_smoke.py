@@ -19,16 +19,27 @@ class FakeTask:
 
     def update_state(self, *, state: str, meta: dict) -> None:
         self.last = (state, meta)
+        n = int(meta.get("n", 0) or 0)
+        total = int(meta.get("total", 0) or 0)
+        if n and (n % 500 == 0 or n == total):
+            print(
+                f"progress_pages={n}/{total} "
+                f"warnings={meta.get('warnings', 0)} "
+                f"render_failures={meta.get('render_failures', 0)}",
+                flush=True,
+            )
 
 
 def build_pdf(path: Path, pages: int) -> None:
     doc = fitz.open()
+    prose = (
+        "This is representative novel prose used for Sentinel scale testing. " * 24
+    )
     for index in range(pages):
         page = doc.new_page(width=595, height=842)
-        page.insert_text((52, 68), f"Chapter page {index + 1}", fontsize=14)
         page.insert_textbox(
-            fitz.Rect(52, 100, 543, 760),
-            "This is representative novel prose used for Sentinel scale testing. " * 24,
+            fitz.Rect(52, 62, 543, 770),
+            f"Chapter page {index + 1}\n\n{prose}",
             fontsize=10,
         )
     doc.save(path, garbage=4, deflate=True, clean=True)
