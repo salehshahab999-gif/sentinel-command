@@ -90,6 +90,11 @@ def main() -> None:
     print(f"mono_mb={mono.stat().st_size / 1024 / 1024:.2f}")
     print(f"dual_mb={dual.stat().st_size / 1024 / 1024:.2f}")
 
+    assert result["pages"] == pages
+    assert result["render_failures"] == 0
+    assert result["dual_pages"] == 0
+    assert mono.exists() and mono.stat().st_size > 0
+
 
 if __name__ == "__main__":
     main()
