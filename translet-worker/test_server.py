@@ -203,6 +203,7 @@ if __name__ == "__main__":
     test_helpers()
     test_rtl_page_render()
     test_output_is_text_only()
+    test_local_engine_detection()
 
     from tempfile import TemporaryDirectory
 
@@ -211,8 +212,6 @@ if __name__ == "__main__":
             Path(directory),
             monkeypatch=_DirectMonkeyPatch(),
         )
-
-    from tempfile import TemporaryDirectory
 
     with TemporaryDirectory() as directory:
         test_translation_pdf_pipeline(
