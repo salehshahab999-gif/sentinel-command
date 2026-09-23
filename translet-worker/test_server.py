@@ -90,14 +90,26 @@ def test_rtl_page_render() -> None:
 
 
 def test_output_is_text_only() -> None:
-    doc = fitz.open()
-    page = doc.new_page(width=320, height=220)
-    pix = fitz.Pixmap(fitz.csRGB, (0, 0, 20, 20), 0)
-    page.insert_image(fitz.Rect(20, 20, 80, 80), pixmap=pix)
-    assert page.get_images(full=True)
-    remove_page_images(page)
-    assert not page.get_images(full=True)
-    doc.close()
+    with tempfile.TemporaryDirectory() as directory:
+        source_path = Path(directory) / "image-source.pdf"
+        output_path = Path(directory) / "image-output.pdf"
+
+        doc = fitz.open()
+        page = doc.new_page(width=320, height=220)
+        pix = fitz.Pixmap(fitz.csRGB, (0, 0, 20, 20), 0)
+        page.insert_image(fitz.Rect(20, 20, 80, 80), pixmap=pix)
+
+        assert page.get_images(full=True)
+        assert page.get_image_info(xrefs=True)
+
+        remove_page_images(page)
+        doc.save(output_path, garbage=4, deflate=True, clean=True)
+        doc.close()
+
+        with fitz.open(output_path) as cleaned:
+            assert not cleaned[0].get_image_info(xrefs=True)
+            cleaned[0].clean_contents()
+            assert not cleaned[0].get_images(full=True)
 
 
 def test_image_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
