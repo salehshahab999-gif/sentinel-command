@@ -9,6 +9,7 @@ os.environ["TRANSLET_DATA_DIR"] = os.path.join(tempfile.gettempdir(), "sentinel-
 os.environ["TRANSLET_GENERATE_DUAL"] = "1"
 
 from server import (
+    MADLAD_LANGUAGE_COUNT,
     _validate_token,
     cache_key,
     render_translated_page,
@@ -45,6 +46,20 @@ def test_helpers() -> None:
     assert cache_key("en", "fa", "hello") != cache_key(
         "en", "fa", "goodbye"
     )
+
+
+def test_madlad_language_catalog() -> None:
+    from local_engines import language_catalog
+
+    catalog = language_catalog()
+    assert MADLAD_LANGUAGE_COUNT == len(catalog)
+    assert MADLAD_LANGUAGE_COUNT >= 400
+
+    codes = {item["code"] for item in catalog}
+    assert "en" in codes
+    assert "fa" in codes
+    assert "zh" in codes
+    assert "ja" in codes
 
 
 def test_local_engine_detection() -> None:
@@ -204,6 +219,7 @@ if __name__ == "__main__":
     test_rtl_page_render()
     test_output_is_text_only()
     test_local_engine_detection()
+    test_madlad_language_catalog()
 
     from tempfile import TemporaryDirectory
 
