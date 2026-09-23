@@ -3,6 +3,7 @@ name: Sentinel Translet CI
 on:
   push:
     branches:
+      - main
       - master
       - feat/translet-book-inputs
       - feat/translet-pdf-translator
@@ -10,6 +11,7 @@ on:
       - feat/pnt-multi-source-switch
   pull_request:
     branches:
+      - main
       - master
   workflow_dispatch:
 
