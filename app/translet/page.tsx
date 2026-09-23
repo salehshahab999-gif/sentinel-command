@@ -566,9 +566,9 @@ export default function TransletPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="text-2xl font-bold">200+</div>
+            <div className="text-2xl font-bold">419</div>
             <div className="mt-1 text-xs text-slate-500">
-              NLLB language coverage → Persian
+              NLLB + MADLAD → Persian
             </div>
           </div>
         </div>
