@@ -40,6 +40,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate Docker Compose
+        run: docker compose -f translet-worker/docker-compose.yml config
+
       - name: Build translation worker image
         run: docker build -t sentinel-translet-universal-test ./translet-worker
 
