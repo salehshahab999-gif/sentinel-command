@@ -26,6 +26,7 @@ import requests
 import sentencepiece as spm
 from celery import Celery, Task
 from huggingface_hub import snapshot_download
+from local_engines import translate_local_text as universal_local_translate_text
 from flask import Flask, abort, jsonify, request, send_file
 
 
@@ -1151,7 +1152,7 @@ def translate_text(
     provider = TRANSLATION_PROVIDER or "local"
 
     if provider in {"local", "nllb"}:
-        return local_translate_text(cleaned, source_lang, target_lang)
+        return universal_local_translate_text(cleaned, source_lang, target_lang)
 
     if provider == "auto":
         try:
