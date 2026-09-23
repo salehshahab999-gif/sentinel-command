@@ -1250,23 +1250,45 @@ def rtl_html(text: str, font_size: float) -> str:
 
 
 def remove_page_images(page: fitz.Page) -> None:
-    """Remove embedded images while leaving the page's text geometry intact."""
+    """Remove every displayed image, including inline images without an xref."""
     image_rects: list[fitz.Rect] = []
-    for item in page.get_images(full=True):
-        if not item or not item[0]:
-            continue
-        try:
-            image_rects.extend(page.get_image_rects(int(item[0]), transform=False))
-        except Exception:
-            continue
 
+    try:
+        for info in page.get_image_info(xrefs=True):
+            bbox = info.get("bbox")
+            if not bbox:
+                continue
+            rect = fitz.Rect(bbox)
+            if not rect.is_empty and rect.intersects(page.rect):
+                image_rects.append(rect)
+    except Exception:
+        # Fall back to xref-based resources for malformed or legacy PDFs.
+        for item in page.get_images(full=True):
+            if not item or not item[0]:
+                continue
+            try:
+                image_rects.extend(
+                    page.get_image_rects(int(item[0]), transform=False)
+                )
+            except Exception:
+                continue
+
+    seen: set[tuple[float, float, float, float]] = set()
+    unique_rects: list[fitz.Rect] = []
     for rect in image_rects:
+        key = (rect.x0, rect.y0, rect.x1, rect.y1)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rects.append(rect)
+
+    for rect in unique_rects:
         try:
             page.add_redact_annot(rect, fill=(1, 1, 1))
         except Exception:
             pass
 
-    if image_rects:
+    if unique_rects:
         page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE)
 
 
