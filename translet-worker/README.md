@@ -12,7 +12,7 @@ Vercel عبور نکنند.
 - Celery + Redis: صف پردازش
 - SQLite: cache ترجمه روی Worker
 - PyMuPDF HTML renderer: خروجی RTL فارسی
-- NLLB-200 600M INT8 local engine: ترجمه متن روی CPU، بدون API و بدون سهمیه
+- NLLB-200 600M INT8 + MADLAD-400 3B INT8 local engines: ترجمه متن روی CPU، بدون API و بدون سهمیه
 - Tesseract OCR + PyMuPDF OCR fallback: خواندن PDFهای image-only انگلیسی
 
 Vercel برای Function request body سقف 4.5MB دارد، بنابراین PDF مستقیم از
@@ -91,7 +91,7 @@ Worker:
 
 ## Local model
 
-مدل پیش‌فرض `mijuanlo/nllb-200-distilled-600M-ct2-int8` یک تبدیل CTranslate2 از NLLB-200 Distilled 600M است و حدود 600MB وزن INT8 دارد. مدل در اولین ترجمه داخل volume دانلود و سپس cache می‌شود. NLLB-200 تحت CC-BY-NC-4.0 منتشر شده و برای استفاده شخصی/غیرتجاری مناسب است؛ شرایط مجوز مدل باید رعایت شود.
+مدل سبک پیش‌فرض `mijuanlo/nllb-200-distilled-600M-ct2-int8` یک تبدیل CTranslate2 از NLLB-200 Distilled 600M است. برای پوشش بالاتر، `cstr/madlad400-3b-ct2-int8` به‌عنوان موتور دوم محلی استفاده می‌شود و کارت مدل آن 419 زبان را اعلام می‌کند. مدل در اولین ترجمه داخل volume دانلود و سپس cache می‌شود. NLLB-200 تحت CC-BY-NC-4.0 منتشر شده و برای استفاده شخصی/غیرتجاری مناسب است؛ شرایط مجوز مدل باید رعایت شود.
 
 پیش‌فرض‌های local engine:
 
@@ -102,6 +102,10 @@ TRANSLET_LOCAL_MODEL_COMPUTE_TYPE=int8
 TRANSLET_LOCAL_MODEL_INTRA_THREADS=4
 TRANSLET_LOCAL_MODEL_BATCH_SIZE=4
 TRANSLET_ALLOW_CLOUD_FALLBACK=0
+TRANSLET_LOCAL_ENGINE=auto
+TRANSLET_MADLAD_MODEL_REPO=cstr/madlad400-3b-ct2-int8
+TRANSLET_MADLAD_INTRA_THREADS=2
+TRANSLET_MADLAD_BATCH_SIZE=1
 ```
 
 ## License
@@ -142,5 +146,5 @@ The Sentinel UI auto-detects the source language for extractable text and always
 - PDF image blocks are removed after text/OCR extraction, so the translated result is text-focused.
 - Docker deployment generates only the Persian PDF by default (TRANSLET_GENERATE_DUAL=0).
 - Default source PDF page ceiling is configurable and is now 20,000 pages.
-- Translation provider mode: local (default), auto, baidu, or google.
-- Cloud providers are not used in local mode. `auto` can optionally fall back to Baidu/Google only when `TRANSLET_ALLOW_CLOUD_FALLBACK=1`.
+- Translation provider mode: local (default), nllb, madlad, auto, baidu, or google.
+- Cloud providers are not used in local mode. `local` automatically routes known languages to NLLB and falls back to MADLAD for broader coverage. `TRANSLET_ALLOW_CLOUD_FALLBACK=1` is required for cloud fallback.
