@@ -46,6 +46,10 @@ PDF_TRANSLATOR_SHARED_SECRET=sentinel-translet-local-dev-secret
 
 در محیط عمومی مقدار secret را عوض کن و همان مقدار را روی Worker قرار بده.
 
+## Local language catalog
+
+Sentinel vendors the MADLAD language catalog in `madlad_language_catalog.py` and persists the catalog into the Worker SQLite database (`languages` table) inside the same `/data` volume used for translation cache and models. The catalog contains 418 named language entries from the referenced MADLAD language mapping; the current MADLAD model card advertises 419 languages. `GET /v1/languages` exposes the catalog without requiring a second service.
+
 ## Routes
 
 Sentinel:
@@ -57,6 +61,7 @@ Sentinel:
 Worker:
 
 - `GET /health`
+- `GET /v1/languages`
 - `POST /v1/translate`
 - `GET /v1/translate/<id>`
 - `DELETE /v1/translate/<id>`
@@ -147,4 +152,4 @@ The Sentinel UI auto-detects the source language for extractable text and always
 - Docker deployment generates only the Persian PDF by default (TRANSLET_GENERATE_DUAL=0).
 - Default source PDF page ceiling is configurable and is now 20,000 pages.
 - Translation provider mode: local (default), nllb, madlad, auto, baidu, or google.
-- Cloud providers are not used in local mode. `local` automatically routes known languages to NLLB and falls back to MADLAD for broader coverage. `TRANSLET_ALLOW_CLOUD_FALLBACK=1` is required for cloud fallback.
+- Cloud providers are not used in local mode. `local` automatically routes common detected languages to NLLB and uses MADLAD for broader coverage. The full MADLAD language catalog is persisted locally for selection, inspection and future explicit language routing. `TRANSLET_ALLOW_CLOUD_FALLBACK=1` is required for cloud fallback.
