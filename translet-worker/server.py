@@ -442,11 +442,16 @@ def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | No
             raise RuntimeError(
                 f"برای {extension} باید Calibre و دستور ebook-convert در Worker نصب باشد."
             )
+        calibre_env = os.environ.copy()
+        calibre_env["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox --disable-gpu --headless --disable-dev-shm-usage"
+        calibre_env["QT_QPA_PLATFORM"] = "offscreen"
+        calibre_env["LIBGL_ALWAYS_SOFTWARE"] = "1"
         result = subprocess.run(
             [CALIBRE_CONVERTER, str(input_path), str(normalized_pdf), "--output-profile", "tablet"],
             capture_output=True,
             text=True,
             timeout=30 * 60,
+            env=calibre_env,
         )
         if result.returncode != 0 or not normalized_pdf.exists():
             details = (result.stderr or result.stdout or "").strip()
