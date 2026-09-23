@@ -700,9 +700,9 @@ def entries_to_rtl_pdf(
             )
 
         html_text = (
-            '<div dir="rtl" style="direction:rtl;text-align:right;'
+            f'<div dir="rtl" style="direction:rtl;text-align:right;'
             "font-family:'Noto Naskh Arabic','Noto Sans Arabic','DejaVu Sans',"
-            f"sans-serif;{style}">{safe}</div>"
+            f'sans-serif;{style}">{safe}</div>'
         )
 
         box = fitz.Rect(
