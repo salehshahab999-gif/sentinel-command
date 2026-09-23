@@ -13,6 +13,7 @@ on:
       - master
       - feat/pnt-multi-source-switch
       - feat/translet-book-inputs
+      - feat/translet-scale-optimization-v2
 
 jobs:
   next-check:
@@ -49,7 +50,6 @@ jobs:
         run: docker compose -f translet-worker/docker-compose.yml config
       - name: Build worker image
         run: docker build -t sentinel-translet-check ./translet-worker
-
 
   scale-smoke:
     runs-on: ubuntu-latest
