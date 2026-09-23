@@ -12,6 +12,7 @@ import ctranslate2
 import langid
 import sentencepiece as spm
 from huggingface_hub import snapshot_download
+from madlad_language_catalog import langid_to_language
 
 
 DATA_DIR = Path(os.environ.get("TRANSLET_DATA_DIR", "/data"))
@@ -61,6 +62,12 @@ CHUNK_LIMIT = max(
     min(int(os.environ.get("TRANSLET_TRANSLATION_CHUNK_LIMIT", "3000")), 5000),
 )
 
+MADLAD_LANGUAGES = {
+    str(code).strip("<>"): str(name).strip()
+    for code, name in langid_to_language.items()
+}
+MADLAD_LANGUAGE_COUNT = len(MADLAD_LANGUAGES)
+
 NLLB_CODES_BY_ISO = {
     "af": "afr_Latn", "am": "amh_Ethi", "ar": "arb_Arab", "as": "asm_Beng",
     "az": "azj_Latn", "be": "bel_Cyrl", "bg": "bul_Cyrl", "bn": "ben_Beng",
@@ -106,8 +113,31 @@ def _init_cache() -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS languages (
+                code TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                engine TEXT NOT NULL,
+                model_language_tag TEXT NOT NULL
+            )
+            """
+        )
+        connection.executemany(
+            """
+            INSERT INTO languages (code, name, engine, model_language_tag)
+            VALUES (?, ?, 'madlad400', ?)
+            ON CONFLICT(code) DO UPDATE SET
+                name=excluded.name,
+                engine=excluded.engine,
+                model_language_tag=excluded.model_language_tag
+            """,
+            [
+                (code.strip("<>"), name, code)
+                for code, name in langid_to_language.items()
+            ],
+        )
         connection.commit()
-
 
 def _cache_key(source: str, target: str, text: str) -> str:
     return hashlib.sha256(
@@ -140,6 +170,13 @@ def _cache_put(source: str, target: str, text: str, translated: str) -> None:
             (key, source, target, text, translated),
         )
         connection.commit()
+
+
+def language_catalog() -> list[dict[str, str]]:
+    return [
+        {"code": code, "name": name, "engine": "madlad400", "model_tag": f"<2{code}>"}
+        for code, name in sorted(MADLAD_LANGUAGES.items())
+    ]
 
 
 def _split_text(text: str) -> list[str]:
