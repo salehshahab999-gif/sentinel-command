@@ -210,7 +210,7 @@ export default function TransletPage() {
 
     if (!nextFile) {
       setFile(null);
-      setMessage("یک فایل کتاب انگلیسی را انتخاب یا اینجا رها کن.");
+      setMessage("یک فایل کتاب با هر زبان را انتخاب یا اینجا رها کن.");
       return;
     }
 
@@ -260,7 +260,7 @@ export default function TransletPage() {
         JSON.stringify({
           lang_in: "auto",
           lang_out: "fa",
-          thread: 4,
+          thread: 1,
         }),
       );
 
@@ -282,7 +282,7 @@ export default function TransletPage() {
 
       setJobId(data.id);
       setStatus({ state: "PROGRESS", info: { n: 0, total: 0 } });
-      setMessage("کار ثبت شد؛ پردازش صفحه‌به‌صفحه شروع می‌شود...");
+      setMessage("کار ثبت شد؛ پردازش متنی و مرحله‌ای شروع می‌شود...");
     } catch (error) {
       setBusy(false);
       setStatus({ state: "FAILURE" });
@@ -425,7 +425,7 @@ export default function TransletPage() {
                 </div>
 
                 <div className="mt-5 text-xs text-slate-400">
-                  PDF / EPUB / TXT / HTML / MOBI / AZW / AZW3 · up to 1 GB · up to 20,000 source pages
+                  PDF / EPUB / TXT / HTML / MOBI / AZW / AZW3 · up to 1 GB · up to 20,000 source pages · local NLLB
                 </div>
 
                 <input
@@ -522,7 +522,7 @@ export default function TransletPage() {
               <div className="mt-5 space-y-3 text-sm">
                 <div className="flex items-center gap-3">
                   <span>✓</span>
-                  <span className="text-slate-600">Text-only book layout</span>
+                  <span className="text-slate-600">Direct text pipeline for books</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
@@ -530,7 +530,7 @@ export default function TransletPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
-                  <span className="text-slate-600">Large-book chunking + resume</span>
+                  <span className="text-slate-600">Large-book chunking + local cache</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span>✓</span>
@@ -561,14 +561,14 @@ export default function TransletPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="text-2xl font-bold">10,000</div>
+            <div className="text-2xl font-bold">20,000</div>
             <div className="mt-1 text-xs text-slate-500">pages target</div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="text-2xl font-bold">1 → 1</div>
+            <div className="text-2xl font-bold">200+</div>
             <div className="mt-1 text-xs text-slate-500">
-              Any language to Persian
+              NLLB language coverage → Persian
             </div>
           </div>
         </div>
