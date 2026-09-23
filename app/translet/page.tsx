@@ -161,7 +161,7 @@ export default function TransletPage() {
           const total = data.info?.total ?? 0;
           setMessage(
             total
-              ? `در حال ترجمه صفحه ${n.toLocaleString()} از ${total.toLocaleString()}`
+              ? `در حال ترجمه بخش ${n.toLocaleString()} از ${total.toLocaleString()}`
               : "در حال آماده‌سازی موتور ترجمه...",
           );
           timer = setTimeout(poll, 1800);
