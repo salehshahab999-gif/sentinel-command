@@ -1254,7 +1254,9 @@ def remove_page_images(page: fitz.Page) -> None:
     image_rects: list[fitz.Rect] = []
 
     try:
-        for info in page.get_image_info(xrefs=True):
+        # We only need displayed image bboxes. Avoid xrefs=True because it
+        # computes extra hashes and is materially slower on large PDFs.
+        for info in page.get_image_info(xrefs=False):
             bbox = info.get("bbox")
             if not bbox:
                 continue
