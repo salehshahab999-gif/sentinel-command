@@ -85,6 +85,69 @@ def test_output_is_text_only() -> None:
     doc.close()
 
 
+def test_image_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
+    source_path = tmp_path / "image-input.pdf"
+    mono_path = tmp_path / "image-mono.pdf"
+    dual_path = tmp_path / "image-dual.pdf"
+
+    source_doc = fitz.open()
+    page = source_doc.new_page(width=320, height=220)
+
+    # Real embedded raster image: the pipeline must extract text/OCR first,
+    # then remove the source image from the translated result.
+    pix = fitz.Pixmap(fitz.csRGB, (0, 0, 24, 24), 0)
+    pix.clear_with(0xD0D0D0)
+    page.insert_image(fitz.Rect(200, 30, 290, 120), pixmap=pix)
+    page.insert_text((30, 55), "Image page test", fontsize=16)
+
+    source_doc.save(source_path)
+    source_doc.close()
+
+    monkeypatch.setattr(
+        "server.translate_text",
+        lambda text, source_lang, target_lang: "آزمایش صفحه تصویری",
+    )
+    monkeypatch.setattr(
+        "server.extract_page_blocks",
+        lambda page: (
+            [
+                {
+                    "type": 0,
+                    "bbox": [30.0, 30.0, 180.0, 70.0],
+                    "lines": [
+                        {
+                            "spans": [
+                                {"text": "Image page test", "size": 16},
+                            ]
+                        }
+                    ],
+                }
+            ],
+            False,
+            None,
+        ),
+    )
+
+    task = FakeTask()
+    result = translate_document(
+        source_path,
+        mono_path,
+        dual_path,
+        "auto",
+        "fa",
+        1,
+        task,
+        "image-test-job",
+    )
+
+    assert result["pages"] == 1
+    assert mono_path.exists()
+    with fitz.open(mono_path) as mono:
+        assert len(mono) == 1
+        assert mono[0].get_text().strip()
+        assert not mono[0].get_images(full=True)
+
+
 def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
     source_path = tmp_path / "input.pdf"
     mono_path = tmp_path / "mono.pdf"
@@ -140,6 +203,14 @@ if __name__ == "__main__":
     test_helpers()
     test_rtl_page_render()
     test_output_is_text_only()
+
+    from tempfile import TemporaryDirectory
+
+    with TemporaryDirectory() as directory:
+        test_image_pdf_pipeline(
+            Path(directory),
+            monkeypatch=_DirectMonkeyPatch(),
+        )
 
     from tempfile import TemporaryDirectory
 
