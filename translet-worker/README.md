@@ -12,7 +12,7 @@ Vercel عبور نکنند.
 - Celery + Redis: صف پردازش
 - SQLite: cache ترجمه روی Worker
 - PyMuPDF HTML renderer: خروجی RTL فارسی
-- Google Translate endpoint: ترجمه متن
+- NLLB-200 600M INT8 local engine: ترجمه متن روی CPU، بدون API و بدون سهمیه
 - Tesseract OCR + PyMuPDF OCR fallback: خواندن PDFهای image-only انگلیسی
 
 Vercel برای Function request body سقف 4.5MB دارد، بنابراین PDF مستقیم از
@@ -68,9 +68,9 @@ Worker:
 ## PDF handling
 
 - سقف ورودی Worker: 1GB
-- ترجمه متن‌های طولانی به قطعات کوچک‌تر از سقف درخواست Google شکسته می‌شود.
-- cache محلی باعث می‌شود متن تکراری دوباره ترجمه نشود.
-- ترجمهٔ شبکه‌ای به‌صورت پیش‌فرض با 4 درخواست همزمان انجام می‌شود و sessionهای HTTP بین درخواست‌ها reused می‌شوند.
+- متن‌های طولانی با NLLB محلی به chunkهای کوچک‌تر شکسته می‌شوند و با batching روی CPU ترجمه می‌شوند.
+- cache محلی باعث می‌شود chunkهای تکراری دوباره ترجمه نشوند و کار بعد از توقف بتواند از cache ادامه بگیرد.
+- مسیر محلی پیش‌فرض است؛ Baidu/Google فقط با تنظیم provider یا fallback صریح فعال می‌شوند.
 - برای PDFهای image-only، قبل از حذف تصاویر یک بار OCR انگلیسی با Tesseract/PyMuPDF امتحان می‌شود؛ خروجی نهایی متن‌محور و بدون تصاویر است.
 - OCR فقط روی صفحه‌هایی اجرا می‌شود که استخراج متن عادی برای آن‌ها خالی باشد،
   چون OCR بسیار کندتر از استخراج متن استاندارد است.
@@ -89,9 +89,24 @@ Worker:
 قدیمی low-level pdf2zh جدا شده است، چون upstream PDFMathTranslate هنوز یک issue
 باز برای shaping/BiDi فارسی و عربی دارد.
 
+## Local model
+
+مدل پیش‌فرض `mijuanlo/nllb-200-distilled-600M-ct2-int8` یک تبدیل CTranslate2 از NLLB-200 Distilled 600M است و حدود 600MB وزن INT8 دارد. مدل در اولین ترجمه داخل volume دانلود و سپس cache می‌شود. NLLB-200 تحت CC-BY-NC-4.0 منتشر شده و برای استفاده شخصی/غیرتجاری مناسب است؛ شرایط مجوز مدل باید رعایت شود.
+
+پیش‌فرض‌های local engine:
+
+```env
+TRANSLET_TRANSLATION_PROVIDER=local
+TRANSLET_LOCAL_MODEL_REPO=mijuanlo/nllb-200-distilled-600M-ct2-int8
+TRANSLET_LOCAL_MODEL_COMPUTE_TYPE=int8
+TRANSLET_LOCAL_MODEL_INTRA_THREADS=4
+TRANSLET_LOCAL_MODEL_BATCH_SIZE=4
+TRANSLET_ALLOW_CLOUD_FALLBACK=0
+```
+
 ## License
 
-این Worker کد اختصاصی Sentinel است و از Google Translate و PyMuPDF استفاده می‌کند.
+این Worker کد اختصاصی Sentinel است و برای ترجمه محلی از NLLB/CTranslate2 و برای رندر PDF از PyMuPDF استفاده می‌کند.
 شرایط مجوز هر dependency باید رعایت شود.
 
 
@@ -115,10 +130,10 @@ The Sentinel UI auto-detects the source language for extractable text and always
 
 - EPUB text is parsed directly from the EPUB spine rather than rendered through Calibre, because Sentinel intentionally produces a text-only Persian PDF and does not need source images.
 - MOBI/AZW/AZW3 use Calibre when available.
-- Source language is sent as `auto`; Google Translate-compatible endpoints perform language detection.
+- Source language is sent as `auto`; local detection uses langid plus direct CJK script detection. NLLB language codes can also be supplied directly to the API for languages outside the built-in detector.
 
 
-## Universal text-only translation mode
+## Local-first universal text-only translation mode
 
 - Source language is auto-detected; English, Chinese, Japanese, Russian and other supported source languages can use the same route.
 - Target language remains Persian (fa).
@@ -127,5 +142,5 @@ The Sentinel UI auto-detects the source language for extractable text and always
 - PDF image blocks are removed after text/OCR extraction, so the translated result is text-focused.
 - Docker deployment generates only the Persian PDF by default (TRANSLET_GENERATE_DUAL=0).
 - Default source PDF page ceiling is configurable and is now 20,000 pages.
-- Translation provider mode: auto, baidu, or google.
-- When Baidu credentials are configured, Baidu's 200+ language API is used first; provider failure falls back to the existing Google path in auto mode.
+- Translation provider mode: local (default), auto, baidu, or google.
+- Cloud providers are not used in local mode. `auto` can optionally fall back to Baidu/Google only when `TRANSLET_ALLOW_CLOUD_FALLBACK=1`.
