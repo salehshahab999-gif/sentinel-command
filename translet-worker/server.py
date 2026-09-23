@@ -26,7 +26,11 @@ import requests
 import sentencepiece as spm
 from celery import Celery, Task
 from huggingface_hub import snapshot_download
-from local_engines import translate_local_text as universal_local_translate_text
+from local_engines import (
+    MADLAD_LANGUAGE_COUNT,
+    language_catalog,
+    translate_local_text as universal_local_translate_text,
+)
 from flask import Flask, abort, jsonify, request, send_file
 
 
@@ -1515,11 +1519,24 @@ def health():
         {
             "status": "ok",
             "service": "sentinel-translet",
-            "engine": "NLLB-200 600M INT8 local-first + PyMuPDF RTL renderer",
+            "engine": "NLLB-200 600M INT8 + MADLAD-400 3B INT8 local-first",
             "translation_provider": TRANSLATION_PROVIDER,
-            "local_model_repo": LOCAL_MODEL_REPO,
-            "local_model_ready": _local_translator is not None,
             "cloud_fallback": ALLOW_CLOUD_FALLBACK,
+            "local_engine_mode": LOCAL_ENGINE_MODE,
+            "language_catalog_count": MADLAD_LANGUAGE_COUNT,
+            "model_language_claim": 419,
+            "catalog_engine": "madlad400",
+        }
+    )
+
+
+@app.get("/v1/languages")
+def languages():
+    return jsonify(
+        {
+            "engine": "madlad400",
+            "catalog_count": MADLAD_LANGUAGE_COUNT,
+            "languages": language_catalog(),
         }
     )
 
