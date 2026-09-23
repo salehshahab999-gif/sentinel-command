@@ -19,9 +19,13 @@ from pathlib import Path
 from threading import Lock, local
 from typing import Any
 
+import ctranslate2
 import fitz
+import langid
 import requests
+import sentencepiece as spm
 from celery import Celery, Task
+from huggingface_hub import snapshot_download
 from flask import Flask, abort, jsonify, request, send_file
 
 
@@ -45,9 +49,35 @@ OCR_LANGUAGE = os.environ.get("TRANSLET_OCR_LANGUAGE", "eng")
 OCR_DPI = max(120, min(int(os.environ.get("TRANSLET_OCR_DPI", "200")), 400))
 BAIDU_APP_ID = os.environ.get("BAIDU_APP_ID", "").strip()
 BAIDU_SECRET_KEY = os.environ.get("BAIDU_SECRET_KEY", "").strip()
-TRANSLATION_PROVIDER = os.environ.get("TRANSLET_TRANSLATION_PROVIDER", "auto").lower().strip()
-TRANSLATION_CHUNK_LIMIT = max(1200, min(int(os.environ.get("TRANSLET_TRANSLATION_CHUNK_LIMIT", "3000")), 5000))
-GENERATE_DUAL = os.environ.get("TRANSLET_GENERATE_DUAL", "1").lower() not in {"0", "false", "no"}
+TRANSLATION_PROVIDER = os.environ.get("TRANSLET_TRANSLATION_PROVIDER", "local").lower().strip()
+TRANSLATION_CHUNK_LIMIT = max(600, min(int(os.environ.get("TRANSLET_TRANSLATION_CHUNK_LIMIT", "3000")), 5000))
+GENERATE_DUAL = os.environ.get("TRANSLET_GENERATE_DUAL", "0").lower() not in {"0", "false", "no"}
+
+LOCAL_MODEL_REPO = os.environ.get(
+    "TRANSLET_LOCAL_MODEL_REPO",
+    "mijuanlo/nllb-200-distilled-600M-ct2-int8",
+).strip()
+LOCAL_MODEL_PATH = Path(
+    os.environ.get(
+        "TRANSLET_LOCAL_MODEL_PATH",
+        str(DATA_DIR / "models" / "nllb-200-distilled-600M-ct2-int8"),
+    )
+)
+LOCAL_MODEL_COMPUTE_TYPE = os.environ.get(
+    "TRANSLET_LOCAL_MODEL_COMPUTE_TYPE", "int8"
+).strip()
+LOCAL_MODEL_INTRA_THREADS = max(
+    1,
+    min(int(os.environ.get("TRANSLET_LOCAL_MODEL_INTRA_THREADS", "4")), 4),
+)
+LOCAL_MODEL_BATCH_SIZE = max(
+    1,
+    min(int(os.environ.get("TRANSLET_LOCAL_MODEL_BATCH_SIZE", "4")), 8),
+)
+ALLOW_CLOUD_FALLBACK = (
+    os.environ.get("TRANSLET_ALLOW_CLOUD_FALLBACK", "0").lower()
+    not in {"0", "false", "no"}
+)
 TRANSLATION_WORKERS = max(1, min(int(os.environ.get("TRANSLET_TRANSLATION_WORKERS", "4")), 4))
 PROGRESS_UPDATE_PAGES = max(1, min(int(os.environ.get("TRANSLET_PROGRESS_UPDATE_PAGES", "10")), 100))
 
@@ -68,6 +98,33 @@ celery_app.conf.update(
 
 cache_init_lock = Lock()
 translation_local = local()
+local_model_lock = Lock()
+_local_translator: ctranslate2.Translator | None = None
+_local_sentencepiece: spm.SentencePieceProcessor | None = None
+
+NLLB_CODES_BY_ISO = {
+    "af": "afr_Latn", "am": "amh_Ethi", "ar": "arb_Arab", "as": "asm_Beng",
+    "az": "azj_Latn", "be": "bel_Cyrl", "bg": "bul_Cyrl", "bn": "ben_Beng",
+    "bs": "bos_Latn", "ca": "cat_Latn", "cs": "ces_Latn", "cy": "cym_Latn",
+    "da": "dan_Latn", "de": "deu_Latn", "el": "ell_Grek", "en": "eng_Latn",
+    "es": "spa_Latn", "et": "est_Latn", "eu": "eus_Latn", "fa": "pes_Arab",
+    "fi": "fin_Latn", "fr": "fra_Latn", "ga": "gle_Latn", "gl": "glg_Latn",
+    "gu": "guj_Gujr", "he": "heb_Hebr", "hi": "hin_Deva", "hr": "hrv_Latn",
+    "hu": "hun_Latn", "hy": "hye_Armn", "id": "ind_Latn", "is": "isl_Latn",
+    "it": "ita_Latn", "ja": "jpn_Jpan", "jv": "jav_Latn", "ka": "kat_Geor",
+    "kk": "kaz_Cyrl", "km": "khm_Khmr", "kn": "kan_Knda", "ko": "kor_Hang",
+    "ky": "kir_Cyrl", "la": "lat_Latn", "lb": "ltz_Latn", "lo": "lao_Laoo",
+    "lt": "lit_Latn", "lv": "lvs_Latn", "mk": "mkd_Cyrl", "ml": "mal_Mlym",
+    "mn": "khk_Cyrl", "mr": "mar_Deva", "ms": "zsm_Latn", "mt": "mlt_Latn",
+    "nb": "nob_Latn", "ne": "npi_Deva", "nl": "nld_Latn", "nn": "nno_Latn",
+    "no": "nob_Latn", "oc": "oci_Latn", "or": "ory_Orya", "pa": "pan_Guru",
+    "pl": "pol_Latn", "ps": "pbt_Arab", "pt": "por_Latn", "ro": "ron_Latn",
+    "ru": "rus_Cyrl", "rw": "kin_Latn", "sk": "slk_Latn", "sl": "slv_Latn",
+    "sq": "als_Latn", "sr": "srp_Cyrl", "sv": "swe_Latn", "sw": "swh_Latn",
+    "ta": "tam_Taml", "te": "tel_Telu", "th": "tha_Thai", "tl": "tgl_Latn",
+    "tr": "tur_Latn", "uk": "ukr_Cyrl", "ur": "urd_Arab", "vi": "vie_Latn",
+    "zh": "zho_Hans", "zu": "zul_Latn",
+}
 
 def _translation_session() -> requests.Session:
     session = getattr(translation_local, "session", None)
@@ -93,6 +150,160 @@ def _shared_secret() -> str:
         return SHARED_SECRET_FALLBACK
 
     return ""
+
+
+
+def detect_source_language(text: str) -> str:
+    sample = re.sub(r"\s+", " ", text).strip()[:4000]
+    if not sample:
+        return "eng_Latn"
+
+    if re.search(r"[\u3040-\u30ff]", sample):
+        return "jpn_Jpan"
+    if re.search(r"[\uac00-\ud7af]", sample):
+        return "kor_Hang"
+    if re.search(r"[\u4e00-\u9fff]", sample):
+        return "zho_Hans"
+
+    lang, confidence = langid.classify(sample)
+    mapped = NLLB_CODES_BY_ISO.get(lang)
+    if mapped:
+        return mapped
+
+    raise RuntimeError(
+        f"زبان متن با تشخیص‌گر محلی شناسایی نشد: {lang} (confidence={confidence:.3f}). "
+        "برای این فایل می‌توان lang_in را در API به کد NLLB داد."
+    )
+
+
+def ensure_local_model() -> tuple[ctranslate2.Translator, spm.SentencePieceProcessor]:
+    global _local_translator, _local_sentencepiece
+
+    if _local_translator is not None and _local_sentencepiece is not None:
+        return _local_translator, _local_sentencepiece
+
+    with local_model_lock:
+        if _local_translator is not None and _local_sentencepiece is not None:
+            return _local_translator, _local_sentencepiece
+
+        LOCAL_MODEL_PATH.mkdir(parents=True, exist_ok=True)
+        model_file = LOCAL_MODEL_PATH / "model.bin"
+        sentencepiece_file = LOCAL_MODEL_PATH / "sentencepiece.bpe.model"
+
+        if not model_file.exists() or not sentencepiece_file.exists():
+            snapshot_download(
+                repo_id=LOCAL_MODEL_REPO,
+                local_dir=str(LOCAL_MODEL_PATH),
+                allow_patterns=[
+                    "model.bin",
+                    "sentencepiece.bpe.model",
+                    "shared_vocabulary.json",
+                    "config.json",
+                ],
+            )
+
+        if not model_file.exists() or not sentencepiece_file.exists():
+            raise RuntimeError(
+                f"مدل محلی NLLB در {LOCAL_MODEL_PATH} کامل دانلود نشده است."
+            )
+
+        _local_sentencepiece = spm.SentencePieceProcessor()
+        _local_sentencepiece.load(str(sentencepiece_file))
+
+        _local_translator = ctranslate2.Translator(
+            str(LOCAL_MODEL_PATH),
+            device="cpu",
+            compute_type=LOCAL_MODEL_COMPUTE_TYPE,
+            inter_threads=1,
+            intra_threads=LOCAL_MODEL_INTRA_THREADS,
+            max_queued_batches=LOCAL_MODEL_BATCH_SIZE * 2,
+        )
+
+        return _local_translator, _local_sentencepiece
+
+
+def local_translate_parts(
+    parts: list[str],
+    source_lang: str,
+    target_lang: str,
+) -> list[str]:
+    translator, tokenizer = ensure_local_model()
+
+    encoded = [
+        [source_lang, *tokenizer.encode(part, out_type=str), "</s>"]
+        for part in parts
+    ]
+
+    results = translator.translate_batch(
+        encoded,
+        target_prefix=[[target_lang] for _ in encoded],
+        beam_size=1,
+        batch_type="tokens",
+        max_batch_size=LOCAL_MODEL_BATCH_SIZE,
+    )
+
+    translated: list[str] = []
+    for result in results:
+        hypothesis = result.hypotheses[0]
+        tokens = [
+            token
+            for token in hypothesis
+            if token not in {target_lang, "</s>"}
+        ]
+        translated.append(tokenizer.decode(tokens).strip())
+
+    return translated
+
+
+def local_translate_text(
+    text: str,
+    source_lang: str,
+    target_lang: str,
+) -> str:
+    resolved_source = (
+        detect_source_language(text)
+        if source_lang == "auto"
+        else source_lang
+    )
+
+    parts = split_for_google(text, TRANSLATION_CHUNK_LIMIT)
+    translated_parts: list[str | None] = [None] * len(parts)
+    missing_parts: list[str] = []
+    missing_indexes: list[int] = []
+
+    for index, part in enumerate(parts):
+        key = cache_key(resolved_source, target_lang, part)
+        cached = cache_get(key)
+        if cached is not None:
+            translated_parts[index] = cached
+        else:
+            missing_parts.append(part)
+            missing_indexes.append(index)
+
+    if missing_parts:
+        fresh = local_translate_parts(
+            missing_parts,
+            resolved_source,
+            target_lang,
+        )
+
+        for index, part, translated in zip(
+            missing_indexes,
+            missing_parts,
+            fresh,
+        ):
+            translated_parts[index] = translated
+            cache_put(
+                cache_key(resolved_source, target_lang, part),
+                resolved_source,
+                target_lang,
+                part,
+                translated,
+            )
+
+    return "\n".join(
+        part for part in translated_parts if part is not None
+    ).strip()
 
 
 def _validate_token(token: str) -> bool:
@@ -449,6 +660,217 @@ def entries_to_pdf(entries: list[tuple[str, str]], output_path: Path) -> None:
     doc.close()
 
 
+
+def entries_to_rtl_pdf(
+    entries: list[tuple[str, str]],
+    output_path: Path,
+) -> None:
+    doc = fitz.open()
+    page_width = 595
+    page_height = 842
+    margin_x = 52
+    top_y = 54
+    bottom_y = 52
+    cursor_y = top_y
+    page = doc.new_page(width=page_width, height=page_height)
+
+    def new_page() -> None:
+        nonlocal page, cursor_y
+        page = doc.new_page(width=page_width, height=page_height)
+        cursor_y = top_y
+
+    def render_block(kind: str, text: str) -> None:
+        nonlocal cursor_y, page
+
+        safe = html.escape(text, quote=False).replace("\n", "<br/>")
+        if kind == "heading":
+            style = (
+                "font-size:17pt;font-weight:700;line-height:1.35;"
+                "margin-bottom:8pt;"
+            )
+        else:
+            style = (
+                "font-size:10.5pt;line-height:1.55;"
+                "margin-bottom:7pt;"
+            )
+
+        html_text = (
+            '<div dir="rtl" style="direction:rtl;text-align:right;'
+            "font-family:'Noto Naskh Arabic','Noto Sans Arabic','DejaVu Sans',"
+            f"sans-serif;{style}">{safe}</div>"
+        )
+
+        box = fitz.Rect(
+            margin_x,
+            cursor_y,
+            page_width - margin_x,
+            page_height - bottom_y,
+        )
+        result = page.insert_htmlbox(
+            box,
+            html_text,
+            scale_low=0.62,
+            overlay=True,
+        )
+
+        if result[0] < 0:
+            new_page()
+            box = fitz.Rect(
+                margin_x,
+                cursor_y,
+                page_width - margin_x,
+                page_height - bottom_y,
+            )
+            result = page.insert_htmlbox(
+                box,
+                html_text,
+                scale_low=0.48,
+                overlay=True,
+            )
+
+        if result[0] < 0:
+            pieces = split_for_google(text, 1200)
+            if len(pieces) > 1:
+                for piece in pieces:
+                    render_block("body", piece)
+                return
+            raise RuntimeError("Persian text block could not fit in PDF renderer.")
+
+        used_height = (page_height - bottom_y) - result[0]
+        cursor_y = used_height + (12 if kind == "heading" else 8)
+
+        if cursor_y > page_height - bottom_y - 20:
+            new_page()
+
+    for kind, text in entries:
+        if text.strip():
+            render_block(kind, text)
+
+    doc.set_metadata({
+        "title": output_path.stem,
+        "subject": "Sentinel translated Persian text-only book",
+    })
+    doc.save(output_path, garbage=4, deflate=True, clean=True)
+    doc.close()
+
+
+def extract_book_entries(
+    input_path: Path,
+    job_id: str,
+) -> list[tuple[str, str]]:
+    extension = input_path.suffix.lower()
+
+    if extension == ".txt":
+        return txt_to_entries(input_path)
+
+    if extension in {".html", ".htm"}:
+        return html_to_entries(input_path)
+
+    if extension == ".epub":
+        entries = epub_to_entries(input_path)
+        if not entries:
+            raise RuntimeError("EPUB contains no readable text blocks.")
+        return entries
+
+    if extension in {".mobi", ".azw", ".azw3"}:
+        if not CALIBRE_CONVERTER:
+            raise RuntimeError(
+                f"برای {extension} باید Calibre و دستور ebook-convert در Worker نصب باشد."
+            )
+
+        normalized_dir = INPUT_DIR / "normalized"
+        normalized_dir.mkdir(parents=True, exist_ok=True)
+        converted_epub = normalized_dir / f"{job_id}-source.epub"
+        try:
+            result = subprocess.run(
+                [
+                    CALIBRE_CONVERTER,
+                    str(input_path),
+                    str(converted_epub),
+                    "--output-profile",
+                    "tablet",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30 * 60,
+            )
+            if result.returncode != 0 or not converted_epub.exists():
+                details = (result.stderr or result.stdout or "").strip()
+                raise RuntimeError(
+                    f"تبدیل {extension} با Calibre ناموفق بود: {details[-2000:]}"
+                )
+
+            entries = epub_to_entries(converted_epub)
+            if not entries:
+                raise RuntimeError(
+                    f"فایل {extension} پس از تبدیل، متن قابل‌خواندن ندارد."
+                )
+            return entries
+        finally:
+            converted_epub.unlink(missing_ok=True)
+
+    raise RuntimeError(f"فرمت متنی پشتیبانی نمی‌شود: {extension}")
+
+
+def translate_non_pdf_document(
+    input_path: Path,
+    mono_path: Path,
+    source_lang: str,
+    target_lang: str,
+    task: Task,
+    job_id: str,
+) -> dict[str, Any]:
+    entries = extract_book_entries(input_path, job_id)
+    total_entries = len(entries)
+
+    if not total_entries:
+        raise RuntimeError("هیچ بلوک متنی قابل ترجمه‌ای پیدا نشد.")
+
+    translated_entries: list[tuple[str, str]] = []
+    warnings: list[str] = []
+
+    task.update_state(
+        state="PROGRESS",
+        meta={"n": 0, "total": total_entries, "warnings": 0},
+    )
+
+    for index, (kind, text) in enumerate(entries, start=1):
+        try:
+            translated = translate_text(text, source_lang, target_lang)
+            translated_entries.append((kind, translated or text))
+        except Exception as exc:
+            warnings.append(f"block {index}: {exc}")
+            translated_entries.append((kind, text))
+
+        if index % 10 == 0 or index == total_entries:
+            task.update_state(
+                state="PROGRESS",
+                meta={
+                    "n": index,
+                    "total": total_entries,
+                    "warnings": len(warnings),
+                },
+            )
+
+    entries_to_rtl_pdf(translated_entries, mono_path)
+
+    with fitz.open(mono_path) as result_doc:
+        result_pages = len(result_doc)
+
+    input_path.unlink(missing_ok=True)
+
+    return {
+        "pages": result_pages,
+        "source_entries": total_entries,
+        "warning_count": len(warnings),
+        "warnings": warnings[:100],
+        "ocr_pages": 0,
+        "render_failures": 0,
+        "dual_pages": 0,
+        "pipeline": "direct-text-to-pdf",
+    }
+
+
 def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | None]:
     extension = input_path.suffix.lower()
 
@@ -726,42 +1148,43 @@ def translate_text(
     if not cleaned:
         return ""
 
-    key = cache_key(source_lang, target_lang, cleaned)
-    cached = cache_get(key)
+    provider = TRANSLATION_PROVIDER or "local"
 
-    if cached is not None:
-        return cached
+    if provider in {"local", "nllb"}:
+        return local_translate_text(cleaned, source_lang, target_lang)
 
-    parts = split_for_google(cleaned, TRANSLATION_CHUNK_LIMIT)
-    translated_parts: list[str] = []
-
-    for part in parts:
-        last_error: Exception | None = None
-        for attempt in range(5):
+    if provider == "auto":
+        try:
+            return local_translate_text(cleaned, source_lang, target_lang)
+        except Exception as local_error:
+            if not ALLOW_CLOUD_FALLBACK:
+                raise RuntimeError(
+                    f"ترجمه محلی NLLB ناموفق بود و fallback ابری خاموش است: {local_error}"
+                ) from local_error
+            errors: list[str] = [f"local: {local_error}"]
+            if BAIDU_APP_ID and BAIDU_SECRET_KEY:
+                try:
+                    return baidu_translate_one(cleaned, source_lang, target_lang)
+                except Exception as exc:
+                    errors.append(f"baidu: {exc}")
             try:
-                translated_parts.append(
-                    translate_one_with_provider(part, source_lang, target_lang)
-                )
-                last_error = None
-                break
+                return google_translate_one(cleaned, source_lang, target_lang)
             except Exception as exc:
-                last_error = exc
-                time.sleep(min(16, 2**attempt))
+                errors.append(f"google: {exc}")
+                raise RuntimeError(
+                    "All translation providers failed: " + " | ".join(errors)
+                ) from exc
 
-        if last_error is not None:
-            raise RuntimeError(f"Translation failed: {last_error}")
+    if provider == "baidu":
+        return baidu_translate_one(cleaned, source_lang, target_lang)
 
-    translated = "\n".join(translated_parts).strip()
+    if provider == "google":
+        return google_translate_one(cleaned, source_lang, target_lang)
 
-    cache_put(
-        key,
-        source_lang,
-        target_lang,
-        cleaned,
-        translated,
+    raise RuntimeError(
+        f"Translation provider نامعتبر است: {provider}. "
+        "مقادیر مجاز: local, auto, baidu, google."
     )
-
-    return translated
 
 def block_text(block: dict[str, Any]) -> str:
     lines: list[str] = []
@@ -908,6 +1331,17 @@ def translate_document(
     task: Task,
     job_id: str,
 ) -> dict[str, Any]:
+
+    if input_path.suffix.lower() != ".pdf":
+        return translate_non_pdf_document(
+            input_path,
+            mono_path,
+            source_lang,
+            target_lang,
+            task,
+            job_id,
+        )
+
     normalized_path, normalized_cleanup = normalize_input_file(input_path, job_id)
     source_doc = fitz.open(normalized_path)
     translated_doc = fitz.open(normalized_path)
@@ -1080,7 +1514,11 @@ def health():
         {
             "status": "ok",
             "service": "sentinel-translet",
-            "engine": "PyMuPDF HTML RTL renderer + multi-provider translation",
+            "engine": "NLLB-200 600M INT8 local-first + PyMuPDF RTL renderer",
+            "translation_provider": TRANSLATION_PROVIDER,
+            "local_model_repo": LOCAL_MODEL_REPO,
+            "local_model_ready": _local_translator is not None,
+            "cloud_fallback": ALLOW_CLOUD_FALLBACK,
         }
     )
 
