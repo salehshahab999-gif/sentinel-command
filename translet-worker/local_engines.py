@@ -62,8 +62,16 @@ CHUNK_LIMIT = max(
     min(int(os.environ.get("TRANSLET_TRANSLATION_CHUNK_LIMIT", "3000")), 5000),
 )
 
+
+def _normalize_madlad_code(code: str) -> str:
+    value = str(code).strip()
+    if value.startswith("<2") and value.endswith(">"):
+        return value[2:-1]
+    return value.strip("<>")
+
+
 MADLAD_LANGUAGES = {
-    str(code).strip("<>"): str(name).strip()
+    _normalize_madlad_code(code): str(name).strip()
     for code, name in langid_to_language.items()
 }
 MADLAD_LANGUAGE_COUNT = len(MADLAD_LANGUAGES)
@@ -133,11 +141,12 @@ def _init_cache() -> None:
                 model_language_tag=excluded.model_language_tag
             """,
             [
-                (code.strip("<>"), name, code)
+                (_normalize_madlad_code(code), name, code)
                 for code, name in langid_to_language.items()
             ],
         )
         connection.commit()
+
 
 def _cache_key(source: str, target: str, text: str) -> str:
     return hashlib.sha256(
