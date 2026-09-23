@@ -1151,7 +1151,7 @@ def translate_text(
 
     provider = TRANSLATION_PROVIDER or "local"
 
-    if provider in {"local", "nllb"}:
+    if provider in {"local", "nllb", "madlad"}:
         return universal_local_translate_text(cleaned, source_lang, target_lang)
 
     if provider == "auto":
