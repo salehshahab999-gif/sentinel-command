@@ -661,6 +661,7 @@ def entries_to_pdf(entries: list[tuple[str, str]], output_path: Path) -> None:
             put_block(kind, text)
 
     doc.set_metadata({"title": output_path.stem, "subject": "Sentinel normalized book"})
+    doc.subset_fonts()
     doc.save(output_path, garbage=4, deflate=True, clean=True)
     doc.close()
 
@@ -755,6 +756,7 @@ def entries_to_rtl_pdf(
         "title": output_path.stem,
         "subject": "Sentinel translated Persian text-only book",
     })
+    doc.subset_fonts()
     doc.save(output_path, garbage=4, deflate=True, clean=True)
     doc.close()
 
@@ -1504,6 +1506,7 @@ def translate_document(
     finally:
         executor.shutdown(wait=True, cancel_futures=False)
 
+    translated_doc.subset_fonts()
     translated_doc.save(
         mono_path,
         garbage=4,
@@ -1511,6 +1514,7 @@ def translate_document(
         clean=True,
     )
     if dual_doc is not None:
+        dual_doc.subset_fonts()
         dual_doc.save(
             dual_path,
             garbage=4,
