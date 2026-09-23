@@ -37,4 +37,4 @@ jobs:
 
       - name: Calibre headless smoke test
         run: |
-          docker run --rm sentinel-translet-test sh -lc "export QTWEBENGINE_CHROMIUM_FLAGS='--no-sandbox --disable-gpu --headless --disable-dev-shm-usage'; export QT_QPA_PLATFORM=offscreen; export LIBGL_ALWAYS_SOFTWARE=1; ebook-convert --version"
+          docker run --rm sentinel-translet-test sh -lc "ebook-convert --version"
