@@ -6,8 +6,10 @@ import fitz
 
 os.environ["TRANSLET_ENV"] = "development"
 os.environ["TRANSLET_DATA_DIR"] = os.path.join(tempfile.gettempdir(), "sentinel-translet-test-data")
+os.environ["TRANSLET_GENERATE_DUAL"] = "1"
 
 from server import (
+    MADLAD_LANGUAGE_COUNT,
     _validate_token,
     cache_key,
     render_translated_page,
@@ -46,6 +48,32 @@ def test_helpers() -> None:
     )
 
 
+def test_madlad_language_catalog() -> None:
+    from local_engines import language_catalog
+
+    catalog = language_catalog()
+    assert MADLAD_LANGUAGE_COUNT == len(catalog)
+    assert MADLAD_LANGUAGE_COUNT >= 400
+
+    codes = {item["code"] for item in catalog}
+    assert "en" in codes
+    assert "fa" in codes
+    assert "zh" in codes
+    assert "ja" in codes
+
+
+def test_local_engine_detection() -> None:
+    from local_engines import _detect
+
+    engine, source = _detect("你好，这是中文测试。")
+    assert engine == "nllb"
+    assert source == "zho_Hans"
+
+    engine, source = _detect("This is an English test.")
+    assert engine == "nllb"
+    assert source == "eng_Latn"
+
+
 def test_rtl_page_render() -> None:
     doc = fitz.open()
     page = doc.new_page(width=320, height=220)
@@ -62,14 +90,89 @@ def test_rtl_page_render() -> None:
 
 
 def test_output_is_text_only() -> None:
-    doc = fitz.open()
-    page = doc.new_page(width=320, height=220)
-    pix = fitz.Pixmap(fitz.csRGB, (0, 0, 20, 20), 0)
-    page.insert_image(fitz.Rect(20, 20, 80, 80), pixmap=pix)
-    assert page.get_images(full=True)
-    remove_page_images(page)
-    assert not page.get_images(full=True)
-    doc.close()
+    with tempfile.TemporaryDirectory() as directory:
+        source_path = Path(directory) / "image-source.pdf"
+        output_path = Path(directory) / "image-output.pdf"
+
+        doc = fitz.open()
+        page = doc.new_page(width=320, height=220)
+        pix = fitz.Pixmap(fitz.csRGB, (0, 0, 20, 20), 0)
+        page.insert_image(fitz.Rect(20, 20, 80, 80), pixmap=pix)
+
+        assert page.get_images(full=True)
+        assert page.get_image_info(xrefs=True)
+
+        remove_page_images(page)
+        doc.save(output_path, garbage=4, deflate=True, clean=True)
+        doc.close()
+
+        with fitz.open(output_path) as cleaned:
+            assert not cleaned[0].get_image_info(xrefs=True)
+            cleaned[0].clean_contents()
+            assert not cleaned[0].get_images(full=True)
+
+
+def test_image_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
+    source_path = tmp_path / "image-input.pdf"
+    mono_path = tmp_path / "image-mono.pdf"
+    dual_path = tmp_path / "image-dual.pdf"
+
+    source_doc = fitz.open()
+    page = source_doc.new_page(width=320, height=220)
+
+    # Real embedded raster image: the pipeline must extract text/OCR first,
+    # then remove the source image from the translated result.
+    pix = fitz.Pixmap(fitz.csRGB, (0, 0, 24, 24), 0)
+    pix.clear_with(0xD0D0D0)
+    page.insert_image(fitz.Rect(200, 30, 290, 120), pixmap=pix)
+    page.insert_text((30, 55), "Image page test", fontsize=16)
+
+    source_doc.save(source_path)
+    source_doc.close()
+
+    monkeypatch.setattr(
+        "server.translate_text",
+        lambda text, source_lang, target_lang: "آزمایش صفحه تصویری",
+    )
+    monkeypatch.setattr(
+        "server.extract_page_blocks",
+        lambda page: (
+            [
+                {
+                    "type": 0,
+                    "bbox": [30.0, 30.0, 180.0, 70.0],
+                    "lines": [
+                        {
+                            "spans": [
+                                {"text": "Image page test", "size": 16},
+                            ]
+                        }
+                    ],
+                }
+            ],
+            False,
+            None,
+        ),
+    )
+
+    task = FakeTask()
+    result = translate_document(
+        source_path,
+        mono_path,
+        dual_path,
+        "auto",
+        "fa",
+        1,
+        task,
+        "image-test-job",
+    )
+
+    assert result["pages"] == 1
+    assert mono_path.exists()
+    with fitz.open(mono_path) as mono:
+        assert len(mono) == 1
+        assert mono[0].get_text().strip()
+        assert not mono[0].get_images(full=True)
 
 
 def test_translation_pdf_pipeline(tmp_path: Path, monkeypatch) -> None:
@@ -127,8 +230,16 @@ if __name__ == "__main__":
     test_helpers()
     test_rtl_page_render()
     test_output_is_text_only()
+    test_local_engine_detection()
+    test_madlad_language_catalog()
 
     from tempfile import TemporaryDirectory
+
+    with TemporaryDirectory() as directory:
+        test_image_pdf_pipeline(
+            Path(directory),
+            monkeypatch=_DirectMonkeyPatch(),
+        )
 
     with TemporaryDirectory() as directory:
         test_translation_pdf_pipeline(
