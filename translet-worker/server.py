@@ -1250,13 +1250,24 @@ def rtl_html(text: str, font_size: float) -> str:
 
 
 def remove_page_images(page: fitz.Page) -> None:
-    """Remove visible images while leaving the page's text geometry intact."""
-    xrefs = {int(item[0]) for item in page.get_images(full=True) if item and item[0]}
-    for xref in xrefs:
+    """Remove embedded images while leaving the page's text geometry intact."""
+    image_rects: list[fitz.Rect] = []
+    for item in page.get_images(full=True):
+        if not item or not item[0]:
+            continue
         try:
-            page.delete_image(xref)
+            image_rects.extend(page.get_image_rects(int(item[0]), transform=False))
+        except Exception:
+            continue
+
+    for rect in image_rects:
+        try:
+            page.add_redact_annot(rect, fill=(1, 1, 1))
         except Exception:
             pass
+
+    if image_rects:
+        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE)
 
 
 def render_translated_page(
