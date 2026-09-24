@@ -446,7 +446,7 @@ def normalize_input_file(input_path: Path, job_id: str) -> tuple[Path, Path | No
         calibre_env["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox --disable-gpu --headless --disable-dev-shm-usage"
         calibre_env["QT_QPA_PLATFORM"] = "offscreen"
         calibre_env["LIBGL_ALWAYS_SOFTWARE"] = "1"
-        result = subprocess.run(
+        result = subprocess.run(  # nosec: list args, shell=False
             [CALIBRE_CONVERTER, str(input_path), str(normalized_pdf), "--output-profile", "tablet"],
             capture_output=True,
             text=True,
@@ -761,6 +761,24 @@ def extract_page_blocks(
     except Exception as exc:
         return [], False, f"OCR page fallback failed: {exc}"
 
+
+
+
+import time as _time
+import shutil as _shutil
+MAX_OUTPUT_AGE_SECONDS = int(os.environ.get('TRANSLET_OUTPUT_MAX_AGE_SECONDS', '86400'))
+
+def _cleanup_old_outputs():
+    now = _time.time()
+    for item in OUTPUT_DIR.iterdir():
+        try:
+            if now - item.stat().st_mtime > MAX_OUTPUT_AGE_SECONDS:
+                if item.is_dir():
+                    _shutil.rmtree(item, ignore_errors=True)
+                else:
+                    item.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 def translate_document(
     input_path: Path,
