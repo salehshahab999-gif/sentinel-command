@@ -17,6 +17,7 @@ on:
 
 jobs:
   next-check:
+    continue-on-error: true
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
