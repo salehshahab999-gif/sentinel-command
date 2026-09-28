@@ -1,0 +1,24 @@
+name: Sentinel Architecture 99-Test CI
+
+on:
+  push:
+    branches: [test/architecture-99-suite]
+  workflow_dispatch:
+
+jobs:
+  architecture-99:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run tests 4-99
+        run: python tools/architecture_99_suite.py
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-architecture-99-report
+          path: artifacts/architecture-99-report.json
+          if-no-files-found: warn
