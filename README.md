@@ -35,13 +35,13 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## گزارش عمومی آزمون 99
+## Public English 99-Test Report
 
-این branch یک گزارش عمومی درباره سناریوی بازسازی و راستی‌آزمایی پس از رویدادِ اصابت موشک به یک ناو جنگی آمریکایی دارد.
+This branch contains the public English report for the integrated naval post-event scenario.
 
 - [Public English Report](./NAVAL-MISSILE-IMPACT-99-TEST-REPORT.md)
 - [Integrated Naval Scenario Coverage Matrix](./NAVAL-SCENARIO-COVERAGE.md)
-- [کد آزمون](./tools/architecture_99_suite.py)
-- [Workflow](./.github/workflows/architecture-99-ci.yml)
+- [Test Runner](./tools/architecture_99_suite.py)
+- [GitHub Actions Workflow](./.github/workflows/architecture-99-ci.yml)
 
-> Note: the current numbered suite runs tests 4 through 99, which is 96 numbered test cases. The scenario coverage matrix separately documents missile-event, UAV, electronic-interference, radar, aircraft, AIS, satellite, position and aftermath evidence domains.
+> The numbered suite runs from Test 4 through Test 99, which is 96 numbered test cases. The coverage matrix additionally documents missile-event, UAV/drone, electronic-interference, radar/sensor, aircraft, AIS, satellite, position, OSINT and aftermath evidence domains.
