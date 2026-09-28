@@ -341,7 +341,7 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
         metric['blocked']=len(raw_fixture)
         observed.append({'name':'blocked_payloads','value':len(raw_fixture)})
     elif any(k in l for k in ['resource','load','scale','complexity','maximum-load']):
-        load=18000 if 'دارک' in l or 'حداکثری' in l else 8000
+        load=18000 if 'dark' in l or 'maximum' in l else 8000
         raw_fixture=[{'load_units':load}]
         actions.append({'action':'apply_resource_load','load_units':load})
         s.resources['queue']=min(1,load/20000)
@@ -417,7 +417,7 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
             'community_all_pass':src['community_all_pass'],
         },
         'result':'PASS',
-        'limitations':['دادهٔ fixture مصنوعی و deterministic است.','PASS اثبات رفتار کامل در محیط واقعی نیست.']
+        'limitations':Fixture data is synthetic and deterministic.,PASS does not prove complete real-world behavior.
     }
     return {'number':n,'name':name,'status':'PASS','metrics':metric,'evidence':evidence}
 
@@ -448,7 +448,7 @@ def render_markdown(report):
     lines.append(f"Direct community sources: {report['source_report']['community_passed']}/{report['source_report']['community_required']}")
     lines.append(f"All required community sources passed: {report['source_report']['community_all_pass']}")
     lines.append('')
-    lines.append('این گزارش مانند گزارش تحلیلی F-15 فقط نتیجهٔ PASS را نمایش نمی‌دهد؛ زنجیرهٔ داده و نتیجه برای هر تست در JSON ثبت شده و در این فایل خلاصهٔ بازبینی‌پذیر آن آمده است.')
+    lines.append('This assessment records the evidence chain for every test in JSON and summarizes the reviewable result here.')
     lines.append('')
     lines.append('## Scenario Coverage Domains')
     lines.append('')
