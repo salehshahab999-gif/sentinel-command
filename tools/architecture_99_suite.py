@@ -114,6 +114,16 @@ SOURCES=[
 ("reddit_osint","https://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/",False,["sar","ais"]),
 ]
 
+FALLBACKS={
+    "reddit_osint":[
+        "https://api.pullpush.io/reddit/search/submission/?ids=1wkkbrf",
+        "https://r.jina.ai/http://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/",
+    ],
+    "ormuz_osint":[
+        "https://raw.githubusercontent.com/kelu124/OrmuzOsint/main/README.md",
+    ],
+}
+
 @dataclass
 class State:
     cores:dict[str,int]=field(default_factory=dict)
@@ -166,17 +176,45 @@ def dedupe(s:State)->int:
 def sources()->dict:
     out=[]; critical_ok=True; community=0
     for ident,url,critical,keys in SOURCES:
-        try:
-            req=urllib.request.Request(url,headers={"User-Agent":"Sentinel-Architecture-CI/1.0"})
-            with urllib.request.urlopen(req,timeout=20) as r: body=r.read(1800000).decode("utf-8","ignore"); status=r.status
-            hits=[k for k in keys if k.lower() in body.lower()]
-            ok=status==200 and len(hits)>=max(1,len(keys)//2)
-            out.append({"id":ident,"status":status,"ok":ok,"hits":hits,"critical":critical,"url":url})
-            if critical and not ok: critical_ok=False
-            if (not critical) and ok: community+=1
-        except Exception as e:
-            out.append({"id":ident,"status":None,"ok":False,"error":str(e)[:240],"critical":critical,"url":url})
-            if critical: critical_ok=False
+        candidates=[url,*FALLBACKS.get(ident,[])]
+        primary_status=None; last_error=None; fetched_url=None; body=""; status=None
+        for candidate in candidates:
+            for attempt in range(3):
+                try:
+                    req=urllib.request.Request(candidate,headers={
+                        "User-Agent":"Sentinel-Architecture-CI/1.0",
+                        "Accept":"text/html,application/json,text/plain;q=0.9,*/*;q=0.8",
+                    })
+                    with urllib.request.urlopen(req,timeout=20) as r:
+                        body=r.read(1800000).decode("utf-8","ignore"); status=r.status
+                    if candidate==url: primary_status=status
+                    if status==200:
+                        fetched_url=candidate
+                        break
+                except urllib.error.HTTPError as e:
+                    status=e.code
+                    if candidate==url: primary_status=e.code
+                    last_error=f"HTTP {e.code}: {e.reason}"
+                    if e.code not in {403,429,500,502,503,504}:
+                        break
+                    time.sleep(1.5*(attempt+1))
+                except Exception as e:
+                    last_error=str(e)[:240]
+                    if candidate==url and primary_status is None: primary_status=None
+                    time.sleep(1.0*(attempt+1))
+            if fetched_url:
+                break
+        hits=[k for k in keys if k.lower() in body.lower()]
+        ok=(status==200 and len(hits)>=max(1,len(keys)//2))
+        item={
+            "id":ident,"status":status,"primary_status":primary_status,"ok":ok,"hits":hits,
+            "critical":critical,"url":url,"fetched_url":fetched_url,
+            "fallback_used":bool(fetched_url and fetched_url!=url),"candidates":candidates,
+        }
+        if not ok and last_error: item["error"]=last_error
+        out.append(item)
+        if critical and not ok: critical_ok=False
+        if (not critical) and ok: community+=1
     return {"critical_pass":critical_ok,"community_passed":community,"sources":out}
 
 def run_one(s:State,n:int,name:str,src:dict)->dict:
