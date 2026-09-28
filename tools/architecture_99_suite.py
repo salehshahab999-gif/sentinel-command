@@ -111,6 +111,9 @@ SOURCES=[
 ("sarfish","https://api.github.com/repos/MJCruickshank/SARfish",True,["sentinel 1","ship detection"]),
 ("allenai","https://raw.githubusercontent.com/allenai/vessel-detection-sentinels/main/README.md",True,["sentinel-1","sentinel-2"]),
 ("ormuz_osint","https://api.github.com/repos/kelu124/OrmuzOsint",False,["ais","sar"]),
+]
+
+ADVISORY_SOURCES=[
 ("reddit_osint","https://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/",False,["sar","ais"]),
 ]
 
@@ -118,9 +121,6 @@ FALLBACKS={
     "reddit_osint":[
         "https://api.pullpush.io/reddit/search/submission/?ids=1wkkbrf",
         "https://r.jina.ai/http://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/",
-    ],
-    "ormuz_osint":[
-        "https://raw.githubusercontent.com/kelu124/OrmuzOsint/main/README.md",
     ],
 }
 
@@ -173,49 +173,66 @@ def dedupe(s:State)->int:
         else: seen.add(m["id"]); out.append(m)
     s.memory=out; return removed
 
+def fetch_source(ident,url,critical,keys):
+    candidates=[url,*FALLBACKS.get(ident,[])]
+    primary_status=None; primary_error=None; fetched_url=None; body=""; status=None
+    for candidate in candidates:
+        for attempt in range(3):
+            try:
+                req=urllib.request.Request(candidate,headers={
+                    "User-Agent":"Sentinel-Architecture-CI/1.0",
+                    "Accept":"text/html,application/json,text/plain;q=0.9,*/*;q=0.8",
+                })
+                with urllib.request.urlopen(req,timeout=20) as r:
+                    body=r.read(1800000).decode("utf-8","ignore"); status=r.status
+                if candidate==url:
+                    primary_status=status
+                if status==200:
+                    fetched_url=candidate
+                    break
+            except urllib.error.HTTPError as e:
+                status=e.code
+                if candidate==url:
+                    primary_status=e.code
+                    primary_error=f"HTTP {e.code}: {e.reason}"
+                if e.code not in {403,429,500,502,503,504}:
+                    break
+                time.sleep(1.5*(attempt+1))
+            except Exception as e:
+                if candidate==url:
+                    primary_error=str(e)[:240]
+                time.sleep(1.0*(attempt+1))
+        if fetched_url:
+            break
+    hits=[k for k in keys if k.lower() in body.lower()]
+    content_ok=(status==200 and len(hits)>=max(1,len(keys)//2))
+    return {
+        "id":ident,"status":status,"primary_status":primary_status,
+        "primary_ok": primary_status==200 and content_ok and fetched_url==url,
+        "ok":content_ok,"hits":hits,"critical":critical,"url":url,
+        "fetched_url":fetched_url,"fallback_used":bool(fetched_url and fetched_url!=url),
+        "primary_error":primary_error,
+    }
+
 def sources()->dict:
     out=[]; critical_ok=True; community=0
     for ident,url,critical,keys in SOURCES:
-        candidates=[url,*FALLBACKS.get(ident,[])]
-        primary_status=None; last_error=None; fetched_url=None; body=""; status=None
-        for candidate in candidates:
-            for attempt in range(3):
-                try:
-                    req=urllib.request.Request(candidate,headers={
-                        "User-Agent":"Sentinel-Architecture-CI/1.0",
-                        "Accept":"text/html,application/json,text/plain;q=0.9,*/*;q=0.8",
-                    })
-                    with urllib.request.urlopen(req,timeout=20) as r:
-                        body=r.read(1800000).decode("utf-8","ignore"); status=r.status
-                    if candidate==url: primary_status=status
-                    if status==200:
-                        fetched_url=candidate
-                        break
-                except urllib.error.HTTPError as e:
-                    status=e.code
-                    if candidate==url: primary_status=e.code
-                    last_error=f"HTTP {e.code}: {e.reason}"
-                    if e.code not in {403,429,500,502,503,504}:
-                        break
-                    time.sleep(1.5*(attempt+1))
-                except Exception as e:
-                    last_error=str(e)[:240]
-                    if candidate==url and primary_status is None: primary_status=None
-                    time.sleep(1.0*(attempt+1))
-            if fetched_url:
-                break
-        hits=[k for k in keys if k.lower() in body.lower()]
-        ok=(status==200 and len(hits)>=max(1,len(keys)//2))
-        item={
-            "id":ident,"status":status,"primary_status":primary_status,"ok":ok,"hits":hits,
-            "critical":critical,"url":url,"fetched_url":fetched_url,
-            "fallback_used":bool(fetched_url and fetched_url!=url),"candidates":candidates,
-        }
-        if not ok and last_error: item["error"]=last_error
-        out.append(item)
-        if critical and not ok: critical_ok=False
-        if (not critical) and ok: community+=1
-    return {"critical_pass":critical_ok,"community_passed":community,"sources":out}
+        item=fetch_source(ident,url,critical,keys); out.append(item)
+        if critical and not item["primary_ok"]: critical_ok=False
+        if (not critical) and item["primary_ok"]: community+=1
+
+    advisory=[]
+    for ident,url,critical,keys in ADVISORY_SOURCES:
+        advisory.append(fetch_source(ident,url,critical,keys))
+
+    return {
+        "critical_pass":critical_ok,
+        "community_required":3,
+        "community_passed":community,
+        "community_all_pass":community==3,
+        "sources":out,
+        "advisory_sources":advisory,
+    }
 
 def run_one(s:State,n:int,name:str,src:dict)->dict:
     l=name.lower(); metric={}
