@@ -109,7 +109,7 @@ SOURCES=[
 ("copernicus_forum_index","https://forum.dataspace.copernicus.eu/c/data-collections/sentinel-1/47",False,["sentinel-1"]),
 ("zenodo_v27","https://zenodo.org/api/records/22844774",True,["vessel","sentinel-2"]),
 ("sarfish","https://api.github.com/repos/MJCruickshank/SARfish",True,["sentinel 1","ship detection"]),
-("allenai","https://api.github.com/repos/allenai/vessel-detection-sentinels",True,["sentinel-1","sentinel-2"]),
+("allenai","https://raw.githubusercontent.com/allenai/vessel-detection-sentinels/main/README.md",True,["sentinel-1","sentinel-2"]),
 ("ormuz_osint","https://api.github.com/repos/kelu124/OrmuzOsint",False,["ais","sar"]),
 ("reddit_osint","https://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/",False,["sar","ais"]),
 ]
