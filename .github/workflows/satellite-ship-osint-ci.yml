@@ -1,0 +1,67 @@
+name: Satellite Maritime OSINT CI
+
+on:
+  push:
+    branches:
+      - test/satellite-ship-osint-ci
+  workflow_dispatch:
+
+jobs:
+  pipeline-smoke:
+    name: Geo / SAR / optical pipeline smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sentinel Command
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install geospatial test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas pyproj shapely rasterio
+
+      - name: Run synthetic Sentinel-1/2 and coordinate pipeline tests
+        run: python tools/satellite_osint_smoke_test.py
+
+  external-repos:
+    name: External maritime detection repo smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Clone reference repositories
+        run: |
+          git clone --depth 1 https://github.com/MJCruickshank/SARfish.git /tmp/SARfish
+          git clone --depth 1 https://github.com/mayrajeo/ship-detection.git /tmp/ship-detection
+          git clone --depth 1 https://github.com/zhuansunyuqing/MVD-YOLOv8.git /tmp/MVD-YOLOv8
+          git clone --depth 1 https://github.com/Rc-W024/SAR_Ship_detection_CFAR.git /tmp/SAR_Ship_detection_CFAR
+
+      - name: Python syntax smoke tests
+        run: |
+          python -m compileall -q /tmp/SARfish /tmp/ship-detection /tmp/MVD-YOLOv8
+
+      - name: Verify expected SAR / optical entrypoints
+        run: |
+          test -f /tmp/SARfish/SARfish.py
+          test -f /tmp/Rc-W024-placeholder 2>/dev/null || true
+          test -d /tmp/SAR_Ship_detection_CFAR
+          test -d /tmp/ship-detection
+          test -d /tmp/MVD-YOLOv8
+          echo "SARfish.py: present"
+          echo "SAR_Ship_detection_CFAR: present"
+          echo "Sentinel-2 ship-detection repo: present"
+          echo "MVD-YOLOv8 repo: present"
+
+      - name: Report model/data limitations
+        run: |
+          echo "No live military-vessel targeting or current vessel coordinates are produced by this CI."
+          echo "SARfish requires external model weights and real Sentinel-1 VH GeoTIFF input."
+          echo "The Sentinel-2 YOLO repository requires its reference dataset/checkpoint."
+          echo "MVD-YOLOv8 training is intentionally not run in CI."
