@@ -39,8 +39,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 این branch یک گزارش عمومی درباره سناریوی بازسازی و راستی‌آزمایی پس از رویدادِ اصابت موشک به یک ناو جنگی آمریکایی دارد.
 
-- [گزارش عمومی و توضیح تست‌ها](./NAVAL-MISSILE-IMPACT-99-TEST-REPORT.md)
+- [Public English Report](./NAVAL-MISSILE-IMPACT-99-TEST-REPORT.md)
+- [Integrated Naval Scenario Coverage Matrix](./NAVAL-SCENARIO-COVERAGE.md)
 - [کد آزمون](./tools/architecture_99_suite.py)
 - [Workflow](./.github/workflows/architecture-99-ci.yml)
 
-> توجه: در کد فعلی شماره‌ها از 4 تا 99 هستند؛ بنابراین 96 تست شماره‌دار اجرا می‌شود.
+> Note: the current numbered suite runs tests 4 through 99, which is 96 numbered test cases. The scenario coverage matrix separately documents missile-event, UAV, electronic-interference, radar, aircraft, AIS, satellite, position and aftermath evidence domains.
