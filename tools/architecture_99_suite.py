@@ -269,5 +269,5 @@ def main()->int:
     report={"suite":"Sentinel Architecture 99-Test","tests_requested":len(TESTS),"passed":sum(r["status"]=="PASS" for r in results),"failed":len(failures),"source_report":src,"elapsed_s":round(time.time()-t,3),"reality_boundary":{"real_public_source_metadata":True,"live_military_tracking":False,"attack_optimization":False},"results":results,"failures":failures}
     Path("artifacts").mkdir(exist_ok=True); Path("artifacts/architecture-99-report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"tests":len(TESTS),"passed":report["passed"],"failed":report["failed"],"critical_sources":src["critical_pass"],"community_sources":src["community_passed"],"elapsed_s":report["elapsed_s"]},ensure_ascii=False,indent=2))
-    return 0 if report["failed"]==0 and src["critical_pass"] else 1
+    return 0 if report["failed"]==0 and src["critical_pass"] and src["community_all_pass"] else 1
 if __name__=="__main__": raise SystemExit(main())
