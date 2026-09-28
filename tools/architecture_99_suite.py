@@ -20,7 +20,11 @@ PUBLIC_CONTEXT_SOURCES = [
     {"name":"ESA / Copernicus Sentinel-1 Maritime Traffic","url":"https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Tracking_maritime_traffic","role":"توضیح عمومی درباره کاربرد Sentinel-1 و AIS برای پایش ترافیک دریایی."},
     {"name":"Copernicus Sentinel-1 AIS Access Discussion","url":"https://forum.dataspace.copernicus.eu/t/availability-of-sentinel-1-ais-data/4798","role":"محدودیت دسترسی به برخی داده‌های AIS مرتبط با Sentinel-1."},
     {"name":"NASA FIRMS","url":"https://earthdata.nasa.gov/firms","role":"منبع عمومی برای داده‌های ماهواره‌ای رخدادهای حرارتی/آتش؛ داده کمکی، نه اثبات مستقل اصابت."}
-]
+,
+    {"name":"USNI News — USS Theodore Roosevelt Deploys From San Diego","url":"https://news.usni.org/2026/09/28/uss-theodore-roosevelt-deploys-from-san-diego-uss-abraham-lincoln-near-hawaii","role":"Current public reporting on the Sept. 27, 2026 departure and expected Middle East deployment context."},
+    {"name":"NOAA Nationwide AIS 2026","url":"https://www.fisheries.noaa.gov/inport/item/80362","role":"AIS context and public vessel-data metadata."},
+    {"name":"ESA / Copernicus Sentinel-1 Maritime Traffic","url":"https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Tracking_maritime_traffic","role":"Public maritime SAR/AIS context."},
+    {"name":"NASA FIRMS","url":"https://earthdata.nasa.gov/firms","role":"Public thermal/fire observation context for after-action analysis."}]
 
 TEST_GROUPS = [
     ("4-10","پایه‌های تحلیل، پیش‌بینی، ریسک و یکپارچگی"),
@@ -397,7 +401,8 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
         'test_id':n,
         'test_name':name,
         'classification':'synthetic_post_event_public_evidence_resilience_test',
-        'scenario':SCENARIO,,
+        'scenario':SCENARIO,
+        'scenario_coverage':SCENARIO_COVERAGE,,
         'before_state':before,
         'before_digest':before_digest,
         'raw_fixture':raw_fixture,
@@ -553,7 +558,7 @@ def main()->int:
     avg_test_ms=round((elapsed_s/len(TESTS))*1000,2) if TESTS else None
     pass_rate=round((passed/len(TESTS))*100,2) if TESTS else 0
     fail_rate=round((failed/len(TESTS))*100,2) if TESTS else 0
-    report={'suite':'Sentinel Architecture 99-Test','tests_requested':len(TESTS),'passed':passed,'failed':failed,'pass_rate_pct':pass_rate,'fail_rate_pct':fail_rate,'elapsed_s':elapsed_s,'tests_per_second':tests_per_second,'avg_test_ms':avg_test_ms,'source_report':src,'reality_boundary':{'real_public_source_metadata':True,'live_military_tracking':False,'attack_optimization':False},'results':results,'failures':failures,'final_state':{'cores':len(s.cores),'layers':len(s.layers),'memory_records':len(s.memory),'quarantine':s.quarantine,'conflicts':s.conflicts,'version':s.version,'resources':s.resources,'checkpoints':len(s.checkpoints),'audit_events':s.audit,'degraded_layers':sorted(s.degraded)}}
+    report={'suite':'Sentinel Architecture 99-Test','scenario_coverage':SCENARIO_COVERAGE,'tests_requested':len(TESTS),'passed':passed,'failed':failed,'pass_rate_pct':pass_rate,'fail_rate_pct':fail_rate,'elapsed_s':elapsed_s,'tests_per_second':tests_per_second,'avg_test_ms':avg_test_ms,'source_report':src,'reality_boundary':{'real_public_source_metadata':True,'live_military_tracking':False,'attack_optimization':False},'results':results,'failures':failures,'final_state':{'cores':len(s.cores),'layers':len(s.layers),'memory_records':len(s.memory),'quarantine':s.quarantine,'conflicts':s.conflicts,'version':s.version,'resources':s.resources,'checkpoints':len(s.checkpoints),'audit_events':s.audit,'degraded_layers':sorted(s.degraded)}}
     Path('artifacts').mkdir(exist_ok=True)
     Path('artifacts/architecture-99-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     Path('artifacts/architecture-99-assessment.md').write_text(render_markdown(report),encoding='utf-8')
