@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import hashlib,json,math,statistics,time,urllib.request
+import hashlib,json,math,statistics,time,urllib.request,datetime
 from dataclasses import dataclass,field
 from pathlib import Path
 
@@ -173,18 +173,39 @@ def dedupe(s:State)->int:
         else: seen.add(m["id"]); out.append(m)
     s.memory=out; return removed
 
+def evidence_snippets(body,keys,limit=3,window=260):
+    text=body.replace(chr(13),' ').replace(chr(10),' ')
+    low=text.lower()
+    snippets=[]
+    for key in keys:
+        pos=low.find(key.lower())
+        if pos>=0:
+            start=max(0,pos-window)
+            end=min(len(text),pos+len(key)+window)
+            snippets.append({'keyword':key,'excerpt':text[start:end].strip()})
+        if len(snippets)>=limit:
+            break
+    return snippets
+
 def fetch_source(ident,url,critical,keys):
     candidates=[url,*FALLBACKS.get(ident,[])]
-    primary_status=None; primary_error=None; fetched_url=None; body=""; status=None
+    primary_status=None; primary_error=None; fetched_url=None; body=''; status=None
+    content_type=None; response_url=None; attempted=[]
+    observed_at=datetime.datetime.now(datetime.timezone.utc).isoformat()
     for candidate in candidates:
         for attempt in range(3):
+            attempted.append({'url':candidate,'attempt':attempt+1})
             try:
                 req=urllib.request.Request(candidate,headers={
-                    "User-Agent":"Sentinel-Architecture-CI/1.0",
-                    "Accept":"text/html,application/json,text/plain;q=0.9,*/*;q=0.8",
+                    'User-Agent':'Sentinel-Architecture-CI/1.0',
+                    'Accept':'text/html,application/json,text/plain;q=0.9,*/*;q=0.8',
                 })
                 with urllib.request.urlopen(req,timeout=20) as r:
-                    body=r.read(1800000).decode("utf-8","ignore"); status=r.status
+                    raw=r.read(1800000)
+                    body=raw.decode('utf-8','ignore')
+                    status=r.status
+                    content_type=r.headers.get('Content-Type')
+                    response_url=r.geturl()
                 if candidate==url:
                     primary_status=status
                 if status==200:
@@ -194,7 +215,7 @@ def fetch_source(ident,url,critical,keys):
                 status=e.code
                 if candidate==url:
                     primary_status=e.code
-                    primary_error=f"HTTP {e.code}: {e.reason}"
+                    primary_error=f'HTTP {e.code}: {e.reason}'
                 if e.code not in {403,429,500,502,503,504}:
                     break
                 time.sleep(1.5*(attempt+1))
@@ -206,12 +227,16 @@ def fetch_source(ident,url,critical,keys):
             break
     hits=[k for k in keys if k.lower() in body.lower()]
     content_ok=(status==200 and len(hits)>=max(1,len(keys)//2))
+    digest=hashlib.sha256(body.encode('utf-8','ignore')).hexdigest() if body else None
     return {
-        "id":ident,"status":status,"primary_status":primary_status,
-        "primary_ok": primary_status==200 and content_ok and fetched_url==url,
-        "ok":content_ok,"hits":hits,"critical":critical,"url":url,
-        "fetched_url":fetched_url,"fallback_used":bool(fetched_url and fetched_url!=url),
-        "primary_error":primary_error,
+        'id':ident,'status':status,'primary_status':primary_status,
+        'primary_ok':primary_status==200 and content_ok and fetched_url==url,
+        'ok':content_ok,'hits':hits,'critical':critical,'url':url,
+        'fetched_url':fetched_url,'fallback_used':bool(fetched_url and fetched_url!=url),
+        'primary_error':primary_error,'observed_at_utc':observed_at,
+        'content_type':content_type,'response_url':response_url,
+        'body_chars':len(body),'body_sha256':digest,
+        'evidence':evidence_snippets(body,keys),'attempts':attempted,
     }
 
 def sources()->dict:
@@ -261,13 +286,81 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
     valid(s)
     return {"number":n,"name":name,"status":"PASS","metrics":metric}
 
+def render_markdown(report):
+    lines=[]
+    lines.append('# Sentinel Architecture 99-Test Assessment')
+    lines.append('')
+    lines.append('## Summary')
+    lines.append('')
+    lines.append(f"- Tests requested: {report['tests_requested']}")
+    lines.append(f"- Passed: {report['passed']}")
+    lines.append(f"- Failed: {report['failed']}")
+    lines.append(f"- Critical source gate: {report['source_report']['critical_pass']}")
+    lines.append(f"- Required direct community sources: {report['source_report']['community_passed']}/{report['source_report']['community_required']}")
+    lines.append(f"- All required community sources passed: {report['source_report']['community_all_pass']}")
+    lines.append(f"- Runtime seconds: {report['elapsed_s']}")
+    lines.append('')
+    lines.append('## Data provenance')
+    lines.append('')
+    lines.append('Direct source results are recorded separately from fallback results. HTTP 403, 429 and 5xx responses remain visible and cannot become PASS through a fallback.')
+    lines.append('')
+    for item in report['source_report']['sources'] + report['source_report']['advisory_sources']:
+        lines.append(f"### {item['id']}")
+        lines.append(f"- Direct URL: {item['url']}")
+        lines.append(f"- Direct HTTP status: {item['primary_status']}")
+        lines.append(f"- Final fetched status: {item['status']}")
+        lines.append(f"- Direct PASS: {item['primary_ok']}")
+        lines.append(f"- Content check: {item['ok']}")
+        lines.append(f"- Fallback used: {item['fallback_used']}")
+        lines.append(f"- Fetched URL: {item['fetched_url']}")
+        lines.append(f"- Observed UTC: {item['observed_at_utc']}")
+        lines.append(f"- Content-Type: {item['content_type']}")
+        lines.append(f"- Body characters captured: {item['body_chars']}")
+        lines.append(f"- Body SHA-256: {item['body_sha256']}")
+        if item.get('primary_error'): lines.append(f"- Direct error: {item['primary_error']}")
+        if item['hits']: lines.append(f"- Matched keys: {', '.join(item['hits'])}")
+        for ev in item.get('evidence',[]):
+            excerpt=ev['excerpt'].replace('|','/')
+            lines.append(f"- Evidence {ev['keyword']}: {excerpt}")
+        lines.append('')
+    lines.append('## Methodology')
+    lines.append('')
+    lines.append('Tests 4-99 execute against a deterministic synthetic architecture state with 12 cores, 12 layers and 600 seeded memory records. The suite injects invalid data, duplicates, resource pressure, degraded layers, governance conflicts and rejected security payloads, then validates structural and resource invariants after each test.')
+    lines.append('')
+    lines.append('## Test results')
+    lines.append('')
+    lines.append('| # | Test | Status | Metrics |')
+    lines.append('|---:|---|---|---|')
+    for r in report['results']:
+        metrics=json.dumps(r.get('metrics',{}),ensure_ascii=False,separators=(',',':')).replace('|','/')
+        lines.append(f"| {r['number']} | {r['name']} | {r['status']} | {metrics} |")
+    lines.append('')
+    lines.append('## Final architecture state')
+    lines.append('')
+    for k,v in report['final_state'].items(): lines.append(f"- {k}: {v}")
+    lines.append('')
+    lines.append('## Limitations')
+    lines.append('')
+    lines.append('- Public-source metadata is checked during CI.')
+    lines.append('- This suite does not download live satellite pixel scenes.')
+    lines.append('- Live military tracking and attack optimization are outside this suite.')
+    lines.append('- A PASS means the documented fixture/source check passed; it is not proof of universal real-world correctness.')
+    lines.append('')
+    lines.append('## Reproducibility')
+    lines.append('')
+    lines.append('The machine-readable JSON report and this Markdown assessment are generated together in the GitHub Actions artifact. Source hashes, observed status codes, evidence excerpts and test metrics are retained for review.')
+    return '\\n'.join(lines)+'\\n'
+
 def main()->int:
     t=time.time(); src=sources(); s=seed(); results=[]; failures=[]
     for n,name in TESTS:
         try: results.append(run_one(s,int(n),name,src))
-        except Exception as e: failures.append({"number":int(n),"name":name,"error":str(e)}); results.append({"number":int(n),"name":name,"status":"FAIL"})
-    report={"suite":"Sentinel Architecture 99-Test","tests_requested":len(TESTS),"passed":sum(r["status"]=="PASS" for r in results),"failed":len(failures),"source_report":src,"elapsed_s":round(time.time()-t,3),"reality_boundary":{"real_public_source_metadata":True,"live_military_tracking":False,"attack_optimization":False},"results":results,"failures":failures}
-    Path("artifacts").mkdir(exist_ok=True); Path("artifacts/architecture-99-report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
-    print(json.dumps({"tests":len(TESTS),"passed":report["passed"],"failed":report["failed"],"critical_sources":src["critical_pass"],"community_sources":src["community_passed"],"elapsed_s":report["elapsed_s"]},ensure_ascii=False,indent=2))
-    return 0 if report["failed"]==0 and src["critical_pass"] and src["community_all_pass"] else 1
+        except Exception as e: failures.append({'number':int(n),'name':name,'error':str(e)}); results.append({'number':int(n),'name':name,'status':'FAIL'})
+    report={'suite':'Sentinel Architecture 99-Test','tests_requested':len(TESTS),'passed':sum(r['status']=='PASS' for r in results),'failed':len(failures),'source_report':src,'elapsed_s':round(time.time()-t,3),'reality_boundary':{'real_public_source_metadata':True,'live_military_tracking':False,'attack_optimization':False},'results':results,'failures':failures,'final_state':{'cores':len(s.cores),'layers':len(s.layers),'memory_records':len(s.memory),'quarantine':s.quarantine,'conflicts':s.conflicts,'version':s.version,'resources':s.resources,'checkpoints':len(s.checkpoints),'audit_events':s.audit,'degraded_layers':sorted(s.degraded)}}
+    Path('artifacts').mkdir(exist_ok=True)
+    Path('artifacts/architecture-99-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    Path('artifacts/architecture-99-assessment.md').write_text(render_markdown(report),encoding='utf-8')
+    print(json.dumps({'tests':len(TESTS),'passed':report['passed'],'failed':report['failed'],'critical_sources':src['critical_pass'],'community_sources':src['community_passed'],'elapsed_s':report['elapsed_s']},ensure_ascii=False,indent=2))
+    return 0 if report['failed']==0 and src['critical_pass'] and src['community_all_pass'] else 1
+
 if __name__=="__main__": raise SystemExit(main())
