@@ -321,7 +321,7 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
     observed=[]
 
     if any(k in l for k in ['fake','bias','incomplete','data collapse','misinformation']):
-        count=5000 if 'دارک' in l else 1000
+        count=5000 if 'dark' in l else 1000
         raw_fixture=[{'id':f'fake-{i}','confidence':2.0,'source':'untrusted','t':-1} for i in range(count)]
         actions.append({'action':'inject_invalid_records','count':count})
         fake(s,count)
