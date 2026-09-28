@@ -1,0 +1,13 @@
+{
+  "purpose":"public-source provenance and health checks for the 99-test architecture suite",
+  "sources":[
+    {"id":"copernicus_ship_ais","type":"satellite_documentation","url":"https://documentation.dataspace.copernicus.eu/notebook-samples/sentinelhub/data_integration/ship_detection_and_ais_identification.html"},
+    {"id":"copernicus_forum","type":"community_forum","url":"https://forum.dataspace.copernicus.eu/t/availability-of-sentinel-1-ais-data/4798"},
+    {"id":"zenodo_v27","type":"satellite_dataset","url":"https://zenodo.org/api/records/22844774"},
+    {"id":"sarfish","type":"github_osint","url":"https://api.github.com/repos/MJCruickshank/SARfish"},
+    {"id":"allenai","type":"github_satellite_ml","url":"https://api.github.com/repos/allenai/vessel-detection-sentinels"},
+    {"id":"ormuz_osint","type":"github_osint","url":"https://api.github.com/repos/kelu124/OrmuzOsint"},
+    {"id":"reddit_osint","type":"community_forum","url":"https://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/"}
+  ],
+  "boundary":{"no_live_military_target_tracking":true,"no_attack_optimization":true}
+}
