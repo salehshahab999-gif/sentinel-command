@@ -278,25 +278,26 @@ def sample_records(records,limit=8):
 
 def run_one(s:State,n:int,name:str,src:dict)->dict:
     before=state_summary(s)
-    before_digest=snap(s)[:16]
+    before_blob=json.dumps(s.__dict__,sort_keys=True,default=list,ensure_ascii=False)
+    before_digest=hashlib.sha256(before_blob.encode('utf-8')).hexdigest()
     l=name.lower()
     metric={}
-    raw_fixture=[]
+    raw_fixture=sample_records(s.memory,8)
     actions=[]
     observed=[]
 
     if any(k in l for k in ['جعلی','تعصب','اطلاعات ناقص','فروپاشی داده']):
         count=5000 if 'دارک' in l else 1000
-        raw_fixture=[{'id':f'fake-{i}','confidence':2.0,'source':'untrusted','t':-1} for i in range(min(count,12))]
-        actions.append({'action':'inject_invalid_records','count':count,'preview':raw_fixture})
+        raw_fixture=[{'id':f'fake-{i}','confidence':2.0,'source':'untrusted','t':-1} for i in range(count)]
+        actions.append({'action':'inject_invalid_records','count':count})
         fake(s,count)
         q=quarantine(s)
         metric['quarantined']=q
         observed.append({'name':'quarantine_count','value':q})
     elif any(k in l for k in ['حافظه','دانش','یادگیری']):
-        raw_fixture=sample_records(s.memory,8)
+        raw_fixture={'original_records':sample_records(s.memory,8),'duplicated_records':sample_records(s.memory[:100],100)}
         s.memory += s.memory[:100]
-        actions.append({'action':'duplicate_memory_records','count':100,'preview':raw_fixture})
+        actions.append({'action':'duplicate_memory_records','count':100})
         d=dedupe(s)
         metric['deduped']=d
         observed.append({'name':'deduped_count','value':d})
@@ -336,7 +337,7 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
     elif any(k in l for k in ['تصمیم','انصاف','اخلاق','همسویی']):
         vals=[((i*19)%101)/100 for i in range(20)]
         raw_fixture=[{'decision_score':v} for v in vals]
-        actions.append({'action':'decision_fixture','count':len(vals),'preview':raw_fixture[:8]})
+        actions.append({'action':'decision_fixture','count':len(vals)})
         metric['decision_mean']=round(statistics.mean(vals),4)
         observed.append({'name':'decision_mean','value':metric['decision_mean']})
     else:
@@ -368,6 +369,7 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
         'before_state':before,
         'before_digest':before_digest,
         'raw_fixture':raw_fixture,
+        'initial_memory_sample':sample_records(s.memory,8),
         'actions':actions,
         'observed_outputs':observed,
         'after_state':after,
