@@ -323,9 +323,48 @@ Instead of deleting conflicting information, the architecture records the confli
 
 This is one of the most important principles in the report.
 
+
 ---
 
-# 🛰️ 7. Public Evidence Sources
+# 🚢🚀 6A. Integrated Scenario Coverage
+
+The original scenario is broader than the generic architecture-resilience labels alone. The repository now documents an integrated post-event evidence chain covering:
+
+**carrier context → missile-event evidence → UAV / aircraft tracks → electronic-interference indicators → radar / sensor continuity → AIS → satellite SAR/optical evidence → precision position → aftermath evidence → OSINT provenance → contradiction handling → audit**
+
+This coverage is mapped explicitly in:
+
+**Scenario Coverage Matrix**
+
+https://github.com/salehshahab999-gif/sentinel-command/blob/test/architecture-99-suite/NAVAL-SCENARIO-COVERAGE.md
+
+### Domains now represented explicitly
+
+| Domain | Evidence / test focus |
+|---|---|
+| 🚢 Carrier context | Vessel identity, public deployment context, maritime continuity |
+| 🚀 Missile event | Claims, timestamps, source conflicts, aftermath evidence, uncertainty |
+| 🛩️ UAV / drones | Aircraft identity, speed, altitude, history, missing data |
+| 📡 Electronic interference | GNSS degradation, communications gaps, sensor dropouts, spoofing/jamming claims |
+| 📻 Radar / sensors | Track continuity, latency, missing observations, conflicting sensors |
+| ✈️ Aircraft / ADS-B | Search, filters, speed normalization and history |
+| 🚢 AIS / maritime | Vessel position, course, speed, source availability |
+| 🛰️ Satellite | SAR, optical, geospatial and provenance checks |
+| 📍 Precision position | Frame consistency, source fusion, residuals and rejected observations |
+| 🔥 Aftermath | Generic thermal/imagery-change evidence |
+| 📰 OSINT | Public source health, fallback, evidence snippets and provenance |
+| 🌦️ Environment | Environmental context and uncertainty |
+
+### Important evidence boundary
+
+The branch does **not** fabricate a list of exact missile models, exact UAV models, or a specific electronic-warfare system when the recovered public scenario material does not establish those identities.
+
+Instead, the suite tests the evidence classes and the architecture's ability to keep **observation, inference and uncertainty separate**.
+
+
+---
+
+# 🛰️ 8. Public Evidence Sources
 
 ## 🇺🇸 U.S. Navy Fact Files
 
@@ -371,7 +410,7 @@ NASA Earth-data source for thermal/fire observations.
 
 ---
 
-# ⚠️ 8. What These Sources Can and Cannot Prove
+# ⚠️ 9. What These Sources Can and Cannot Prove
 
 No single public source listed above can independently prove:
 
@@ -407,7 +446,7 @@ Limited conclusion
 
 ---
 
-# 🧯 9. Synthetic Failure Injection
+# 🧯 10. Synthetic Failure Injection
 
 The suite intentionally introduces artificial bad conditions.
 
@@ -445,7 +484,7 @@ Conflict counters and audit events are increased to verify traceability.
 
 ---
 
-# 📋 10. Complete Test Matrix
+# 📋 11. Complete Test Matrix
 
 | # | Test | What it checks |
 |---:|---|---|
@@ -548,7 +587,7 @@ Conflict counters and audit events are increased to verify traceability.
 
 ---
 
-# 🔐 11. Audit and Reproducibility
+# 🔐 12. Audit and Reproducibility
 
 Each test records a state digest.
 
@@ -568,7 +607,7 @@ It simply makes state changes easier to detect and audit.
 
 ---
 
-# 📈 12. Error, PASS and Performance Interpretation
+# 📈 13. Error, PASS and Performance Interpretation
 
 ### PASS rate
 
@@ -598,7 +637,7 @@ These four values are produced automatically by the updated test runner.
 
 ---
 
-# 🧠 13. What a PASS Actually Means
+# 🧠 14. What a PASS Actually Means
 
 A PASS means:
 
@@ -614,7 +653,7 @@ That distinction is intentionally central to this public report.
 
 ---
 
-# 🚫 14. Explicit Scope Boundary
+# 🚫 15. Explicit Scope Boundary
 
 This suite does **not** perform:
 
@@ -630,7 +669,7 @@ It is a **post-event analytical resilience and evidence-management test**.
 
 ---
 
-# 🧪 15. What Is Real and What Is Synthetic?
+# 🧪 16. What Is Real and What Is Synthetic?
 
 | Element | Status |
 |---|---|
@@ -648,7 +687,7 @@ It is a **post-event analytical resilience and evidence-management test**.
 
 ---
 
-# 🔗 16. Public GitHub Files
+# 🔗 17. Public GitHub Files
 
 ### 📄 Full public report
 https://github.com/salehshahab999-gif/sentinel-command/blob/test/architecture-99-suite/NAVAL-MISSILE-IMPACT-99-TEST-REPORT.md
@@ -664,7 +703,7 @@ https://github.com/salehshahab999-gif/sentinel-command/tree/test/architecture-99
 
 ---
 
-# 🏁 17. Final Assessment
+# 🏁 18. Final Assessment
 
 The purpose of the Sentinel 99-Test suite is to determine whether an analytical architecture can remain **traceable, resilient, reproducible and auditable** while processing a difficult post-event scenario involving a claimed missile impact on a naval vessel.
 
