@@ -6,8 +6,8 @@
     {"id":"zenodo_v27","type":"satellite_dataset","url":"https://zenodo.org/api/records/22844774"},
     {"id":"sarfish","type":"github_osint","url":"https://api.github.com/repos/MJCruickshank/SARfish"},
     {"id":"allenai","type":"github_satellite_ml","url":"https://api.github.com/repos/allenai/vessel-detection-sentinels"},
-    {"id":"ormuz_osint","type":"github_osint","url":"https://api.github.com/repos/kelu124/OrmuzOsint"},
-    {"id":"reddit_osint","type":"community_forum","url":"https://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/"}
+    {"id":"ormuz_osint","type":"github_osint","url":"https://api.github.com/repos/kelu124/OrmuzOsint","fallbacks":["https://raw.githubusercontent.com/kelu124/OrmuzOsint/main/README.md"]},
+    {"id":"reddit_osint","type":"community_forum","url":"https://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/","fallbacks":["https://api.pullpush.io/reddit/search/submission/?ids=1wkkbrf","https://r.jina.ai/http://www.reddit.com/r/AIS/comments/1wkkbrf/dark_ships_in_the_persian_gulf_sar_vs_ais/"]}
   ],
   "boundary":{"no_live_military_target_tracking":true,"no_attack_optimization":true}
 }
