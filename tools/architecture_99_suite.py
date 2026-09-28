@@ -4,6 +4,37 @@ import hashlib,json,math,statistics,time,urllib.request,datetime
 from dataclasses import dataclass,field
 from pathlib import Path
 
+SCENARIO = {
+    "title": "بازسازی و راستی‌آزمایی پس از رویداد: اصابت موشک به یک ناو جنگی آمریکایی",
+    "english_title": "Post-Event Public-Evidence Resilience Test: Missile Impact on a U.S. Naval Vessel",
+    "purpose": "بررسی اینکه معماری Sentinel در یک سناریوی فرضیِ پس از وقوع رویداد، چگونه داده‌های عمومی، تناقض، داده ناقص/جعلی، خرابی و تغییر شرایط را مدیریت و قابل ممیزی می‌کند.",
+    "scope": "تحلیل و راستی‌آزمایی پس از رویداد با داده‌های عمومی و fixtureهای مصنوعی و قطعی؛ بدون شبیه‌سازی هدایت سلاح، انتخاب هدف، مسیر حمله یا بهینه‌سازی عملیات رزمی.",
+    "test_count_note": "در این suite شماره‌گذاری از 4 تا 99 است؛ بنابراین این فایل 96 آزمایش شماره‌دار را اجرا می‌کند، نه 99 آزمایش مستقل."
+}
+
+PUBLIC_CONTEXT_SOURCES = [
+    {"name":"U.S. Navy Fact Files","url":"https://www.navy.mil/resources/fact-files/","role":"شناسه و اطلاعات عمومی انواع شناورهای نیروی دریایی آمریکا."},
+    {"name":"Naval Vessel Register (NAVSEA)","url":"https://www.navsea.navy.mil/Resources/Naval-Vessel-Register/","role":"مرجع رسمی فهرست و وضعیت چرخه عمر شناورهای نیروی دریایی آمریکا."},
+    {"name":"NOAA Nationwide AIS 2026","url":"https://www.fisheries.noaa.gov/inport/item/80362","role":"مرجع عمومی برای داده و مفهوم AIS و مسیر/مشخصات شناورها."},
+    {"name":"NOAA AIS Vessel Tracks 2025","url":"https://www.fisheries.noaa.gov/inport/item/79504","role":"نمونه عمومی از داده‌های مسیر شناورها و محدودیت‌های آن‌ها، از جمله شکاف‌های AIS."},
+    {"name":"ESA / Copernicus Sentinel-1 Maritime Traffic","url":"https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Tracking_maritime_traffic","role":"توضیح عمومی درباره کاربرد Sentinel-1 و AIS برای پایش ترافیک دریایی."},
+    {"name":"Copernicus Sentinel-1 AIS Access Discussion","url":"https://forum.dataspace.copernicus.eu/t/availability-of-sentinel-1-ais-data/4798","role":"محدودیت دسترسی به برخی داده‌های AIS مرتبط با Sentinel-1."},
+    {"name":"NASA FIRMS","url":"https://earthdata.nasa.gov/firms","role":"منبع عمومی برای داده‌های ماهواره‌ای رخدادهای حرارتی/آتش؛ داده کمکی، نه اثبات مستقل اصابت."}
+]
+
+TEST_GROUPS = [
+    ("4-10","پایه‌های تحلیل، پیش‌بینی، ریسک و یکپارچگی"),
+    ("11-20","بحران، داده جعلی/ناقص، مقیاس، تعارض و تغییر محیط"),
+    ("21-30","سناریوهای فشار شدید و «دارک» برای بررسی نقطه‌های شکنندگی"),
+    ("31-40","بقا، وابستگی بین‌لایه‌ای، حافظه، دانش، یادگیری و بازگشت‌پذیری"),
+    ("41-45","امنیت، مقاومت در برابر حمله و جلوگیری از فروپاشی"),
+    ("46-60","کیفیت تصمیم، خطا، تعصب داده، شفافیت، ممیزی و انطباق"),
+    ("61-70","اخلاق، مقاومت تصمیم، پردازش توزیع‌شده، خطای تجمعی و منابع"),
+    ("71-85","سازگاری اکوسیستم، پایداری لایه‌ها، بلوغ و آمادگی معماری"),
+    ("86-90","استخراج ایراد، اعتبارسنجی اصلاحات و جلوگیری از بازگشت خطا"),
+    ("91-99","آزمون‌های نهایی جامع، بار بالا، ناشناخته‌ها و تعمیم‌پذیری")
+]
+
 TESTS=[line.split("|",1) for line in """
 4|هوش پیش‌بینی
 5|خودآگاهی سطح بالا
@@ -365,7 +396,8 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
     evidence={
         'test_id':n,
         'test_name':name,
-        'classification':'synthetic_architecture_resilience_test',
+        'classification':'synthetic_post_event_public_evidence_resilience_test',
+        'scenario':SCENARIO,,
         'before_state':before,
         'before_digest':before_digest,
         'raw_fixture':raw_fixture,
@@ -387,7 +419,16 @@ def run_one(s:State,n:int,name:str,src:dict)->dict:
 
 def render_markdown(report):
     lines=[]
-    lines.append('# Sentinel Architecture 99-Test Analytical Assessment')
+    lines.append(f"# {SCENARIO['title']}")
+    lines.append(f"# {SCENARIO['english_title']}")
+    lines.append('')
+    lines.append('## هدف گزارش')
+    lines.append('')
+    lines.append(SCENARIO['purpose'])
+    lines.append('')
+    lines.append(f"**مرز تحلیل:** {SCENARIO['scope']}")
+    lines.append('')
+    lines.append(f"**توضیح شمارش:** {SCENARIO['test_count_note']}")
     lines.append('')
     lines.append('## Executive Summary')
     lines.append('')
@@ -399,6 +440,16 @@ def render_markdown(report):
     lines.append(f"All required community sources passed: {report['source_report']['community_all_pass']}")
     lines.append('')
     lines.append('این گزارش مانند گزارش تحلیلی F-15 فقط نتیجهٔ PASS را نمایش نمی‌دهد؛ زنجیرهٔ داده و نتیجه برای هر تست در JSON ثبت شده و در این فایل خلاصهٔ بازبینی‌پذیر آن آمده است.')
+    lines.append('')
+    lines.append('## منابع عمومی برای خواننده')
+    lines.append('')
+    lines.append('این لینک‌ها برای بررسی مستقل زمینه و محدودیت منابع عمومی درج شده‌اند؛ وجود لینک به معنی تأیید ادعای وقوع یک اصابت مشخص نیست.')
+    lines.append('')
+    lines.append(''.join([f"- **{x['name']}** — {x['role']} — {x['url']}\\n" for x in PUBLIC_CONTEXT_SOURCES]))
+    lines.append('')
+    lines.append('## دامنه آزمون‌های این نسخه')
+    lines.append('')
+    lines.append(''.join([f"- **تست‌های {ids}:** {label}\\n" for ids,label in TEST_GROUPS]))
     lines.append('')
     lines.append('## Source Provenance')
     lines.append('')
@@ -444,6 +495,10 @@ def render_markdown(report):
         lines.append('')
     lines.append('## Final Architecture State')
     lines.append(json.dumps(report['final_state'],ensure_ascii=False,indent=2))
+    lines.append('')
+    lines.append('## تفسیر نتیجه')
+    lines.append('')
+    lines.append('PASS فقط نشان می‌دهد invariantها و گذارهای state در fixtureهای ثبت‌شده بدون خطا اجرا شده‌اند. این نتیجه به‌تنهایی وقوع، محل، نوع سلاح، عامل یا اصابت واقعی به یک شناور را اثبات نمی‌کند.')
     lines.append('')
     lines.append('## Reality Boundary')
     lines.append('- Public source metadata is checked during CI.')
