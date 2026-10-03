@@ -42,6 +42,30 @@ Public reporting described fire and heavy smoke near an Aramco facility in Riyad
 - Saudi Arabia satellite OSINT
 - FIRMS VIIRS thermal anomaly Riyadh
 
+
+## Multilingual search phrases
+
+### Arabic
+- حريق الرياض 3 أكتوبر 2026
+- دخان الرياض 3 أكتوبر 2026
+- حريق أرامكو الرياض
+- مصفاة أرامكو الرياض حريق
+- حريق مصفاة الرياض
+- صور الأقمار الصناعية الرياض حريق
+- ناسا FIRMS الرياض
+- VIIRS الرياض حريق
+
+### Persian
+- آتش سوزی ریاض ۳ اکتبر ۲۰۲۶
+- دود ریاض ۳ اکتبر ۲۰۲۶
+- آتش سوزی آرامکو ریاض
+- پالایشگاه آرامکو ریاض
+- موقعیت آتش سوزی ریاض
+- مکان یابی ماهواره ای ریاض
+- تحلیل OSINT ریاض
+- ناسا FIRMS ریاض
+- VIIRS آتش سوزی ریاض
+
 ## Research files
 
 ### Full record
