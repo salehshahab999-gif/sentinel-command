@@ -1,0 +1,34 @@
+name: OSINT Toolkit CI
+
+on:
+  push:
+    paths:
+      - "public-osint-satellite-toolkit/**"
+  pull_request:
+    paths:
+      - "public-osint-satellite-toolkit/**"
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: public-osint-satellite-toolkit
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
