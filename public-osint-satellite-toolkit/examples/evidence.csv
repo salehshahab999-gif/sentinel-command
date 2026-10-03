@@ -1,0 +1,3 @@
+evidence_id,classification,source,url,observed_at,data_type,independent,latitude,longitude,uncertainty_m,note
+example-001,OBSERVED_FACT,Example Source,https://example.org/observation,2026-01-01T12:00:00Z,image,true,,,,"Example only"
+example-002,SOURCE_CLAIM,Example Article,https://example.org/article,2026-01-01T12:05:00Z,article,false,,,,"Example only"
