@@ -1,6 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sentinel Command
 
-## Getting Started
+Sentinel Command is a private geospatial / satellite-intelligence project and research workspace.
+
+## Public OSINT research
+
+This repository also contains a public, reproducible research record for the **Riyadh fire/smoke event of 3 October 2026** reported near an Aramco facility.
+
+### Main research files
+
+- [Riyadh 2026-10-03 - Full OSINT Research Record](./Riyadh-2026-10-03-Full-OSINT-Research-Record.md)
+- [Riyadh 2026-10-03 - OSINT Assessment](./Riyadh-2026-10-03-OSINT-Assessment.md)
+- [Riyadh 2026-10-03 - Source Data](./Riyadh-2026-10-03-Source-Data.md)
+- [Riyadh 2026-10-03 - Generalized Location](./Riyadh-2026-10-03-Generalized-Location.md)
+- [Further Uncertainty Reduction Guide](./OSINT-Geolocation-Further-Uncertainty-Reduction-Guide.md)
+- [Public OSINT Satellite Toolkit](./public-osint-satellite-toolkit/)
+
+The research record documents source provenance, satellite-data reasoning, FIRMS/VIIRS context, Sentinel imagery context, wind/plume analysis, solar/shadow geometry, geographic cross-checks, uncertainty handling, source deduplication, and a 99-test validation record.
+
+## Search keywords
+
+**Riyadh fire October 3 2026, Riyadh smoke October 3 2026, Riyadh Aramco fire 2026, Aramco refinery Riyadh fire, Saudi Arabia fire OSINT, Riyadh geolocation OSINT, satellite geolocation Riyadh, NASA FIRMS Riyadh, VIIRS Riyadh fire, Sentinel-2 Riyadh, satellite fire detection, thermal anomaly, smoke plume geolocation, wind plume analysis, solar shadow geolocation, OSINT satellite imagery, open-source intelligence geolocation, multi-source geolocation, satellite imagery cross-checking, geographic uncertainty, reproducible OSINT research, Sentinel Command**
+
+## Research boundary
+
+The public record uses a generalized geographic reference and does **not** publish a precise operational coordinate for a strategic energy facility. The purpose is to preserve the analytical method and evidence trail while avoiding publication of sensitive operational targeting information.
+
+## Reproducibility
+
+The research notes distinguish:
+
+- **OBSERVED_FACT**
+- **SOURCE_CLAIM**
+- **ANALYTICAL_INFERENCE**
+- **UNRESOLVED**
+- **REJECTED**
+
+Independent sources are tracked separately from duplicated/reposted reporting where possible.
+
+---
+
+## Sentinel Command application
+
+The main application is a Next.js project.
+
+### Getting Started
 
 First, run the development server:
 
@@ -14,23 +57,10 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Learn More
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Next.js GitHub repository](https://github.com/vercel/next.js)
+- [Vercel](https://vercel.com/)
