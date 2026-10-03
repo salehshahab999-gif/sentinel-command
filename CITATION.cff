@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+title: "Sentinel Command: Public OSINT Research Record for the Riyadh Fire Event, 3 October 2026"
+message: "Use the research record when citing the public geolocation methodology and evidence trail."
+type: software
+authors:
+  - family-names: Shahab
+    given-names: Saleh
+repository-code: "https://github.com/salehshahab999-gif/sentinel-command"
+url: "https://github.com/salehshahab999-gif/sentinel-command"
+keywords:
+  - OSINT
+  - geolocation
+  - satellite imagery
+  - NASA FIRMS
+  - VIIRS
+  - Sentinel-2
+  - fire detection
+  - smoke plume
+  - solar geometry
+  - source provenance
+  - reproducible research
