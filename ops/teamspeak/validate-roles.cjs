@@ -55,13 +55,38 @@ for(const entry of [
 const owner=byName.get('SENTINEL OWNER');
 assert.equal(get(owner,'i_group_modify_power').value,100);
 assert.equal(get(owner,'i_permission_modify_power').value,100);
-assert.equal(get(owner,'i_group_needed_modify_power').value,75);
+assert.equal(get(owner,'i_group_needed_modify_power').value,100);
+assert.equal(get(owner,'i_group_needed_member_add_power').value,100);
+assert.equal(get(owner,'i_group_needed_member_remove_power').value,100);
+assert.ok(owner.permissions.filter(p=>p.name.startsWith('i_needed_modify_power_')).length>0);
+assert.ok(owner.permissions.filter(p=>p.name.startsWith('i_needed_modify_power_')).every(p=>p.value===100));
 assert.equal(manifest.safety.uses_servergroupcopy,false);
 assert.equal(manifest.safety.built_in_groups_touched,false);
 assert.equal(manifest.safety.existing_client_memberships_changed,false);
 assert.equal(manifest.safety.does_not_assign_owner_automatically,true);
 const sys=byName.get('SYSTEM ADMIN');
-for(const name of ['i_group_modify_power','i_group_member_add_power','i_group_member_remove_power','i_permission_modify_power','i_client_permission_modify_power','i_channel_permission_modify_power']) assert.equal(get(sys,name).value,-1,'SYSTEM ADMIN received forbidden editing power: '+name);
+for(const name of ['i_group_modify_power','i_permission_modify_power','i_channel_permission_modify_power']) assert.equal(get(sys,name).value,-1,'SYSTEM ADMIN received forbidden role/ACL edit power: '+name);
+assert.equal(get(sys,'i_group_member_add_power').value,90,'SYSTEM ADMIN should assign roles below its own tier');
+assert.equal(get(sys,'i_group_member_remove_power').value,90,'SYSTEM ADMIN should remove roles below its own tier');
+assert.equal(get(sys,'i_group_needed_member_add_power').value,91,'SYSTEM ADMIN must be protected from peer-tier assignment');
+assert.equal(get(sys,'i_group_needed_member_remove_power').value,91,'SYSTEM ADMIN must be protected from peer-tier removal');
+assert.equal(get(sys,'i_client_permission_modify_power').value,90,'SYSTEM ADMIN needs controlled member assignment power');
+assert.equal(get(sys,'i_client_needed_permission_modify_power').value,91,'SYSTEM ADMIN target protection must exceed its own power');
+
+const auditor=byName.get('PERMISSION AUDITOR');
+for(const name of ['i_client_kick_from_server_power','i_client_kick_from_channel_power','i_client_ban_power','i_client_move_power','i_client_poke_power','i_group_modify_power','i_group_member_add_power','i_group_member_remove_power','i_permission_modify_power','i_client_permission_modify_power','i_channel_permission_modify_power']) {
+  assert.equal(get(auditor,name).value,-1,'PERMISSION AUDITOR must be read-only: '+name);
+}
+assert.equal(auditor.permissions.filter(p=>p.name.startsWith('i_needed_modify_power_')).length,0,'PERMISSION AUDITOR must not grant permission-edit authority');
+for(const name of ['SENTINEL CHANNEL ADMIN','SENTINEL CHANNEL MODERATOR','SENTINEL EVENT HOST','SENTINEL PRESENTER']) {
+  const role=byName.get(name);
+  assert.equal(get(role,'i_group_needed_modify_power').value,100,'Channel-group definition is not protected: '+name);
+}
+assert.equal(get(byName.get('SENTINEL CHANNEL ADMIN'),'i_group_needed_member_add_power').value,100);
+assert.equal(get(byName.get('SENTINEL CHANNEL MODERATOR'),'i_group_needed_member_add_power').value,60);
+assert.equal(get(byName.get('SENTINEL EVENT HOST'),'i_group_needed_member_add_power').value,30);
+assert.equal(get(byName.get('SENTINEL PRESENTER'),'i_group_needed_member_add_power').value,20);
+
 const cm=byName.get('CHANNEL MANAGER');
 for(const name of ['i_client_kick_from_server_power','i_client_kick_from_channel_power','i_client_ban_power','i_client_move_power','i_client_poke_power']) assert.equal(get(cm,name).value,-1,'CHANNEL MANAGER has moderation power: '+name);
 const banCreators=roles.filter(r=>get(r,'b_client_ban_create') && get(r,'b_client_ban_create').value===1).map(r=>r.name).sort();
