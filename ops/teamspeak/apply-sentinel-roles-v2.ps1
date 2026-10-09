@@ -163,29 +163,66 @@ Write-Host '29 explicit profiles. New groups are created empty; servergroupcopy 
 Write-Host 'Existing groups with the exact Sentinel names will have their explicit permissions replaced by the manifest.' -ForegroundColor Yellow
 Write-Host 'Built-in groups, client memberships, icons, and channel hierarchy will not be changed.' -ForegroundColor Yellow
 Write-Host ''
-Write-Host 'Preview format: action Power / target Needed Power; Grant is permission-edit authority.' -ForegroundColor Cyan
+Write-Host 'Preview: Action Power / target Needed Power. GroupEdit and MemberAdd thresholds protect role administration.' -ForegroundColor Cyan
+function Format-RolePreviewValue([hashtable]$Values, [string]$Name) {
+  if ($Values.ContainsKey($Name)) { return [string]$Values[$Name] }
+  return '-'
+}
 foreach ($role in $manifest.roles) {
   Write-Host ('  {0,-13} {1,-34} {2,3} explicit permissions' -f $role.kind,$role.name,$role.permissions.Count)
   $pv = @{}
   foreach ($perm in $role.permissions) { $pv[[string]$perm.name] = [int]$perm.value }
   if ($role.kind -eq 'server_group') {
-    $summary = '    S-Kick {0}/{1} | C-Kick {2}/{3} | Ban {4}/{5} | Move {6}/{7} | Poke {8}/{9} | Talk {10} | Join {11} | Grants {12} | BanRule {13} | BanCap(s) {14}' -f `
-      $pv['i_client_kick_from_server_power'],$pv['i_client_needed_kick_from_server_power'],`
-      $pv['i_client_kick_from_channel_power'],$pv['i_client_needed_kick_from_channel_power'],`
-      $pv['i_client_ban_power'],$pv['i_client_needed_ban_power'],`
-      $pv['i_client_move_power'],$pv['i_client_needed_move_power'],`
-      $pv['i_client_poke_power'],$pv['i_client_needed_poke_power'],`
-      $pv['i_client_talk_power'],$pv['i_channel_join_power'],`
-      @($role.permissions | Where-Object { $_.name -like 'i_needed_modify_power_*' }).Count,`
-      $pv['b_client_ban_create'],$pv['i_client_ban_max_bantime']
+    $summary = '    S-Kick {0}/{1} | C-Kick {2}/{3} | Ban {4}/{5} | Move {6}/{7} | Poke {8}/{9} | Talk {10} | Join {11}' -f @(
+      (Format-RolePreviewValue $pv 'i_client_kick_from_server_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_kick_from_server_power'),
+      (Format-RolePreviewValue $pv 'i_client_kick_from_channel_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_kick_from_channel_power'),
+      (Format-RolePreviewValue $pv 'i_client_ban_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_ban_power'),
+      (Format-RolePreviewValue $pv 'i_client_move_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_move_power'),
+      (Format-RolePreviewValue $pv 'i_client_poke_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_poke_power'),
+      (Format-RolePreviewValue $pv 'i_client_talk_power'),
+      (Format-RolePreviewValue $pv 'i_channel_join_power')
+    )
+    $details = '    GroupEdit {0}/{1} | MemberAdd {2}/{3} | MemberRemove {4}/{5} | ClientPerm {6}/{7} | PermEdit {8} | Grants {9} | BanRule {10} | BanCap(s) {11}' -f @(
+      (Format-RolePreviewValue $pv 'i_group_modify_power'),
+      (Format-RolePreviewValue $pv 'i_group_needed_modify_power'),
+      (Format-RolePreviewValue $pv 'i_group_member_add_power'),
+      (Format-RolePreviewValue $pv 'i_group_needed_member_add_power'),
+      (Format-RolePreviewValue $pv 'i_group_member_remove_power'),
+      (Format-RolePreviewValue $pv 'i_group_needed_member_remove_power'),
+      (Format-RolePreviewValue $pv 'i_client_permission_modify_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_permission_modify_power'),
+      (Format-RolePreviewValue $pv 'i_permission_modify_power'),
+      @($role.permissions | Where-Object { $_.name -like 'i_needed_modify_power_*' }).Count,
+      (Format-RolePreviewValue $pv 'b_client_ban_create'),
+      (Format-RolePreviewValue $pv 'i_client_ban_max_bantime')
+    )
   } else {
-    $summary = '    Channel Talk {0} | Join {1} | Subscribe {2} | Kick {3}/{4} | Move {5}/{6} | Poke {7}/{8} | ChannelModify {9}/{10}' -f `
-      $pv['i_client_talk_power'],$pv['i_channel_join_power'],$pv['i_channel_subscribe_power'],`
-      $pv['i_client_kick_from_channel_power'],$pv['i_client_needed_kick_from_channel_power'],`
-      $pv['i_client_move_power'],$pv['i_client_needed_move_power'],$pv['i_client_poke_power'],`
-      $pv['i_client_needed_poke_power'],$pv['i_channel_modify_power'],$pv['i_channel_needed_modify_power']
+    $summary = '    Channel Talk {0} | Join {1} | Subscribe {2} | Kick {3}/{4} | Move {5}/{6} | Poke {7}/{8} | ChannelModify {9}/{10}' -f @(
+      (Format-RolePreviewValue $pv 'i_client_talk_power'),
+      (Format-RolePreviewValue $pv 'i_channel_join_power'),
+      (Format-RolePreviewValue $pv 'i_channel_subscribe_power'),
+      (Format-RolePreviewValue $pv 'i_client_kick_from_channel_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_kick_from_channel_power'),
+      (Format-RolePreviewValue $pv 'i_client_move_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_move_power'),
+      (Format-RolePreviewValue $pv 'i_client_poke_power'),
+      (Format-RolePreviewValue $pv 'i_client_needed_poke_power'),
+      (Format-RolePreviewValue $pv 'i_channel_modify_power'),
+      (Format-RolePreviewValue $pv 'i_channel_needed_modify_power')
+    )
+    $details = '    GroupEditThreshold {0} | AssignAddThreshold {1} | AssignRemoveThreshold {2}' -f @(
+      (Format-RolePreviewValue $pv 'i_group_needed_modify_power'),
+      (Format-RolePreviewValue $pv 'i_group_needed_member_add_power'),
+      (Format-RolePreviewValue $pv 'i_group_needed_member_remove_power')
+    )
   }
   Write-Host $summary -ForegroundColor DarkGray
+  Write-Host $details -ForegroundColor DarkGray
 }
 Write-Host ''
 $confirm = Read-Host 'To continue, type exactly APPLY SENTINEL ROLE PROFILES V2'
