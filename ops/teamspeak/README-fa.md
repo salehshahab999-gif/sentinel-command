@@ -1,6 +1,6 @@
 # Sentinel TeamSpeak 3 roles v2
 
-این تغییر برای پروژه Sentinel Command Center، ۲۹ پروفایل مجوز TeamSpeak 3 تعریف می‌کند. پروفایل‌ها از گروه Normal یا Server Admin کپی نمی‌شوند. build-roles.cjs مشخصات فشرده را به ۸۲۳ مجوز صریح تبدیل می‌کند و validate-roles.cjs ساختار، آستانه‌ها و تفکیک اختیارات را بررسی می‌کند.
+این تغییر برای پروژه Sentinel Command Center، ۲۹ پروفایل مجوز TeamSpeak 3 تعریف می‌کند. پروفایل‌ها از گروه Normal یا Server Admin کپی نمی‌شوند. build-roles.cjs مشخصات فشرده را به ۱۲۱۵ مجوز صریح تبدیل می‌کند و validate-roles.cjs ساختار، آستانه‌ها و تفکیک اختیارات را بررسی می‌کند.
 
 ## نقش‌ها
 
