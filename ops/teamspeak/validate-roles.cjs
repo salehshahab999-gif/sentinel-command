@@ -17,6 +17,7 @@ assert.equal(permissionModel.default_server_group_replaced_on_assignment,true);
 assert.equal(permissionModel.channel_group_layer,'overrides_server_group_unless_skip');
 assert.equal(permissionModel.join_and_talk_need_channel_threshold,true);
 assert.equal(permissionModel.built_in_server_groups_untouched,true);
+assert.deepEqual(permissionModel.server_group_power_skip,{i_channel_join_power:1,i_client_talk_power:1,rationale:"Rank-based join/talk power is protected from channel-layer overrides; channel thresholds still decide access and speaking."});
 assert.deepEqual(permissionModel.additive_specialist_profiles.sort(),[
   'AIRSPACE / ADS-B','ENERGY / MARKETS / DATA LAB','MARITIME / AIS','OSINT / GEOINT','SATELLITE / SAR'
 ].sort());
@@ -62,6 +63,35 @@ for (const role of roles.filter(r=>r.kind==='server_group')) {
 }
 const byName=new Map(roles.map(r=>[r.name,r]));
 const get=function(role,name){return role.permissions.find(p=>p.name===name);};
+for(const role of roles.filter(r=>r.kind==='server_group')) {
+  for(const name of ['i_channel_join_power','i_client_talk_power']) {
+    const p=get(role,name);
+    if(p) assert.equal(p.skip,1,'Hierarchy Join/Talk permission must be protected from channel-layer overrides: '+role.name+'/'+name);
+  }
+}
+for(const role of roles.filter(r=>r.kind==='channel_group')) {
+  assert.equal(get(role,'i_channel_join_power'),undefined,'Channel Group must not bypass rank-based room entry: '+role.name);
+  assert.equal(get(role,'i_client_talk_power'),undefined,'Channel Group must not bypass rank-based talk tiers: '+role.name);
+}
+const channelPolicy=JSON.parse(fs.readFileSync(path.join(__dirname,'channel-thresholds-v1.json'),'utf8'));
+assert.equal(channelPolicy.schema_version,1);
+assert.equal(channelPolicy.policy,'hierarchical');
+assert.equal(channelPolicy.channels.length,33,'Expected policy for all 33 audited channels');
+assert.equal(channelPolicy.expected_channels,33);
+assert.equal(new Set(channelPolicy.channels.map(c=>c.path)).size,33,'Channel paths must be unique');
+for(const c of channelPolicy.channels) {
+  assert.ok(typeof c.path==='string' && c.path.length>0,'Channel path required');
+  assert.ok(Number.isInteger(c.join_power) && c.join_power>=0,'Invalid join threshold: '+c.path);
+  assert.ok(Number.isInteger(c.talk_power) && c.talk_power>=0,'Invalid talk threshold: '+c.path);
+}
+const policyByPath=new Map(channelPolicy.channels.map(c=>[c.path,c]));
+assert.deepEqual([policyByPath.get('SENTINEL LOBBY').join_power,policyByPath.get('SENTINEL LOBBY').talk_power],[0,0]);
+assert.deepEqual([policyByPath.get('02 SATELLITE INTELLIGENCE').join_power,policyByPath.get('02 SATELLITE INTELLIGENCE').talk_power],[10,10]);
+assert.deepEqual([policyByPath.get('03 OSINT AND GEOPOLITICS').join_power,policyByPath.get('03 OSINT AND GEOPOLITICS').talk_power],[15,14]);
+assert.deepEqual([policyByPath.get('04 MARITIME INTELLIGENCE').join_power,policyByPath.get('04 MARITIME INTELLIGENCE').talk_power],[20,16]);
+assert.deepEqual([policyByPath.get('05 AIRSPACE AND ADS-B').join_power,policyByPath.get('05 AIRSPACE AND ADS-B').talk_power],[25,18]);
+assert.deepEqual([policyByPath.get('06 ENERGY AND MARKETS').join_power,policyByPath.get('06 ENERGY AND MARKETS').talk_power],[30,20]);
+
 function resolveServerGroupEntries(entries) {
   if(entries.length===0) return 0;
   const negated=entries.filter(p=>p.negate===1);
@@ -87,8 +117,10 @@ assert.equal(resolveServerGroupPermission(['REGISTERED MEMBER','ENERGY / MARKETS
   'Specialist role stacking is additive; it does not lower the main role');
 assert.equal(resolveServerGroupPermission(['SYSTEM ADMIN','ENERGY / MARKETS / DATA LAB'],'i_channel_join_power'),50,
   'A secondary specialist group must not lower an existing higher group power');
-assert.equal(resolveChannelScopedPermission(['REGISTERED MEMBER'],'SENTINEL CHANNEL ADMIN','i_client_talk_power'),50,
-  'Channel Group layer must override Server Group power when no skip flag is set');
+assert.equal(resolveChannelScopedPermission(['REGISTERED MEMBER'],'SENTINEL CHANNEL ADMIN','i_client_talk_power'),0,
+  'Hierarchy design intentionally keeps Channel Group from overriding server-rank talk power');
+assert.equal(resolveChannelScopedPermission(['REGISTERED MEMBER'],'SENTINEL CHANNEL ADMIN','i_channel_join_power'),0,
+  'Hierarchy design intentionally keeps Channel Group from overriding server-rank join power');
 assert.equal(resolveChannelScopedPermission(['REGISTERED MEMBER','NO-KICK PROTECTED'],'SENTINEL CHANNEL MODERATOR','i_client_needed_kick_from_channel_power'),101,
   'Server Group skip flag must protect the No-Kick threshold from Channel Group override');
 const existing=['SENTINEL OWNER','SYSTEM ADMIN','SECURITY MODERATOR','OPERATIONS LEAD','SENIOR ANALYST','ANALYST','RESEARCHER','REGISTERED MEMBER'];
@@ -163,5 +195,5 @@ assert.deepEqual(banCreators,['BAN-ONLY','HEAD MODERATOR','SECURITY MODERATOR','
 const signatures=roles.map(r=>JSON.stringify({kind:r.kind,permissions:r.permissions.slice().sort((a,b)=>a.name.localeCompare(b.name))}));
 assert.equal(new Set(signatures).size,signatures.length,'Duplicate role permission maps detected');
 console.log('PASS: '+roles.length+' distinct profiles; '+roles.reduce((n,r)=>n+r.permissions.length,0)+' explicit permission entries.');
-console.log('PASS: power pairs, protection overlays, TeamSpeak layer/stacking semantics, and custom-profile permission-edit boundaries.');
+console.log('PASS: 33-channel hierarchy map, protected rank Join/Talk powers, power pairs, overlays, and permission-edit boundaries.');
 console.log('NOTE: offline validation only; existing built-in Server Admin privileges and live server behavior are not changed or verified.');
