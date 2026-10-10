@@ -2,13 +2,13 @@
 SENTINEL OWNER,Server Group,Top Sentinel administration; explicit operational and permission-management powers. Not auto-assigned.,100,101,100,101,100,101,1,-1,100,101,100,101,100,100,100,100,75,100,100,100,100,100,100,100,101,100,1,1,1,1,1,84,168,sentinel-owner
 SYSTEM ADMIN,Server Group,Server/channel operations and strong moderation; cannot edit role definitions or change permissions.,90,91,90,91,80,81,1,86400,90,91,75,76,90,50,50,90,91,-1,91,90,91,90,91,90,91,-1,1,1,1,1,1,0,65,system-admin
 PERMISSION AUDITOR,Server Group,"Read group and permission listings; no edit, membership, kick, ban, or move power.",-1,15,-1,15,-1,15,-,-,-1,15,-1,10,10,0,10,-,-,-1,100,-1,100,-1,100,-1,91,-1,1,1,1,1,1,0,42,permission-auditor
-SECURITY MODERATOR,Server Group,Kick/move/poke plus limited-duration bans; no group or permission editing.,60,61,60,61,45,46,1,3600,60,61,30,31,40,10,10,-,-,-1,61,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,45,security-moderator
+SECURITY MODERATOR,Server Group,Kick/move/poke plus limited-duration bans; no group or permission editing.,60,61,60,61,45,46,1,3600,60,61,30,31,40,35,10,-,-,-1,61,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,45,security-moderator
 OPERATIONS LEAD,Server Group,Create and maintain channels and move participants; no kick/ban power.,-1,0,-1,0,-1,0,-,-,45,46,30,31,45,15,15,45,46,-1,46,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,56,operations-lead
 SENIOR ANALYST,Server Group,Senior research voice and controlled room entry; no moderation powers.,-1,26,-1,26,-1,26,-,-,-1,26,-1,20,30,25,25,-,-,-1,31,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,39,senior-analyst
 ANALYST,Server Group,Analyst talk power and room access below Senior Analyst.,-1,16,-1,16,-1,16,-,-,-1,16,-1,12,20,15,15,-,-,-1,21,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,39,analyst
 RESEARCHER,Server Group,Basic research talk/room-entry profile; no moderation powers.,-1,6,-1,6,-1,6,-,-,-1,6,-1,5,10,10,10,-,-,-1,11,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,39,researcher
 REGISTERED MEMBER,Server Group,Baseline member; Join Power 0 is not a global room-deny. Channels need their own Needed Join Power threshold for access control.,-1,0,-1,0,-1,0,-,-,-1,0,-1,0,0,0,0,-,-,-1,1,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,39,registered-member
-HEAD MODERATOR,Server Group,High-level moderation below System Admin; bans limited to six hours.,80,81,80,81,70,71,1,21600,80,81,60,61,60,20,20,-,-,-1,71,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,45,head-moderator
+HEAD MODERATOR,Server Group,High-level moderation below System Admin; bans limited to six hours.,80,81,80,81,70,71,1,21600,80,81,60,61,60,40,20,-,-,-1,71,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,45,head-moderator
 MODERATOR,Server Group,Kick and move ordinary members; cannot ban or edit channels/groups.,45,46,45,46,-1,0,-,-,40,41,20,21,25,5,5,-,-,-1,46,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,41,moderator
 JUNIOR MODERATOR,Server Group,Channel-only kick power for low-risk moderation; no server kick or ban.,-1,0,25,26,-1,0,-,-,-1,0,10,11,10,0,0,-,-,-1,26,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,41,junior-moderator
 KICK-ONLY,Server Group,"Kick-only specialist; no ban, move, poke, channel management, or rank editing.",35,36,35,36,-1,0,-,-,-1,0,-1,0,5,0,0,-,-,-1,36,-1,1,-1,1,-1,1,-1,1,1,1,1,1,0,39,kick-only
