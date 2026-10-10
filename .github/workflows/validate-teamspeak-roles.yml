@@ -1,0 +1,45 @@
+name: Validate TeamSpeak Role Profiles
+
+on:
+  push:
+    paths:
+      - 'ops/teamspeak/**'
+      - '.github/workflows/validate-teamspeak-roles.yml'
+  pull_request:
+    paths:
+      - 'ops/teamspeak/**'
+      - '.github/workflows/validate-teamspeak-roles.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate explicit permission profiles
+        run: node ops/teamspeak/validate-roles.cjs
+      - name: Validate all TeamSpeak PowerShell scripts
+        shell: pwsh
+        run: |
+          $failed = $false
+          Get-ChildItem ops/teamspeak -Filter '*.ps1' -File | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              Write-Host "Syntax errors in $($_.Name)" -ForegroundColor Red
+              $errors | Format-List *
+              $failed = $true
+            } else {
+              Write-Host "Syntax OK: $($_.Name)"
+            }
+          }
+          if ($failed) { exit 1 }
