@@ -164,6 +164,10 @@ Write-Host 'Existing groups with the exact Sentinel names will have their explic
 Write-Host 'Built-in groups, client memberships, icons, and channel hierarchy will not be changed.' -ForegroundColor Yellow
 Write-Host ''
 Write-Host 'Preview: Action Power / target Needed Power. GroupEdit and MemberAdd thresholds protect role administration.' -ForegroundColor Cyan
+Write-Host 'Layer behavior: Server Groups combine by highest value unless Negate applies; assigning a new group removes Default Server Group membership.' -ForegroundColor Yellow
+Write-Host 'Join/Talk power only gates channels when that channel has matching Needed Join/Talk thresholds configured.' -ForegroundColor Yellow
+Write-Host 'Channel Groups can override Server Group permissions within a channel unless the Server Group permission uses skip=1.' -ForegroundColor Yellow
+Write-Host 'Existing Server Admin permissions/memberships remain untouched; this is not a global sole-owner lock.' -ForegroundColor Yellow
 function Format-RolePreviewValue([hashtable]$Values, [string]$Name) {
   if ($Values.ContainsKey($Name)) { return [string]$Values[$Name] }
   return '-'
