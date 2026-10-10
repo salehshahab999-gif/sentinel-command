@@ -42,7 +42,7 @@ function buildManifest(spec) {
   });
   return {
     schema_version:2,product:spec.product,target:spec.target,mode:spec.mode,
-    profile_count_expected:spec.expected,safety:spec.safety,roles:roles,references:spec.references || []
+    profile_count_expected:spec.expected,safety:spec.safety,permission_model:spec.permission_model || null,roles:roles,references:spec.references || []
   };
 }
 function main() {
