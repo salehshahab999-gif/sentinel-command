@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "product": "Sentinel Command Center",
+  "policy": "hierarchical",
+  "expected_channels": 33,
+  "permission_model": {
+    "join_permission": "i_channel_needed_join_power",
+    "talk_threshold": "channel_needed_talk_power",
+    "inclusive_threshold": true,
+    "channel_group_cannot_bypass_server_rank_join_talk_power": true,
+    "domain_roles_are_not_exclusive": true
+  },
+  "channels": [
+    {
+      "path": "SENTINEL LOBBY",
+      "join_power": 0,
+      "talk_power": 0,
+      "purpose": "Public entry"
+    },
+    {
+      "path": "01 COMMAND CENTER",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Command workspace"
+    },
+    {
+      "path": "01 COMMAND CENTER / Operations Coordination",
+      "join_power": 15,
+      "talk_power": 15,
+      "purpose": "Operations coordination"
+    },
+    {
+      "path": "01 COMMAND CENTER / Daily Briefing",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Daily briefings"
+    },
+    {
+      "path": "01 COMMAND CENTER / Decisions and Tasks",
+      "join_power": 15,
+      "talk_power": 15,
+      "purpose": "Decisions and task tracking"
+    },
+    {
+      "path": "02 SATELLITE INTELLIGENCE",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Satellite-analysis section"
+    },
+    {
+      "path": "02 SATELLITE INTELLIGENCE / SAR and Radar",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "SAR and radar"
+    },
+    {
+      "path": "02 SATELLITE INTELLIGENCE / Optical and Multispectral",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Optical imagery"
+    },
+    {
+      "path": "02 SATELLITE INTELLIGENCE / FIRMS and Thermal",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Thermal and fire data"
+    },
+    {
+      "path": "03 OSINT AND GEOPOLITICS",
+      "join_power": 15,
+      "talk_power": 14,
+      "purpose": "OSINT section"
+    },
+    {
+      "path": "03 OSINT AND GEOPOLITICS / News Verification",
+      "join_power": 15,
+      "talk_power": 14,
+      "purpose": "News verification"
+    },
+    {
+      "path": "03 OSINT AND GEOPOLITICS / GEOINT and Geolocation",
+      "join_power": 15,
+      "talk_power": 14,
+      "purpose": "GEOINT and geolocation"
+    },
+    {
+      "path": "03 OSINT AND GEOPOLITICS / Reports and Briefings",
+      "join_power": 15,
+      "talk_power": 14,
+      "purpose": "Reports and briefings"
+    },
+    {
+      "path": "04 MARITIME INTELLIGENCE",
+      "join_power": 20,
+      "talk_power": 16,
+      "purpose": "Maritime section"
+    },
+    {
+      "path": "04 MARITIME INTELLIGENCE / AIS and Vessel Tracking",
+      "join_power": 20,
+      "talk_power": 16,
+      "purpose": "AIS and vessel tracking"
+    },
+    {
+      "path": "04 MARITIME INTELLIGENCE / Ports and Chokepoints",
+      "join_power": 20,
+      "talk_power": 16,
+      "purpose": "Ports and chokepoints"
+    },
+    {
+      "path": "04 MARITIME INTELLIGENCE / Maritime Incidents",
+      "join_power": 20,
+      "talk_power": 16,
+      "purpose": "Maritime incidents"
+    },
+    {
+      "path": "05 AIRSPACE AND ADS-B",
+      "join_power": 25,
+      "talk_power": 18,
+      "purpose": "Airspace section"
+    },
+    {
+      "path": "05 AIRSPACE AND ADS-B / ADS-B Flight Tracking",
+      "join_power": 25,
+      "talk_power": 18,
+      "purpose": "ADS-B flight tracking"
+    },
+    {
+      "path": "05 AIRSPACE AND ADS-B / Airspace Monitoring",
+      "join_power": 25,
+      "talk_power": 18,
+      "purpose": "Airspace monitoring"
+    },
+    {
+      "path": "05 AIRSPACE AND ADS-B / Aviation Incidents",
+      "join_power": 25,
+      "talk_power": 18,
+      "purpose": "Aviation incidents"
+    },
+    {
+      "path": "06 ENERGY AND MARKETS",
+      "join_power": 30,
+      "talk_power": 20,
+      "purpose": "Energy and markets section"
+    },
+    {
+      "path": "06 ENERGY AND MARKETS / Oil Gas and LNG",
+      "join_power": 30,
+      "talk_power": 20,
+      "purpose": "Oil, gas and LNG"
+    },
+    {
+      "path": "06 ENERGY AND MARKETS / Freight and Jet Fuel",
+      "join_power": 30,
+      "talk_power": 20,
+      "purpose": "Freight and jet fuel"
+    },
+    {
+      "path": "06 ENERGY AND MARKETS / Markets and Indicators",
+      "join_power": 30,
+      "talk_power": 20,
+      "purpose": "Market indicators"
+    },
+    {
+      "path": "07 ALERTS AND INCIDENTS",
+      "join_power": 15,
+      "talk_power": 14,
+      "purpose": "Alerts section"
+    },
+    {
+      "path": "07 ALERTS AND INCIDENTS / Critical Alerts",
+      "join_power": 30,
+      "talk_power": 20,
+      "purpose": "Critical alerts"
+    },
+    {
+      "path": "07 ALERTS AND INCIDENTS / Monitoring Queue",
+      "join_power": 20,
+      "talk_power": 16,
+      "purpose": "Monitoring queue"
+    },
+    {
+      "path": "07 ALERTS AND INCIDENTS / Incident Review",
+      "join_power": 25,
+      "talk_power": 18,
+      "purpose": "Incident review"
+    },
+    {
+      "path": "08 DATA LAB AND RESEARCH",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Data Lab section"
+    },
+    {
+      "path": "08 DATA LAB AND RESEARCH / Data Validation",
+      "join_power": 20,
+      "talk_power": 16,
+      "purpose": "Data validation"
+    },
+    {
+      "path": "08 DATA LAB AND RESEARCH / Sandbox Testing",
+      "join_power": 25,
+      "talk_power": 18,
+      "purpose": "Sandbox testing"
+    },
+    {
+      "path": "08 DATA LAB AND RESEARCH / Research Notes",
+      "join_power": 10,
+      "talk_power": 10,
+      "purpose": "Research notes"
+    }
+  ]
+}
