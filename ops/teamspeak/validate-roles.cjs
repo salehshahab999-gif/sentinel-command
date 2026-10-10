@@ -26,6 +26,30 @@ for (const role of roles) {
     assert.notEqual(p.name,'i_group_auto_update_type','Custom role must not auto-update as built-in template');
   }
 }
+const getPermissionFromRole=function(role,name){const p=role.permissions.find(x=>x.name===name);return p ? p.value : undefined;};
+const baselineServerPermissions = [
+  'b_channel_info_view',
+  'b_channel_join_permanent',
+  'b_channel_join_semi_permanent',
+  'b_channel_join_temporary',
+  'b_client_channel_textmessage_send',
+  'b_client_info_view',
+  'b_client_request_talker',
+  'b_client_permissionoverview_own',
+  'b_virtualserver_channel_list',
+  'b_virtualserver_client_list',
+  'b_virtualserver_connectioninfo_view',
+  'b_virtualserver_info_view',
+  'b_virtualserver_servergroup_list',
+  'b_virtualserver_servergroup_client_list',
+  'b_virtualserver_channelgroup_list',
+  'b_virtualserver_channelgroup_client_list'
+];
+for (const role of roles.filter(r=>r.kind==='server_group')) {
+  for (const name of baselineServerPermissions) {
+    assert.equal(getPermissionFromRole(role,name),1,'Missing base member permission '+name+' in '+role.name);
+  }
+}
 const byName=new Map(roles.map(r=>[r.name,r]));
 const get=function(role,name){return role.permissions.find(p=>p.name===name);};
 const existing=['SENTINEL OWNER','SYSTEM ADMIN','SECURITY MODERATOR','OPERATIONS LEAD','SENIOR ANALYST','ANALYST','RESEARCHER','REGISTERED MEMBER'];
