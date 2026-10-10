@@ -18,6 +18,9 @@ assert.equal(permissionModel.channel_group_layer,'overrides_server_group_unless_
 assert.equal(permissionModel.join_and_talk_need_channel_threshold,true);
 assert.equal(permissionModel.built_in_server_groups_untouched,true);
 assert.deepEqual(permissionModel.server_group_power_skip,{i_channel_join_power:1,i_client_talk_power:1,rationale:"Rank-based join/talk power is protected from channel-layer overrides; channel thresholds still decide access and speaking."});
+assert.deepEqual(permissionModel.full_channel_access_roles,[
+  'SENTINEL OWNER','SYSTEM ADMIN','HEAD MODERATOR','SECURITY MODERATOR'
+]);
 assert.deepEqual(permissionModel.additive_specialist_profiles.sort(),[
   'AIRSPACE / ADS-B','ENERGY / MARKETS / DATA LAB','MARITIME / AIS','OSINT / GEOINT','SATELLITE / SAR'
 ].sort());
@@ -91,6 +94,27 @@ assert.deepEqual([policyByPath.get('03 OSINT AND GEOPOLITICS').join_power,policy
 assert.deepEqual([policyByPath.get('04 MARITIME INTELLIGENCE').join_power,policyByPath.get('04 MARITIME INTELLIGENCE').talk_power],[20,16]);
 assert.deepEqual([policyByPath.get('05 AIRSPACE AND ADS-B').join_power,policyByPath.get('05 AIRSPACE AND ADS-B').talk_power],[25,18]);
 assert.deepEqual([policyByPath.get('06 ENERGY AND MARKETS').join_power,policyByPath.get('06 ENERGY AND MARKETS').talk_power],[30,20]);
+const maximumJoinThreshold=Math.max(...channelPolicy.channels.map(c=>c.join_power));
+const maximumTalkThreshold=Math.max(...channelPolicy.channels.map(c=>c.talk_power));
+assert.equal(maximumJoinThreshold,30,'Update leadership join powers if a channel threshold increases');
+assert.equal(maximumTalkThreshold,20,'Update leadership talk powers if a channel threshold increases');
+for(const name of permissionModel.full_channel_access_roles) {
+  const role=byName.get(name);
+  assert.ok(role && role.kind==='server_group','Full-room-access role must be a server group: '+name);
+  const join=get(role,'i_channel_join_power');
+  const talk=get(role,'i_client_talk_power');
+  assert.ok(join && join.value>=maximumJoinThreshold,
+    'Leadership role cannot join every mapped channel: '+name+' has '+(join && join.value)+'; max='+maximumJoinThreshold);
+  assert.ok(talk && talk.value>=maximumTalkThreshold,
+    'Leadership role cannot talk in every mapped channel: '+name+' has '+(talk && talk.value)+'; max='+maximumTalkThreshold);
+  for(const channel of channelPolicy.channels) {
+    assert.ok(join.value>=channel.join_power,'Join-power mismatch '+name+' / '+channel.path);
+    assert.ok(talk.value>=channel.talk_power,'Talk-power mismatch '+name+' / '+channel.path);
+  }
+}
+assert.equal(get(byName.get('SYSTEM ADMIN'),'i_channel_join_power').value,50);
+assert.equal(get(byName.get('HEAD MODERATOR'),'i_channel_join_power').value,40);
+assert.equal(get(byName.get('SECURITY MODERATOR'),'i_channel_join_power').value,35);
 
 function resolveServerGroupEntries(entries) {
   if(entries.length===0) return 0;
