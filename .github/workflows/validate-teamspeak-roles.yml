@@ -26,3 +26,10 @@ jobs:
           node-version: '22'
       - name: Validate explicit permission profiles
         run: node ops/teamspeak/validate-roles.cjs
+      - name: Validate PowerShell installer syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/ops/teamspeak/apply-sentinel-roles-v2.ps1", [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | Format-List *; exit 1 }
