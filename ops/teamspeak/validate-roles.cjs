@@ -10,6 +10,16 @@ assert.equal(manifest.mode,'declarative-explicit-permissions-no-template-copy');
 assert.equal(roles.length,29,'Expected 29 profiles');
 assert.equal(new Set(roles.map(r=>r.name)).size,roles.length,'Role names must be unique');
 assert.deepEqual(new Set(roles.map(r=>r.kind)),new Set(['server_group','channel_group']));
+const permissionModel=spec.permission_model;
+assert.ok(permissionModel,'Missing documented TeamSpeak permission-combination model');
+assert.equal(permissionModel.server_group_value_resolution,'highest_value_unless_negate_then_lowest_negated');
+assert.equal(permissionModel.default_server_group_replaced_on_assignment,true);
+assert.equal(permissionModel.channel_group_layer,'overrides_server_group_unless_skip');
+assert.equal(permissionModel.join_and_talk_need_channel_threshold,true);
+assert.equal(permissionModel.built_in_server_groups_untouched,true);
+assert.deepEqual(permissionModel.additive_specialist_profiles.sort(),[
+  'AIRSPACE / ADS-B','ENERGY / MARKETS / DATA LAB','MARITIME / AIS','OSINT / GEOINT','SATELLITE / SAR'
+].sort());
 const builtIns = new Set(['Server Admin','Normal','Guest','Channel Admin','Operator','Voice']);
 for (const role of roles) {
   assert.ok(!builtIns.has(role.name),'Built-in group name used: '+role.name);
@@ -52,6 +62,35 @@ for (const role of roles.filter(r=>r.kind==='server_group')) {
 }
 const byName=new Map(roles.map(r=>[r.name,r]));
 const get=function(role,name){return role.permissions.find(p=>p.name===name);};
+function resolveServerGroupEntries(entries) {
+  if(entries.length===0) return 0;
+  const negated=entries.filter(p=>p.negate===1);
+  if(negated.length) return Math.min(...negated.map(p=>p.value));
+  return Math.max(...entries.map(p=>p.value));
+}
+function resolveServerGroupPermission(roleNames,permissionName) {
+  const entries=roleNames.map(name=>get(byName.get(name),permissionName)).filter(Boolean);
+  return resolveServerGroupEntries(entries);
+}
+function resolveChannelScopedPermission(serverRoleNames,channelRoleName,permissionName) {
+  const serverEntries=serverRoleNames.map(name=>get(byName.get(name),permissionName)).filter(Boolean);
+  const serverValue=resolveServerGroupEntries(serverEntries);
+  if(serverEntries.some(p=>p.skip===1)) return serverValue;
+  const channelPermission=get(byName.get(channelRoleName),permissionName);
+  return channelPermission ? channelPermission.value : serverValue;
+}
+assert.equal(resolveServerGroupEntries([{value:30,negate:0},{value:50,negate:0}]),50,
+  'Server Groups combine to the highest explicit value');
+assert.equal(resolveServerGroupEntries([{value:50,negate:0},{value:-1,negate:1}]),-1,
+  'A negated Server Group permission must use the lowest negated value');
+assert.equal(resolveServerGroupPermission(['REGISTERED MEMBER','ENERGY / MARKETS / DATA LAB'],'i_channel_join_power'),30,
+  'Specialist role stacking is additive; it does not lower the main role');
+assert.equal(resolveServerGroupPermission(['SYSTEM ADMIN','ENERGY / MARKETS / DATA LAB'],'i_channel_join_power'),50,
+  'A secondary specialist group must not lower an existing higher group power');
+assert.equal(resolveChannelScopedPermission(['REGISTERED MEMBER'],'SENTINEL CHANNEL ADMIN','i_client_talk_power'),50,
+  'Channel Group layer must override Server Group power when no skip flag is set');
+assert.equal(resolveChannelScopedPermission(['REGISTERED MEMBER','NO-KICK PROTECTED'],'SENTINEL CHANNEL MODERATOR','i_client_needed_kick_from_channel_power'),101,
+  'Server Group skip flag must protect the No-Kick threshold from Channel Group override');
 const existing=['SENTINEL OWNER','SYSTEM ADMIN','SECURITY MODERATOR','OPERATIONS LEAD','SENIOR ANALYST','ANALYST','RESEARCHER','REGISTERED MEMBER'];
 for(const name of existing) assert.equal(byName.get(name).kind,'server_group','Existing Sentinel role is not server-scoped: '+name);
 const pairs=[
@@ -84,6 +123,12 @@ assert.equal(get(owner,'i_group_needed_member_add_power').value,100);
 assert.equal(get(owner,'i_group_needed_member_remove_power').value,100);
 assert.ok(owner.permissions.filter(p=>p.name.startsWith('i_needed_modify_power_')).length>0);
 assert.ok(owner.permissions.filter(p=>p.name.startsWith('i_needed_modify_power_')).every(p=>p.value===100));
+for(const role of roles.filter(r=>r.name!=='SENTINEL OWNER')) {
+  const permEdit=get(role,'i_permission_modify_power');
+  if(permEdit) assert.equal(permEdit.value,-1,'Non-owner custom profile must not edit permissions: '+role.name);
+  assert.equal(role.permissions.some(p=>p.name.startsWith('i_needed_modify_power_')),false,
+    'Non-owner custom profile must not grant permission changes: '+role.name);
+}
 assert.equal(manifest.safety.uses_servergroupcopy,false);
 assert.equal(manifest.safety.built_in_groups_touched,false);
 assert.equal(manifest.safety.existing_client_memberships_changed,false);
@@ -118,5 +163,5 @@ assert.deepEqual(banCreators,['BAN-ONLY','HEAD MODERATOR','SECURITY MODERATOR','
 const signatures=roles.map(r=>JSON.stringify({kind:r.kind,permissions:r.permissions.slice().sort((a,b)=>a.name.localeCompare(b.name))}));
 assert.equal(new Set(signatures).size,signatures.length,'Duplicate role permission maps detected');
 console.log('PASS: '+roles.length+' distinct profiles; '+roles.reduce((n,r)=>n+r.permissions.length,0)+' explicit permission entries.');
-console.log('PASS: power pairs, protection overlays, owner-only permission editing, server/channel scope and built-in safety.');
-console.log('NOTE: offline validation only; no live TeamSpeak ServerQuery was contacted.');
+console.log('PASS: power pairs, protection overlays, TeamSpeak layer/stacking semantics, and custom-profile permission-edit boundaries.');
+console.log('NOTE: offline validation only; existing built-in Server Admin privileges and live server behavior are not changed or verified.');
