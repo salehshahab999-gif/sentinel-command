@@ -387,6 +387,28 @@
       "url": "https://www.archives.gov/research/cartographic/aerial-photography/rg-373-gx-foreign-aerial-photography",
       "status": "official retrieval procedure confirmed; Rome-specific GX frame ID still outstanding",
       "notes": "NARA holds approximately 1.2 million German WWII aerial-photo prints. Use the catalog's degree-square overlay indexes, inspect scanned sheets, and record GX/TUGX/DTGX, scale and exposure number. The archive explains that exact print retrieval requires these identifiers; some originals may require in-person research or reproduction request."
+    },
+    {
+      "id": "luce-vatican-1950-A00174378",
+      "region": "Vatican City/Rome",
+      "period": "December 1950",
+      "media": "helicopter aerial photograph, black and white negative",
+      "source": "Archivio Storico Istituto Luce",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL3000012559/12/veduta-aerea-della-citta-del-vaticano-dominata-dalla-basilica-san-pietro-e-roma.html",
+      "catalogueId": "A00174378",
+      "status": "exact image record verified; preview/original download attempt failed; not georeferenced",
+      "notes": "Official catalogue description identifies St Peter's Basilica, square and adjacent palaces from a helicopter over Vatican City/Rome, date [12.1950]. Image record is a negative; catalogue page exposes an image viewport but download did not succeed in this run."
+    },
+    {
+      "id": "luce-vatican-1950-A00174379",
+      "region": "Vatican City/Rome",
+      "period": "December 1950",
+      "media": "helicopter aerial photograph, black and white negative",
+      "source": "Archivio Storico Istituto Luce",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL3000012560/12/veduta-aerea-della-basilica-san-pietro.html",
+      "catalogueId": "A00174379",
+      "status": "exact image record verified; preview/original download not obtained; not georeferenced",
+      "notes": "Official catalogue description identifies a view of St Peter's Basilica from a helicopter over Vatican City; Monte Mario and the Pigna courtyard niche are visible in the description. Date [12.1950]."
     }
   ],
   "georeferencingChecklist": [
