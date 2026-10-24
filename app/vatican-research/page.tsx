@@ -274,6 +274,17 @@ export default function VaticanResearchPage() {
             <li><a href="https://www.reddit.com/r/Maps/comments/w9d4rq/where_can_i_find_old_aerial_imagery_middle_east/" target="_blank" rel="noreferrer">Community discussion: finding historical aerial imagery</a></li>
             <li><a href="https://www.reddit.com/r/ancientrome/comments/1972c8z/aerial_view_of_ancient_rome_with_labels/" target="_blank" rel="noreferrer">Community discussion: aerial view and historical map comparison</a></li>
           </ul>
+          <hr style={{ borderColor: "#27404e", margin: "14px 0" }} />
+          <h3 style={{ fontSize: 14 }}>Historical image previews</h3>
+          <p style={{ color: "#aab9c6", fontSize: 11, lineHeight: 1.5 }}>Archival aerial photos from the 1928 ETH-Bibliothek / Walter Mittelholzer collection. These are source previews, not georeferenced map overlays.</p>
+          <a href="https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928" target="_blank" rel="noreferrer" style={{ display: "block", marginBottom: 10 }}>
+            <img loading="lazy" alt="1928 archival aerial photograph of St Peter's Basilica and Vatican, ETH-Bibliothek collection" src="https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Petersdom%20und%20Vatikan%20in%20Rom-Mittelmeerflug%201928-LBS%20MH02-04-0190.tif?width=420" style={{ width: "100%", borderRadius: 7, border: "1px solid #2a414e" }} />
+            <span style={{ display: "block", fontSize: 11, marginTop: 4 }}>St Peter's and Vatican, 1928 collection (open archive)</span>
+          </a>
+          <a href="https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928" target="_blank" rel="noreferrer" style={{ display: "block", marginBottom: 10 }}>
+            <img loading="lazy" alt="1928 archival aerial photograph of St Peter's Basilica, ETH-Bibliothek collection" src="https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Petersdom%20in%20Rom-Mittelmeerflug%201928-LBS%20MH02-04-0191.tif?width=420" style={{ width: "100%", borderRadius: 7, border: "1px solid #2a414e" }} />
+            <span style={{ display: "block", fontSize: 11, marginTop: 4 }}>St Peter's Basilica, 1928 collection (open archive)</span>
+          </a>
           <p style={{ color: "#f4d26e", fontSize: 11, lineHeight: 1.5 }}>No unverified tunnel is drawn as fact. The historical archive search markers must be replaced by actual archive footprints once identified.</p>
         </aside>
       </section>
