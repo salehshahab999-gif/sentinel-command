@@ -73,3 +73,34 @@ The repository includes `scripts/vatican_georef_from_gcps.py`. It requires GDAL'
 - `georeferenced-pending-validation`: transform created but independent checks not passed.
 - `georeferenced-validated`: alignment reviewed and error metrics recorded.
 - `rejected`: wrong location, wrong media type, insufficient metadata, or unusable rights.
+
+
+## Expanded acquisition and mapping workflow (research update: 2026-10-24)
+
+### A. Acquire originals, not thumbnails
+- For Wikimedia Commons TIFFs, use `scripts/download_vatican_commons_originals.py`. It asks the official MediaWiki API for the canonical original URL, expected byte size, MIME type, licence label, and Commons SHA-1; it downloads to a temporary `.part` file, checks byte count, calculates local SHA-256, and writes `download-manifest.json`. It does not bypass access controls and does not overwrite an existing file.
+- Target candidates currently listed by the script: ETH-BIB-MH02-04-0190, MH02-04-0191, and MH02-07-0403 through 0405. Before treating any file as Vatican coverage, visually inspect the image and catalogue record.
+- ETH Library states that digitized E-Pics items can be downloaded as high-resolution JPG/TIFF, with per-image rights terms. Where a scan is not published, the reading room or a paid digitization request may be needed. Official collection guidance: https://library.ethz.ch/en/collections-and-archives/archiving/image-archive.html
+- ETH's Smapshot crowdsourcing platform supports georeferencing selected historical photographs. It is a valuable comparison/reference route, not proof that every target frame has already been georeferenced: https://smapshot.heig-vd.ch/
+- For Istituto Luce, distinguish the catalogue record from the full-resolution master. If no original-download control is offered, request the high-resolution scan through the archive; do not scrape around authentication or access controls.
+
+### B. Find the correct frame before mapping
+- IGMI reports an aerial archive of over 300,000 frames from 1927–2010. Images from 1935 onward can be searched online; pre-1936 material requires a support request. Their photogrammetric TIFF option is specifically intended for stereoscopy/3D reconstruction and requires at least two contiguous frames from the same flight strip. Official guide: https://igmi.esercito.difesa.it/en/product-description/aerial-photos/
+- The IGMI Roma catalogue item LN00007484 is dated 1936-09-08 but described as a general panorama and an unnumbered frame; its Vatican footprint is not yet confirmed. Do not label it a Vatican frame until the preview/scan proves coverage.
+- For each candidate record, preserve: institution, stable catalogue ID, capture date (not upload date), camera/view direction if known, flight/strip/frame ID, original pixel dimensions, scan resolution, licence/reuse terms, original URL, checksum, and footprint confidence.
+
+### C. Georeference responsibly
+1. Use a modern reference basemap with stable features that also existed at the capture date. Good candidates include the Tiber bends/bridges, historic street intersections, large basilica outlines, and durable wall corners. Avoid temporary objects, tree crowns, shadows, and building roofs when the old photo is oblique.
+2. Add at least 6–10 well-distributed GCPs for an initial experiment, more if the frame and geometry support them. Reserve several independent checkpoints that are not used to fit the transform.
+3. Start with a first- or second-order polynomial in QGIS Georeferencer; compare residuals and inspect edge drift. A low training residual alone is not proof of accuracy. For steep oblique imagery, terrain relief and camera perspective can cause parallax, so a flat 2D warp cannot produce a survey-grade orthophoto.
+4. Record CRS explicitly (prefer a suitable projected CRS for local metric error analysis), transformation type, resampling method, GCP coordinates, residuals, independent checkpoint error, and known limitations. Keep original imagery immutable.
+5. Only attempt 3D reconstruction when overlapping images from the same flight/strip or reliable camera/terrain metadata exist. A single oblique photograph generally cannot determine a unique, accurate 3D model by itself.
+
+### D. Official and developer references
+- QGIS Georeferencer manual: https://docs.qgis.org/latest/en/docs/user_manual/managing_data_source/georeferencer.html
+- Practical historical-aerial-image workflow and QA lessons: https://medium.com/vcgi/georeferencing-vermonts-historic-aerial-imagery-2e52c0301b85
+- Historical-image georeferencing research code (requires adaptation; not Vatican-specific): https://github.com/fdahle/hist_georef
+- OpenDroneMap GCP/orthophoto issue history illustrates why coordinate order, CRS, and GCP configuration must be checked: https://github.com/OpenDroneMap/ODM/issues/213
+
+### Current execution truth
+The downloader script has been committed, but no claim is made here that the script has run on the user's Windows machine or that image bytes are already present in the repository. The next verifiable state is the local manifest plus actual file sizes and SHA-256 hashes. Do not create GCPs from guessed points or publish a georeferenced raster until independent checks have passed.
