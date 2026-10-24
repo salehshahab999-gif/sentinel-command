@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "title": "Vatican historical imagery leads",
+  "purpose": "Research leads only. None of these records should be treated as a georeferenced raster overlay until the original image, footprint, and metadata are verified.",
+  "targetArea": {
+    "name": "Vatican City",
+    "bboxWgs84": {
+      "west": 12.445,
+      "south": 41.899,
+      "east": 12.4589,
+      "north": 41.9076
+    },
+    "note": "Approximate search extent, not a legal boundary or image footprint."
+  },
+  "records": [
+    {
+      "id": "colliers-1921",
+      "label": "Collier's 1921 printed aerial view",
+      "recordOrPublicationYear": 1921,
+      "imageAcquisitionDate": null,
+      "dateType": "publication date; acquisition date unknown",
+      "sourceType": "printed aerial-view reproduction",
+      "url": "https://commons.wikimedia.org/wiki/File:Collier%27s_1921_Vol_9_Frontispiece_--_Vatican.jpg",
+      "spatialStatus": "not georeferenced",
+      "confidence": "lead",
+      "note": "Do not interpret the publication year as the date the photograph was captured."
+    },
+    {
+      "id": "sandiego-postmark-1955",
+      "label": "Aerial postcard catalog record, postmarked 9 July 1955",
+      "recordOrPublicationYear": 1955,
+      "imageAcquisitionDate": null,
+      "dateType": "postmark date; acquisition date unknown",
+      "sourceType": "aerial postcard",
+      "url": "https://digital.sandiego.edu/vaticancitypc/194/",
+      "spatialStatus": "not georeferenced",
+      "confidence": "lead",
+      "note": "Postmark date is not necessarily the photograph's capture date."
+    },
+    {
+      "id": "sandiego-postmark-1957",
+      "label": "Aerial postcard catalog record, postmarked 10 August 1957",
+      "recordOrPublicationYear": 1957,
+      "imageAcquisitionDate": null,
+      "dateType": "postmark date; acquisition date unknown",
+      "sourceType": "aerial postcard",
+      "url": "https://digital.sandiego.edu/vaticancitypc/192/",
+      "spatialStatus": "not georeferenced",
+      "confidence": "lead",
+      "note": "Postmark date is not necessarily the photograph's capture date; verify catalog metadata directly."
+    },
+    {
+      "id": "quickbird-2005",
+      "label": "QuickBird satellite image published by Corriere",
+      "recordOrPublicationYear": 2005,
+      "imageAcquisitionDate": null,
+      "dateType": "publication year; acquisition date to verify",
+      "sourceType": "commercial satellite image publication",
+      "url": "https://www.corriere.it/Primo_Piano/Cronache/2005/04_Aprile/07/sat/sat2.shtml",
+      "spatialStatus": "not georeferenced",
+      "confidence": "lead",
+      "note": "Retrieve original image and metadata before attempting registration."
+    },
+    {
+      "id": "cosmo-skymed-2015",
+      "label": "ESA COSMO-SkyMed Vatican heights radar image",
+      "recordOrPublicationYear": 2015,
+      "imageAcquisitionDate": null,
+      "dateType": "publication year; acquisition date to verify",
+      "sourceType": "satellite radar",
+      "url": "https://www.esa.int/ESA_Multimedia/Images/2015/03/Vatican_heights_detected_by_satellite_radar",
+      "spatialStatus": "not georeferenced",
+      "confidence": "lead",
+      "note": "Radar product is not interchangeable with an optical aerial photograph."
+    },
+    {
+      "id": "nasa-aster",
+      "label": "NASA ASTER Vatican City image page",
+      "recordOrPublicationYear": null,
+      "imageAcquisitionDate": null,
+      "dateType": "date not entered; verify page metadata",
+      "sourceType": "satellite optical imagery",
+      "url": "https://science.nasa.gov/photojournal/vatican-city/",
+      "spatialStatus": "not georeferenced",
+      "confidence": "lead",
+      "note": "Confirm image date, resolution, and original product metadata."
+    },
+    {
+      "id": "rome-aerofototeca",
+      "label": "Rome municipal aerial photo archive",
+      "recordOrPublicationYear": null,
+      "imageAcquisitionDate": null,
+      "dateType": "per-frame metadata required",
+      "sourceType": "archive portal",
+      "url": "https://geoportale.comune.roma.it/aerofototeca/",
+      "spatialStatus": "frame not identified",
+      "confidence": "archive search target",
+      "note": "Search for actual frames whose footprints intersect the target area."
+    },
+    {
+      "id": "afn-webgis",
+      "label": "Italian National Aerial Photo Archive WebGIS",
+      "recordOrPublicationYear": null,
+      "imageAcquisitionDate": null,
+      "dateType": "per-frame metadata required",
+      "sourceType": "archive portal",
+      "url": "https://afn.cultura.gov.it/webgis/",
+      "spatialStatus": "frame not identified",
+      "confidence": "archive search target",
+      "note": "Find and preserve original frame IDs, sortie/flight, acquisition dates, scale/resolution, and footprints."
+    },
+    {
+      "id": "igm-aerial",
+      "label": "Italian Military Geographic Institute aerial photography archive",
+      "recordOrPublicationYear": null,
+      "imageAcquisitionDate": null,
+      "dateType": "per-frame metadata required",
+      "sourceType": "archive portal",
+      "url": "https://igmi.esercito.difesa.it/descrizione-prodotti/foto-aeree/",
+      "spatialStatus": "frame not identified",
+      "confidence": "archive search target",
+      "note": "The archive is national in scope; do not treat the archive's total frame count as Vatican-specific."
+    }
+  ],
+  "workflow": [
+    "Identify actual frame footprints intersecting the target extent.",
+    "Download the original image and metadata under the archive's access and licensing rules.",
+    "Record acquisition date separately from publication, catalog, or postmark date.",
+    "Georeference using documented control points and record CRS, transformation method, and residual error.",
+    "Publish each validated raster as a separate date-stamped layer with source provenance."
+  ]
+}
