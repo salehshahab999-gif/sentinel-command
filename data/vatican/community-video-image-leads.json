@@ -93,6 +93,87 @@
       "url": "https://www.reddit.com/r/Maps/comments/w9d4rq/where_can_i_find_old_aerial_imagery_middle_east/",
       "status": "community methods lead",
       "details": "General discussion of historical aerial image discovery; verify any suggested archive independently."
+    },
+    {
+      "id": "usf-st-peters-1900",
+      "type": "historical photograph",
+      "date": "January 1900 (catalogue creation date)",
+      "label": "St Peter's Square and Rome panorama from the dome",
+      "url": "https://digitalcommons.usf.edu/howry/142/",
+      "status": "catalogued downloadable scan; ground-level elevated view, not aerial imagery",
+      "details": "USF Sally Bird Howry Collection. Metadata places the subject in Vatican City/Rome; do not misclassify this as an aircraft photograph."
+    },
+    {
+      "id": "ipa-rome-st-peters-1900",
+      "type": "historical photograph",
+      "date": "1900s (metadata label; verify capture date)",
+      "label": "Rome and St Peter's Square, archival photograph attributed to Carlo Bollo",
+      "url": "https://archive.ipa-agency.net/eng/front/item-creative?id=565544090",
+      "status": "archive record; preview watermarked and rights-restricted",
+      "details": "Agency catalogue metadata calls this a 1900s aerial view. Confirm original capture method, exact date, and license before using as geospatial evidence."
+    },
+    {
+      "id": "hertziana-1890-1960-aerials",
+      "type": "historical aerial archive",
+      "date": "1890–1960",
+      "label": "Bibliotheca Hertziana: Rome aerial photographs archive",
+      "url": "https://nav.biblhertz.it/browse/BOX_04074",
+      "status": "archive catalogue; some items require on-site consultation",
+      "details": "Catalogue lists folders for Rome aerial photos around 1890/1900, 1919, 1929/1936, 1943, and circa 1960. Each frame must be inspected to confirm Vatican coverage."
+    },
+    {
+      "id": "afn-1919-nistri",
+      "type": "historical aerial map/photo",
+      "date": "1919",
+      "label": "Aerofototeca Nazionale: Umberto Nistri aerial representation of Rome",
+      "url": "https://iccd.cultura.gov.it/it/fotografia/aerofototecanazionale",
+      "status": "confirmed archive collection lead; individual frame not yet identified",
+      "details": "National archive description identifies a global representation of Rome made by Umberto Nistri in 1919. Coverage of the Vatican and available raster file need checking."
+    },
+    {
+      "id": "afn-allied-1943-1945",
+      "type": "historical aerial photographs",
+      "date": "1943–1945",
+      "label": "Aerofototeca Nazionale: Allied aerial reconnaissance photographs",
+      "url": "https://iccd.cultura.gov.it/it/fotografia/aerofototecanazionale",
+      "status": "confirmed archive collection lead; individual frame not yet identified",
+      "details": "Archive confirms Allied reconnaissance aerial photography for 1943–1945. Do not assume every sortie covered Vatican City."
+    },
+    {
+      "id": "roma-orthophoto-timeline",
+      "type": "historical orthophoto/map layers",
+      "date": "1919, 1937, 1943, 1956, 1969, 1998, 2005 (coverage cited for Rome; Vatican inclusion to verify)",
+      "label": "Roma150 historical aerial photo / photoplan timeline lead",
+      "url": "https://www.e-perimetron.org/Vol_19_3/Baiocchi_et_al.pdf",
+      "status": "research lead; inspect referenced Roma150 service and layer footprints",
+      "details": "Academic article describes historical aerial coverages for Rome. Not all years are guaranteed to cover the Vatican or to be freely downloadable."
+    },
+    {
+      "id": "igmi-aerial-archive",
+      "type": "historical aerial archive",
+      "date": "1927–2010",
+      "label": "IGM archive: more than 300,000 aerial photograms",
+      "url": "https://igmi.esercito.difesa.it/descrizione-prodotti/foto-aeree/",
+      "status": "catalogue/search and purchase; not all frames directly downloadable",
+      "details": "Official archive states nationwide coverage from 1927 to 2010, metadata, and previews for about 75% of photograms from 1935 onward. The 300,000 count is all Italy, not Vatican-only."
+    },
+    {
+      "id": "vatican-official-3d",
+      "type": "official 3D model",
+      "date": "public digital experience launched 2024",
+      "label": "Official St Peter's Basilica 3D tour / digital twin",
+      "url": "https://virtual.basilicasanpietro.va/en",
+      "status": "official interactive 3D experience; basilica only, not entire city-state",
+      "details": "Vatican/Microsoft/Iconem project created from over 400,000 high-resolution images. This is the strongest current official 3D reference, but it is not a georeferenced citywide model."
+    },
+    {
+      "id": "vatican-museums-virtual-tours",
+      "type": "official virtual tours",
+      "date": "current website",
+      "label": "Vatican Museums official virtual tours",
+      "url": "https://www.museivaticani.va/content/museivaticani/en/collezioni/musei/tour-virtuali-elenco.html",
+      "status": "official indoor tours; not a citywide geospatial layer",
+      "details": "Virtual tours include the Sistine Chapel, Raphael's Rooms, and museum spaces; useful for interior context, not aerial mapping."
     }
   ],
   "matchingRules": [
@@ -100,6 +181,11 @@
     "Do not infer coordinates from a video title or subreddit text alone.",
     "For aerial frames, identify at least three stable control points and document the coordinate reference system and residual error.",
     "Use social media to discover leads and corroborate claims; do not use likes, repost counts, or anonymous comments as proof.",
-    "Do not draw an underground tunnel unless an authoritative archaeological or engineering source documents its geometry."
-  ]
+    "Do not draw an underground tunnel unless an authoritative archaeological or engineering source documents its geometry.",
+    "Build a year-by-year timeline from 1900 onward, but mark a year as Vatican-covered only after inspecting the actual frame footprint.",
+    "Separate vertical aerial imagery, elevated terrestrial photographs, satellite imagery, drone footage, 3D mesh, and indoor virtual tours into distinct layer types.",
+    "Prioritize sources from Italy, Vatican institutions, US wartime archives, European university libraries, global open-data repositories, and public community leads; preserve source diversity.",
+    "A search result mentioning a year is not proof that a usable Vatican image exists for that year. Store the actual file URL, metadata, footprint, license, and georeferencing error when verified."
+  ],
+  "coverageGoal": "Target period: 1900 to the latest available imagery/model. Coverage dates refer to Rome-wide archives unless a specific Vatican frame is verified."
 }
