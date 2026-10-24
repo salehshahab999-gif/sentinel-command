@@ -57,6 +57,16 @@ const POINTS: ResearchPoint[] = [
     certainty: "DOCUMENTED SITE",
   },
   {
+    id: "aerial-1928",
+    title: "1928 aerial photograph: St Peter's and Vatican",
+    category: "HISTORICAL IMAGE LEAD",
+    lon: 12.4539,
+    lat: 41.9022,
+    note: "A catalogued historical aerial photograph from the ETH-Bibliothek / Walter Mittelholzer Mediterranean flight collection. The point marks the subject area only: the scanned photograph has not yet been georeferenced or aligned as an image overlay.",
+    url: "https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928",
+    certainty: "APPROXIMATE SEARCH AREA",
+  },
+  {
     id: "afn",
     title: "AFN National Aerial Photo Archive",
     category: "HISTORICAL IMAGE LEAD",
