@@ -257,6 +257,12 @@ export default function VaticanResearchPage() {
             <li><a href="https://www.esa.int/ESA_Multimedia/Images/2015/03/Vatican_heights_detected_by_satellite_radar" target="_blank" rel="noreferrer">ESA COSMO-SkyMed</a></li>
             <li><a href="https://science.nasa.gov/photojournal/vatican-city/" target="_blank" rel="noreferrer">NASA ASTER</a></li>
             <li><a href="https://www.isprambiente.gov.it/en/news/map-of-underground-cavities-of-rome-2026" target="_blank" rel="noreferrer">ISPRA underground cavities map</a></li>
+            <li><a href="https://commons.wikimedia.org/wiki/Category:Aerial_photographs_of_the_Vatican_City" target="_blank" rel="noreferrer">Wikimedia Commons: aerial photographs (6 files)</a></li>
+            <li><a href="https://commons.wikimedia.org/wiki/Category:Historical_images_of_the_Vatican_City" target="_blank" rel="noreferrer">Wikimedia Commons: historical image catalogue</a></li>
+            <li><a href="https://www.youtube.com/watch?v=5dQI_TXYJbU" target="_blank" rel="noreferrer">Microsoft: St Peter's Basilica digital twin video</a></li>
+            <li><a href="https://www.reddit.com/r/MapPorn/comments/jfj1mw/high_definition_map_of_vatican_city/" target="_blank" rel="noreferrer">Community discussion: high-definition Vatican map</a></li>
+            <li><a href="https://www.reddit.com/r/Maps/comments/w9d4rq/where_can_i_find_old_aerial_imagery_middle_east/" target="_blank" rel="noreferrer">Community discussion: finding historical aerial imagery</a></li>
+            <li><a href="https://www.reddit.com/r/ancientrome/comments/1972c8z/aerial_view_of_ancient_rome_with_labels/" target="_blank" rel="noreferrer">Community discussion: aerial view and historical map comparison</a></li>
           </ul>
           <p style={{ color: "#f4d26e", fontSize: 11, lineHeight: 1.5 }}>No unverified tunnel is drawn as fact. The historical archive search markers must be replaced by actual archive footprints once identified.</p>
         </aside>
