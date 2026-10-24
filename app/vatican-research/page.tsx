@@ -67,6 +67,36 @@ const POINTS: ResearchPoint[] = [
     certainty: "APPROXIMATE SEARCH AREA",
   },
   {
+    id: "photo-1900",
+    title: "Historical view from St Peter's dome (1900)",
+    category: "HISTORICAL IMAGE LEAD",
+    lon: 12.4539,
+    lat: 41.9022,
+    note: "USF archival record catalogued January 1900. This is an elevated panorama from the dome, not an aerial photograph. The marker identifies the subject area only.",
+    url: "https://digitalcommons.usf.edu/howry/142/",
+    certainty: "APPROXIMATE SEARCH AREA",
+  },
+  {
+    id: "nistri-1919",
+    title: "Umberto Nistri aerial representation of Rome (1919)",
+    category: "HISTORICAL IMAGE LEAD",
+    lon: 12.4539,
+    lat: 41.9022,
+    note: "The Italian National Aerial Photo Archive describes a 1919 global representation of Rome. The exact frame and Vatican coverage still need confirmation.",
+    url: "https://iccd.cultura.gov.it/it/fotografia/aerofototecanazionale",
+    certainty: "APPROXIMATE SEARCH AREA",
+  },
+  {
+    id: "allied-1943",
+    title: "Allied aerial reconnaissance archive (1943–1945)",
+    category: "HISTORICAL IMAGE LEAD",
+    lon: 12.4539,
+    lat: 41.9022,
+    note: "The national archive confirms a collection of Allied reconnaissance imagery from 1943–1945. This is a search lead, not proof a specific frame covers the Vatican.",
+    url: "https://iccd.cultura.gov.it/it/fotografia/aerofototecanazionale",
+    certainty: "APPROXIMATE SEARCH AREA",
+  },
+  {
     id: "afn",
     title: "AFN National Aerial Photo Archive",
     category: "HISTORICAL IMAGE LEAD",
@@ -267,6 +297,13 @@ export default function VaticanResearchPage() {
             <li><a href="https://www.esa.int/ESA_Multimedia/Images/2015/03/Vatican_heights_detected_by_satellite_radar" target="_blank" rel="noreferrer">ESA COSMO-SkyMed</a></li>
             <li><a href="https://science.nasa.gov/photojournal/vatican-city/" target="_blank" rel="noreferrer">NASA ASTER</a></li>
             <li><a href="https://www.isprambiente.gov.it/en/news/map-of-underground-cavities-of-rome-2026" target="_blank" rel="noreferrer">ISPRA underground cavities map</a></li>
+            <li><a href="https://digitalcommons.usf.edu/howry/142/" target="_blank" rel="noreferrer">1900: St Peter's Square panorama, USF archive</a></li>
+            <li><a href="https://archive.ipa-agency.net/eng/front/item-creative?id=565544090" target="_blank" rel="noreferrer">1900s: archival Rome / St Peter's Square photo record</a></li>
+            <li><a href="https://nav.biblhertz.it/browse/BOX_04074" target="_blank" rel="noreferrer">Bibliotheca Hertziana: aerial-photo catalogue, 1890–1960</a></li>
+            <li><a href="https://iccd.cultura.gov.it/it/fotografia/aerofototecanazionale" target="_blank" rel="noreferrer">Aerofototeca Nazionale: 1919 and Allied 1943–45 image leads</a></li>
+            <li><a href="https://www.e-perimetron.org/Vol_19_3/Baiocchi_et_al.pdf" target="_blank" rel="noreferrer">Academic source: Rome historical aerial coverage timeline</a></li>
+            <li><a href="https://www.museivaticani.va/content/museivaticani/en/collezioni/musei/tour-virtuali-elenco.html" target="_blank" rel="noreferrer">Vatican Museums: official indoor virtual tours</a></li>
+            <li><a href="https://virtual.basilicasanpietro.va/en" target="_blank" rel="noreferrer">Latest official St Peter's Basilica 3D digital twin</a></li>
             <li><a href="https://commons.wikimedia.org/wiki/Category:Aerial_photographs_of_the_Vatican_City" target="_blank" rel="noreferrer">Wikimedia Commons: aerial photographs (6 files)</a></li>
             <li><a href="https://commons.wikimedia.org/wiki/Category:Historical_images_of_the_Vatican_City" target="_blank" rel="noreferrer">Wikimedia Commons: historical image catalogue</a></li>
             <li><a href="https://www.youtube.com/watch?v=5dQI_TXYJbU" target="_blank" rel="noreferrer">Microsoft: St Peter's Basilica digital twin video</a></li>
