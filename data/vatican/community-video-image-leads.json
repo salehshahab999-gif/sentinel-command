@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "title": "Vatican community, video, and image leads",
-  "caveat": "Social posts and videos are leads for discovery, not authoritative geospatial evidence by themselves. Verify upload date, original capture date, location, provenance, reuse rights, and possible edits before using any media as map evidence.",
+  "caveat": "Social posts and videos are leads for discovery, not authoritative geospatial evidence by themselves. Verify upload date, original capture date, location, provenance, reuse rights, and possible edits before using any media as map evidence. Global source discovery is tracked separately from actual acquisition: no binary file is labelled downloaded or georeferenced until bytes, checksum, control points and validation are recorded.",
   "records": [
     {
       "id": "eth-bib-1928-vatican-0190",
@@ -174,6 +174,96 @@
       "url": "https://www.museivaticani.va/content/museivaticani/en/collezioni/musei/tour-virtuali-elenco.html",
       "status": "official indoor tours; not a citywide geospatial layer",
       "details": "Virtual tours include the Sistine Chapel, Raphael's Rooms, and museum spaces; useful for interior context, not aerial mapping."
+    },
+    {
+      "id": "global-us-nara-foreign-aerial",
+      "type": "international aerial-photo archive",
+      "date": "WWII and 1935-1970 series",
+      "label": "US National Archives: foreign aerial photography (Europe, Middle East, Asia)",
+      "url": "https://www.archives.gov/research/cartographic/aerial-photography/foreign-photography",
+      "status": "official archive; exact Rome/Vatican frame IDs still need verification",
+      "details": "Includes Allied WWII imagery, approximately 1.2 million German military aerial-photo prints, and a smaller Japanese military collection. Search frame indexes and footprints before marking Vatican coverage."
+    },
+    {
+      "id": "global-us-nara-rg373",
+      "type": "international aerial-photo archive",
+      "date": "1935-1970",
+      "label": "US National Archives RG 373: US-flown foreign aerial photography",
+      "url": "https://www.archives.gov/research/cartographic/aerial-photography/rg-373-dia-foreign-aerial-photography",
+      "status": "official index; frame-level search required",
+      "details": "Use the degree-square and overlay indexes to locate Rome/Vatican coverage and record the exact frame identifiers."
+    },
+    {
+      "id": "global-france-ign",
+      "type": "historical aerial-photo archive",
+      "date": "1920s onward",
+      "label": "IGN France: digitized historical aerial photographs",
+      "url": "https://www.data.gouv.fr/datasets/prises-de-vue-aeriennes-dematerialisees-de-lign",
+      "status": "official European archive; not a Vatican image source",
+      "details": "Millions of national aerial photos; digitized historical frames are progressively available, including JPEG2000 downloads. Included for broad international archive discovery."
+    },
+    {
+      "id": "global-spain-pnoa",
+      "type": "historical orthophoto archive",
+      "date": "multiple year layers",
+      "label": "Spain CNIG: historical PNOA orthophotos",
+      "url": "https://centrodedescargas.cnig.es/CentroDescargas/buscadorCatalogo.do?codFamilia=PNOAH",
+      "status": "official orthophoto catalogue; Spain coverage only",
+      "details": "Year-based orthophoto mosaics with XML metadata and footprints; useful as a reference for date-specific spatial coverage."
+    },
+    {
+      "id": "global-japan-gsi",
+      "type": "historical aerial imagery",
+      "date": "c.1928; c.1936-1942; 1945-1950 and later",
+      "label": "Japan GSI: historical aerial photo layers",
+      "url": "https://maps.gsi.go.jp/development/ichiran.html",
+      "status": "official Asian archive; Japan coverage only",
+      "details": "The national mapping portal lists several historic aerial-photo layers. This is a global archive lead, not evidence of a Vatican frame."
+    },
+    {
+      "id": "luce-rome-aerial-1949",
+      "type": "archival moving-image film",
+      "date": "February 1949; 28 seconds",
+      "label": "Istituto Luce: aerial view of Rome",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL4000055701/7/veduta-aerea-roma.html?startPage=2840",
+      "status": "specific film record identified; frame-by-frame inspection pending",
+      "details": "Catalogue lists aerial views of Rome landmarks. Inspect the actual clip and log timecodes; do not assume it contains the Vatican."
+    },
+    {
+      "id": "archive-org-rome-1947",
+      "type": "archival moving-image film",
+      "date": "1947 catalogue/title; individual shot dates need verification",
+      "label": "Internet Archive: Rome the Eternal City travelogue",
+      "url": "https://archive.org/details/45784-rome-the-eternal-city",
+      "status": "digitized film lead; frame-by-frame inspection pending",
+      "details": "Catalogue title mentions aerial Rome and the Vatican. Verify exact shots, original capture dates, rights and downloadable file availability."
+    },
+    {
+      "id": "vatican-media-jubilees-1900",
+      "type": "archival audiovisual collection",
+      "date": "1900-1925 and later Jubilee periods",
+      "label": "Vatican Apostolic Library / Fondazione MAC: Media Jubilees",
+      "url": "https://www.vaticannews.va/en/vatican-city/news/2024-12/media-jubilees-vatican-apostolic-library-mac-foundation-docufilm.html",
+      "status": "project announced; inspect individual audiovisual records",
+      "details": "Vatican News reported 400 audiovisual documents catalogued. Not all are aerial; use as a frame-level historical visual source and retain exact timecodes."
+    },
+    {
+      "id": "global-usgs-corona",
+      "type": "declassified satellite imagery archive",
+      "date": "1960-1972",
+      "label": "USGS/NARA: CORONA, ARGON and LANYARD satellite imagery",
+      "url": "https://www.archives.gov/research/cartographic/aerial-photography/satellite-photography",
+      "status": "official archive; specific Rome scene availability not yet checked",
+      "details": "Global satellite reconnaissance imagery can provide historical coverage where a mission passed over the area. Scene IDs, acquisition dates, processing and georeferencing must be verified."
+    },
+    {
+      "id": "global-gsi-asia-dataset",
+      "type": "historical aerial-image service",
+      "date": "1928 and multiple post-war periods",
+      "label": "Japan e-Gov dataset: GSI map tiles and historical aerial photos",
+      "url": "https://data.e-gov.go.jp/data/dataset/mlit_20140919_3046",
+      "status": "official dataset catalogue; Japan coverage only",
+      "details": "Lists historical aerial imagery layers including around 1928, 1936-1942, 1945-1950, and later periods. Included for worldwide source breadth, not direct Vatican evidence."
     }
   ],
   "matchingRules": [
@@ -187,5 +277,6 @@
     "Prioritize sources from Italy, Vatican institutions, US wartime archives, European university libraries, global open-data repositories, and public community leads; preserve source diversity.",
     "A search result mentioning a year is not proof that a usable Vatican image exists for that year. Store the actual file URL, metadata, footprint, license, and georeferencing error when verified."
   ],
-  "coverageGoal": "Target period: 1900 to the latest available imagery/model. Coverage dates refer to Rome-wide archives unless a specific Vatican frame is verified."
+  "coverageGoal": "Target period: 1900 to the latest available imagery/model. Coverage dates refer to Rome-wide archives unless a specific Vatican frame is verified.",
+  "updatedAt": "2026-10-24"
 }
