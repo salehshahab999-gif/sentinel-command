@@ -322,6 +322,71 @@
       "url": "https://github.com/ao68/GlobalMLBuildingFootprintsTest",
       "status": "public dataset/tool lead; not raw imagery",
       "notes": "Building footprints derived from Bing Maps imagery; useful for comparison/context, not a replacement for source satellite or aerial images."
+    },
+    {
+      "id": "luce-aerial-vatican-1950-A00174383",
+      "region": "Vatican City/Rome",
+      "period": "December 1950",
+      "media": "black-and-white aerial photograph, helicopter view",
+      "source": "Archivio Storico Istituto Luce",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL3000012564/12/veduta-aerea-roma-attorno-alla-citta-del-vaticano.html",
+      "catalogueId": "A00174383",
+      "status": "exact Vatican-adjacent aerial frame identified; original download not obtained",
+      "notes": "Catalogue describes urban area around St Peter's Basilica, St Peter's station and adjacent districts, with Monte Mario in background. Item is a negative; access appears to require account/login for some functions. Not yet georeferenced."
+    },
+    {
+      "id": "luce-aerial-vatican-1950-A00174393",
+      "region": "Vatican City/Rome",
+      "period": "December 1950",
+      "media": "black-and-white aerial photograph, helicopter view",
+      "source": "Archivio Storico Istituto Luce",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL3000012599/12/veduta-aerea-roma-e-della-citta-del-vaticano.html?startPage=420",
+      "catalogueId": "A00174393",
+      "status": "exact Vatican/Rome aerial record identified; original download not obtained",
+      "notes": "Catalogue description explicitly says aerial view of Rome and Vatican City dominated by St Peter's Basilica. Verify access, reproduction rights, exact original scan and metadata."
+    },
+    {
+      "id": "eth-1929-30-0403",
+      "region": "Vatican City/Rome",
+      "period": "1929-1930 flight series; precise capture date to verify",
+      "media": "high-resolution aerial photograph",
+      "source": "ETH-Bibliothek / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/Category:Historical_images_of_the_Vatican_City",
+      "directCandidate": "https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Vatikan%2C%20Rom-Kilimanjaroflug%201929-30-LBS%20MH02-07-0403.tif",
+      "status": "specific original file listed; download and exact capture metadata not verified",
+      "notes": "Wikimedia catalogue lists 4961x3537 px, approx. 50.36 MB. Exact capture date and license must be checked on the file page."
+    },
+    {
+      "id": "eth-1929-30-0404",
+      "region": "Vatican City/Rome",
+      "period": "1929-1930 flight series; precise capture date to verify",
+      "media": "high-resolution aerial photograph",
+      "source": "ETH-Bibliothek / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/Category:Historical_images_of_the_Vatican_City",
+      "directCandidate": "https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Vatikan%2C%20Rom-Kilimanjaroflug%201929-30-LBS%20MH02-07-0404.tif",
+      "status": "specific original file listed; download and exact capture metadata not verified",
+      "notes": "Wikimedia catalogue lists 4961x3538 px, approx. 50.37 MB."
+    },
+    {
+      "id": "eth-1929-30-0405",
+      "region": "Vatican City/Rome",
+      "period": "1929-1930 flight series; precise capture date to verify",
+      "media": "high-resolution aerial photograph",
+      "source": "ETH-Bibliothek / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/Category:Historical_images_of_the_Vatican_City",
+      "directCandidate": "https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Vatikan%2C%20Rom-Kilimanjaroflug%201929-30-LBS%20MH02-07-0405.tif",
+      "status": "specific original file listed; download and exact capture metadata not verified",
+      "notes": "Wikimedia catalogue lists 4961x3538 px, approx. 50.35 MB."
+    },
+    {
+      "id": "nara-gx-index-rome-search-method",
+      "region": "Italy/Rome",
+      "period": "1939-1945 German Luftwaffe imagery; index series 1935-1971",
+      "media": "aerial-photo index overlays and prints",
+      "source": "US National Archives (NARA)",
+      "url": "https://www.archives.gov/research/cartographic/aerial-photography/rg-373-gx-foreign-aerial-photography",
+      "status": "official retrieval procedure confirmed; Rome-specific GX frame ID still outstanding",
+      "notes": "NARA holds approximately 1.2 million German WWII aerial-photo prints. Use the catalog's degree-square overlay indexes, inspect scanned sheets, and record GX/TUGX/DTGX, scale and exposure number. The archive explains that exact print retrieval requires these identifiers; some originals may require in-person research or reproduction request."
     }
   ],
   "georeferencingChecklist": [
@@ -353,5 +418,11 @@
     "scope": "Publicly indexed GitHub repositories, Gists, issues and technical discussions related to Vatican mapping, 3D data, imagery retrieval and georeferencing.",
     "summary": "Search surfaced a public Vatican boundary GeoJSON gist, a GitHub issue discussing IIIF retrieval for Vatican Museums catalogue images, a historical imagery downloader, and open-source photogrammetry tooling. No public evidence was found in these results of a verified stolen/hidden Vatican map or a repository run by a Vatican/Russian hacker containing georeferenced Vatican aerial frames.",
     "safetyAndEvidence": "Only public, lawful sources are included. Claims about hackers, nationality, or unauthorized access are not inferred from usernames or forum posts. Repository/tool availability does not establish that a particular image exists or has been downloaded."
+  },
+  "latestVerifiedFindings": {
+    "checkedAt": "2026-10-24",
+    "newSpecificVaticanAerialRecords": 2,
+    "newSpecific1929to1930ETHFiles": 3,
+    "note": "Istituto Luce catalogue confirms exact December 1950 aerial views of Vatican City/Rome. The catalogue records and image dimensions are verified from public index pages, but no binary original was downloaded in this run."
   }
 }
