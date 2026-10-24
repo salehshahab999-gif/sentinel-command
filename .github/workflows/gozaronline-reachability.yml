@@ -144,3 +144,52 @@ jobs:
               print("LOGIN_LINK " + urljoin(BASE, href))
           print("NOTE no login POST or credential submission was attempted.")
           PY
+
+      - name: Validate login form handler with empty test fields only
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from urllib.request import Request, build_opener, HTTPCookieProcessor, HTTPRedirectHandler
+          from urllib.error import HTTPError
+          from http.cookiejar import CookieJar
+          from urllib.parse import urlencode
+          import re, time
+
+          base = "https://mygonline25.com/login"
+          jar = CookieJar()
+          class StopRedirects(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          opener = build_opener(HTTPCookieProcessor(jar), StopRedirects)
+          headers = {"User-Agent": "Mozilla/5.0 Gozar reachability diagnostics", "Accept": "text/html"}
+          start = time.time()
+          with opener.open(Request(base, headers=headers), timeout=15) as r:
+              html = r.read().decode("utf-8", "replace")
+              final = r.geturl()
+          print(f"FORM_SEED status=200 elapsed={time.time()-start:.3f} url={final} cookies_in_session={len(list(jar))}")
+          token_match = re.search(r'<input\b[^>]*\bname=["\']_token["\'][^>]*>', html, re.I)
+          if not token_match:
+              token_match = re.search(r'<input\b[^>]*\bname=["\']_token["\'][^>]*>', html, re.I)
+          token = ""
+          if token_match:
+              value_match = re.search(r'\bvalue=["\']([^"\']+)["\']', token_match.group(0), re.I)
+              if value_match:
+                  token = value_match.group(1)
+          if not token:
+              print("LOGIN_POST_TEST=SKIPPED reason=csrf_token_not_found")
+              raise SystemExit(0)
+          data = urlencode({"_token": token, "username": "", "password": ""}).encode()
+          post_headers = dict(headers)
+          post_headers.update({"Content-Type": "application/x-www-form-urlencoded", "Origin": "https://mygonline25.com", "Referer": base})
+          request = Request(base, data=data, headers=post_headers, method="POST")
+          start = time.time()
+          try:
+              with opener.open(request, timeout=15) as r:
+                  body = r.read(50000).decode("utf-8", "replace")
+                  print(f"LOGIN_POST_TEST status={r.status} elapsed={time.time()-start:.3f} final_url={r.geturl()} location={r.headers.get('Location','')}")
+          except HTTPError as r:
+              body = r.read(50000).decode("utf-8", "replace")
+              print(f"LOGIN_POST_TEST status={r.code} elapsed={time.time()-start:.3f} location={r.headers.get('Location','')}")
+          print("LOGIN_POST_BODY_MARKERS=" + ",".join(sorted(set(re.findall(r"csrf|token|username|required|invalid|error|login|ورود|معتبر|ضروری|الزامی", body, re.I)))[:20]))
+          print("NOTE sent only empty username/password with a fresh session and CSRF token; no user credentials used.")
+          PY
