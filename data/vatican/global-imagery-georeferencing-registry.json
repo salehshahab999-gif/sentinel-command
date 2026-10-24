@@ -409,6 +409,37 @@
       "catalogueId": "A00174379",
       "status": "exact image record verified; preview/original download not obtained; not georeferenced",
       "notes": "Official catalogue description identifies a view of St Peter's Basilica from a helicopter over Vatican City; Monte Mario and the Pigna courtyard niche are visible in the description. Date [12.1950]."
+    },
+    {
+      "id": "luce-vatican-1950-A00174380",
+      "region": "Vatican City/Rome",
+      "period": "December 1950",
+      "media": "helicopter aerial photograph, black-and-white negative",
+      "source": "Archivio Storico Istituto Luce",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL3000012561/12/veduta-aerea-della-citta-del-vaticano.html",
+      "catalogueId": "A00174380",
+      "status": "exact original catalogue record verified; binary download not obtained",
+      "notes": "Official description explicitly covers Vatican gardens, palaces and St Peter's basilica from helicopter, with Castel Sant'Angelo and historic Rome in the background. One of the strongest full-Vatican aerial records found."
+    },
+    {
+      "id": "eth-epics-1929-rome-northeast-0406",
+      "region": "Rome/Vatican vicinity",
+      "period": "December 1929",
+      "media": "high-resolution aerial photograph",
+      "source": "ETH-Bibliothek E-Pics / Walter Mittelholzer",
+      "url": "https://doi.org/10.3932/ethz-a-000254278",
+      "status": "official ETH catalogue DOI verified; image footprint/target coverage must be checked before using as Vatican image",
+      "notes": "ETH crowdsourcing article identifies the view as Rome, looking northeast; listed capture position 41.8873558,12.4541972 and approximate altitude 900 m refer to camera position, not necessarily the ground footprint. Do not georeference the whole image using this single point."
+    },
+    {
+      "id": "eth-epics-1928-peterskirche-0400m",
+      "region": "Rome/Vatican",
+      "period": "1928",
+      "media": "high-resolution oblique aerial photograph",
+      "source": "ETH-Bibliothek E-Pics / Walter Mittelholzer",
+      "url": "https://doi.org/10.3932/ethz-a-000249170",
+      "status": "official ETH catalogue DOI verified; original file access and exact footprint not verified",
+      "notes": "Catalogue title translates to 'Rome (St Peter's Church) from an altitude of 400 m'. This is a promising primary-source route to the image, not proof of orthorectified ground coverage."
     }
   ],
   "georeferencingChecklist": [
@@ -446,5 +477,26 @@
     "newSpecificVaticanAerialRecords": 2,
     "newSpecific1929to1930ETHFiles": 3,
     "note": "Istituto Luce catalogue confirms exact December 1950 aerial views of Vatican City/Rome. The catalogue records and image dimensions are verified from public index pages, but no binary original was downloaded in this run."
+  },
+  "downloadInvestigation": {
+    "checkedAt": "2026-10-24",
+    "verifiedRoutes": [
+      {
+        "source": "Wikimedia Commons",
+        "method": "Special:FilePath URL for exact TIFF filename",
+        "status": "URL route identified; runtime download blocked by DNS resolution failure in this environment"
+      },
+      {
+        "source": "Istituto Luce",
+        "method": "official detail record and catalogue ID; access request/archival permissions may be needed for full-resolution negative",
+        "status": "records verified; runtime download blocked by DNS resolution failure"
+      },
+      {
+        "source": "ETH-Bibliothek E-Pics",
+        "method": "canonical DOI/catalogue record; use Download/Download original on record page if available",
+        "status": "catalogue record identified; original bytes not retrieved"
+      }
+    ],
+    "importantCaveat": "No original image bytes were downloaded in this session. Do not report downloads or georeferencing as completed."
   }
 }
