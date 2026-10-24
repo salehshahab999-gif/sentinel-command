@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 1,
+  "title": "Global historical imagery and frame-by-frame leads for Vatican/Rome research",
+  "updatedAt": "2026-10-24",
+  "scope": {
+    "geographic": [
+      "Vatican City",
+      "Rome",
+      "Italy",
+      "Europe",
+      "Asia",
+      "North America",
+      "global satellite coverage"
+    ],
+    "temporal": "1900 to latest available",
+    "objective": "Discover original imagery and moving-image frames; download only where accessible and licensed; georeference only with verified ground control points and documented error."
+  },
+  "importantMethodNote": "A global archive's existence does not establish that it contains a Vatican frame. Every candidate must be checked for exact footprint, capture date, original source, rights, and image quality. Oblique aerial photos and film frames are not orthophotos and cannot be accurately placed with a simple world file.",
+  "records": [
+    {
+      "id": "eth-1928-0190",
+      "region": "Italy/Vatican",
+      "period": "1928 collection; exact capture date to verify",
+      "media": "oblique aerial photograph",
+      "source": "ETH-Bibliothek / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928",
+      "directCandidate": "https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Petersdom%20und%20Vatikan%20in%20Rom-Mittelmeerflug%201928-LBS%20MH02-04-0190.tif",
+      "status": "identified; not downloaded in this execution environment; not georeferenced",
+      "notes": "Approx. 4801x3325 pixels; listed at approx. 45.81 MB. Oblique perspective requires image-to-map control points and likely a projective/photogrammetric approach."
+    },
+    {
+      "id": "eth-1928-0191",
+      "region": "Italy/Vatican",
+      "period": "1928 collection; exact capture date to verify",
+      "media": "oblique aerial photograph",
+      "source": "ETH-Bibliothek / Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928",
+      "directCandidate": "https://commons.wikimedia.org/wiki/Special:FilePath/ETH-BIB-Petersdom%20in%20Rom-Mittelmeerflug%201928-LBS%20MH02-04-0191.tif",
+      "status": "identified; not downloaded; not georeferenced",
+      "notes": "Approx. 4902x3408 pixels; listed at approx. 47.93 MB."
+    },
+    {
+      "id": "commons-vatican-aerial",
+      "region": "Vatican",
+      "period": "multiple/verify each file",
+      "media": "aerial image catalogue",
+      "source": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/wiki/Category:Aerial_photographs_of_the_Vatican_City",
+      "status": "catalogue found; six files reported; inspect each file page",
+      "notes": "Includes a 1921 Collier's frontispiece, but a published aerial illustration is not necessarily a measured aerial photograph."
+    },
+    {
+      "id": "afn-webgis",
+      "region": "Italy/Rome",
+      "period": "1942 onward; archive also describes late-19th-century imagery",
+      "media": "vertical and oblique aerial photographs",
+      "source": "Aerofototeca Nazionale / ICCD Italy",
+      "url": "https://afn.cultura.gov.it/webgis/",
+      "catalogue": "https://iccd.cultura.gov.it/it/fotografia/consultazione-online",
+      "status": "official web GIS; query exact Vatican footprint and capture date",
+      "notes": "Official source describes Rome imagery including 1919 Nistri city representation and Allied aerial reconnaissance 1943-45. The WebGIS indicates nationwide aerial-photo search from 1942; older items may require archive catalogue consultation."
+    },
+    {
+      "id": "afn-wwii-collection",
+      "region": "Italy/Rome",
+      "period": "WWII, including 1943-1945",
+      "media": "Allied reconnaissance aerial photographs",
+      "source": "ICCD Aerofototeca Nazionale",
+      "url": "https://iccd.cultura.gov.it/it/aerofototeca-nazionale/fondo-seconda-guerra-mondiale",
+      "status": "collection verified; exact Vatican frame not yet verified",
+      "notes": "Collections include RAF, USAAF, SAAF and Free French Air Force photographs deposited by the British School at Rome and American Academy in Rome."
+    },
+    {
+      "id": "igmi-roma-1936",
+      "region": "Italy/Rome",
+      "period": "1936-09-08 (catalogue date)",
+      "media": "aerial photo / panorama catalogue item",
+      "source": "Istituto Geografico Militare",
+      "url": "https://igmi.esercito.difesa.it/prodotto/423349/",
+      "status": "catalogue item found; Vatican footprint and product availability need checking",
+      "notes": "Catalogue item titled Roma LN00007484; listed date 8/9/1936; 180x130 mm print and notes say unnumbered panoramic Rome frame. Paid product; not assumed to be downloadable free."
+    },
+    {
+      "id": "igmi-national-aerial",
+      "region": "Italy",
+      "period": "1927-2010",
+      "media": "aerial photograms",
+      "source": "Istituto Geografico Militare",
+      "url": "https://igmi.esercito.difesa.it/en/aerial-photos/",
+      "status": "official searchable/purchasable archive",
+      "notes": "More than 300,000 photograms nationwide; many post-1935 records have low-resolution previews. Full TIFF scans may be purchasable; photogrammetric TIFF requires the appropriate product and often overlapping frames."
+    },
+    {
+      "id": "hertziana-rome-aerial",
+      "region": "Italy/Rome",
+      "period": "1890-1960 catalogue range",
+      "media": "historical aerial photographs",
+      "source": "Bibliotheca Hertziana",
+      "url": "https://nav.biblhertz.it/browse/BOX_04074",
+      "status": "catalogue lead; inspect folders and request scans as needed",
+      "notes": "Dates/folders around 1919, 1929/1936, 1943 and circa 1960 are leads, not proof of a Vatican footprint."
+    },
+    {
+      "id": "us-nara-foreign-aerial",
+      "region": "Europe, Middle East, North Africa, Asia",
+      "period": "WWII and 1935-1970 series",
+      "media": "vertical and oblique aerial photographs",
+      "source": "US National Archives",
+      "url": "https://www.archives.gov/research/cartographic/aerial-photography/foreign-photography",
+      "status": "official global catalogue; locate Rome/Vatican indexes and individual frame IDs",
+      "notes": "Includes US/Allied WWII photography and about 1.2 million German military aerial-photo prints, plus about 37,000 Japanese military images from c.1933-1945 covering parts of China, Southeast Asia and Pacific islands."
+    },
+    {
+      "id": "us-nara-rg373",
+      "region": "Foreign areas including Europe",
+      "period": "1935-1970",
+      "media": "US-flown foreign aerial photographs",
+      "source": "US National Archives RG 373",
+      "url": "https://www.archives.gov/research/cartographic/aerial-photography/rg-373-dia-foreign-aerial-photography",
+      "status": "official index path; degree-square and overlay index lookup required",
+      "notes": "Use coordinates for Vatican/Rome and record frame/reel identifiers before claiming a match."
+    },
+    {
+      "id": "usgs-corona",
+      "region": "Global, including Europe/Asia where mission coverage exists",
+      "period": "1960-1972",
+      "media": "declassified satellite film imagery",
+      "source": "USGS EarthExplorer / NARA",
+      "url": "https://www.usgs.gov/centers/eros/science/usgs-eros-archive-declassified-data-catalog",
+      "secondaryUrl": "https://www.archives.gov/research/cartographic/aerial-photography/satellite-photography",
+      "status": "official data collection; exact scene coverage must be searched",
+      "notes": "CORONA/ARGON/LANYARD imagery is not automatically orthorectified; use scene metadata, RPC/elevation data where available, and record residual error."
+    },
+    {
+      "id": "usgs-landsat",
+      "region": "Global",
+      "period": "1972-present",
+      "media": "satellite imagery",
+      "source": "USGS/NASA Landsat",
+      "url": "https://landsat.usgs.gov/landsat-archive-dashboard",
+      "status": "official global archive; scene selection/download required",
+      "notes": "Useful for broad context and change detection; pixel size is generally insufficient for fine architectural or tunnel claims."
+    },
+    {
+      "id": "esa-eobrowser",
+      "region": "Global",
+      "period": "collection-dependent, modern satellite era",
+      "media": "satellite imagery and time series",
+      "source": "Sentinel Hub EO Browser",
+      "url": "https://www.sentinel-hub.com/explore/eobrowser/",
+      "status": "browser and export workflow available; scene must be selected",
+      "notes": "Can compare dates and export imagery; actual dataset terms apply. Not a substitute for historical aerial photographs before the satellite era."
+    },
+    {
+      "id": "france-ign-historical-aerial",
+      "region": "France/Europe",
+      "period": "1920s onward",
+      "media": "historical aerial photographs",
+      "source": "IGN France / data.gouv.fr",
+      "url": "https://www.data.gouv.fr/datasets/prises-de-vue-aeriennes-dematerialisees-de-lign",
+      "status": "official national archive; not Vatican coverage",
+      "notes": "Millions of aerial photos; digitized historical frames from 1920 onward, with some downloads available as JPEG2000. Included as a global archive methodology source, not a Vatican image lead."
+    },
+    {
+      "id": "spain-pnoa-historic",
+      "region": "Spain/Europe",
+      "period": "multiple flight years; inspect layer metadata",
+      "media": "historical orthophotos",
+      "source": "CNIG / Spain open data",
+      "url": "https://centrodedescargas.cnig.es/CentroDescargas/buscadorCatalogo.do?codFamilia=PNOAH",
+      "status": "official historical orthophoto catalogue; not Vatican coverage",
+      "notes": "Year-based orthophoto mosaics with XML metadata and footprints; useful as a model for a geospatially indexed archive."
+    },
+    {
+      "id": "japan-gsi-historical",
+      "region": "Japan/Asia",
+      "period": "c.1928; c.1936-1942; 1945-1950; later eras",
+      "media": "historical aerial photo tile layers",
+      "source": "Geospatial Information Authority of Japan",
+      "url": "https://maps.gsi.go.jp/development/ichiran.html",
+      "dataset": "https://data.e-gov.go.jp/data/dataset/mlit_20140919_3046",
+      "status": "official historical imagery layers; not Vatican coverage",
+      "notes": "The national mapping portal lists historical aerial photography layers for several pre- and post-war periods. Preserve this as a global comparative source, not direct Rome evidence."
+    },
+    {
+      "id": "korea-forest-aerial",
+      "region": "South Korea/Asia",
+      "period": "1971-2005",
+      "media": "historical aerial TIFFs",
+      "source": "Korea Forest Service / data.go.kr",
+      "url": "https://www.data.go.kr/data/15070417/fileData.do",
+      "status": "official dataset; forestry coverage, not Vatican",
+      "notes": "Useful evidence that national historical aerial datasets may be distributed as TIFF; geographic footprint is Korean forest areas only."
+    },
+    {
+      "id": "luce-rome-1949-film",
+      "region": "Rome/Italy",
+      "period": "February 1949",
+      "media": "moving-image footage, 28 seconds",
+      "source": "Archivio Storico Istituto Luce",
+      "url": "https://patrimonio.archivioluce.com/luce-web/detail/IL4000055701/7/veduta-aerea-roma.html?startPage=2840",
+      "status": "specific film record found; frame-by-frame inspection not yet completed",
+      "notes": "Catalogue sequence lists aerial views of the Colosseum, Castel Sant'Angelo, Piazza del Popolo, San Giovanni, and other sites. Do not assume a Vatican frame unless it appears in the actual clip."
+    },
+    {
+      "id": "internet-archive-rome-1947",
+      "region": "Rome/Vatican/Italy",
+      "period": "1947 (copyright/catalogue wording to verify)",
+      "media": "digitized travelogue film",
+      "source": "Internet Archive / Periscope Film",
+      "url": "https://archive.org/details/45784-rome-the-eternal-city",
+      "status": "specific digitized film lead; inspect video timeline frame by frame",
+      "notes": "Catalogue title mentions aerial Rome and the Vatican. Verify exact shots and original capture dates; film publication year may differ from each shot's capture date."
+    },
+    {
+      "id": "vatican-media-jubilees",
+      "region": "Vatican/Rome",
+      "period": "1900-1925 and later Jubilee eras",
+      "media": "archival film, photographs and audiovisual records",
+      "source": "Vatican News / Vatican Apostolic Library / Fondazione MAC",
+      "url": "https://www.vaticannews.va/en/vatican-city/news/2024-12/media-jubilees-vatican-apostolic-library-mac-foundation-docufilm.html",
+      "status": "officially announced audiovisual corpus; inspect the linked project and individual records",
+      "notes": "Announcement reports 400 audiovisual documents catalogued for the Media Jubilees project. Not all are aerial; useful for frame-level historical visual clues."
+    },
+    {
+      "id": "microsoft-vatican-digital-twin",
+      "region": "Vatican",
+      "period": "current digital model launched 2024",
+      "media": "3D digital twin and project video",
+      "source": "Vatican/Microsoft/Iconem",
+      "url": "https://virtual.basilicasanpietro.va/en",
+      "videoUrl": "https://www.youtube.com/watch?v=5dQI_TXYJbU",
+      "status": "official model is accessible as an interactive experience; raw georeferenced mesh download not verified",
+      "notes": "Focused on St Peter's Basilica, not a complete model of the entire Vatican City State."
+    },
+    {
+      "id": "community-reddit-map",
+      "region": "Vatican",
+      "period": "modern post; original map date unknown",
+      "media": "community map discussion",
+      "source": "Reddit r/MapPorn",
+      "url": "https://www.reddit.com/r/MapPorn/comments/jfj1mw/high_definition_map_of_vatican_city/",
+      "status": "community lead only; trace to original author/source",
+      "notes": "Do not treat reposts or comments as geospatial authority."
+    },
+    {
+      "id": "github-geoalign",
+      "region": "Global methodology",
+      "period": "open-source software",
+      "media": "georeferencing software",
+      "source": "GitHub",
+      "url": "https://github.com/matt-macari/geoAlign",
+      "status": "open-source workflow reference",
+      "notes": "Aerial-photo georeferencing tool using GDAL; adapt after reviewing dependencies and licensing."
+    },
+    {
+      "id": "github-sfm-hist-georef",
+      "region": "Global methodology",
+      "period": "open-source software",
+      "media": "historical image georeferencing and tie points",
+      "source": "GitHub",
+      "url": "https://github.com/fdahle/hist_georef",
+      "status": "open-source research workflow reference",
+      "notes": "Uses matching between historical imagery and modern satellite mosaics; repository notes that adaptation may be needed for non-TMA imagery."
+    }
+  ],
+  "georeferencingChecklist": [
+    "Download the original full-resolution file, not only a thumbnail or watermarked preview; preserve its source URL and checksum.",
+    "Read metadata and license; keep acquisition date separate from archive cataloguing, scan, upload and publication dates.",
+    "Classify image geometry: vertical aerial, oblique aerial, satellite frame, orthophoto, map, terrestrial panorama, drone video or indoor 3D scan.",
+    "For vertical aerial frames, use camera/flight metadata, DEM and appropriate orthorectification where possible.",
+    "For oblique photos and film frames, mark identifiable stable control points; use a projective transform only for a suitable planar approximation, and use photogrammetry/3D constraints if relief and perspective demand it.",
+    "Store each ground-control point with pixel x/y, longitude/latitude, CRS (WGS84/EPSG:4326 or explicit projected CRS), landmark description, source, and confidence.",
+    "Use at least 4 well-distributed control points for an initial projective fit, reserve independent checkpoints when possible, and report RMS/residual error. Do not fabricate coordinates or error values.",
+    "Export georeferenced GeoTIFF plus sidecar metadata and a footprint GeoJSON; retain the untouched original.",
+    "For video, record source URL, exact timecode, extracted frame index, checksum, and whether the frame is actually aerial; do not treat video frames as independent surveyed images.",
+    "Only publish a layer as georeferenced after inspecting its residuals and visual alignment against independent control features."
+  ],
+  "executionStatus": {
+    "repositoryRegistryCreatedByThisUpdate": true,
+    "binaryDownloadsPerformedInThisExecution": false,
+    "reason": "The available runtime could not resolve external hosts for binary downloads, and the connected GitHub file interface supports text-file commits rather than binary raster upload.",
+    "georeferencingCompleted": false,
+    "reasonGeoreferencing": "No original raster/video bytes or verified ground-control points were available in the execution environment; assigning a transform now would create false precision.",
+    "nextConcreteSteps": [
+      "Use the linked official catalogues to identify and acquire original frames, especially AFN/ICCD, IGMI, NARA, ETH-Bibliothek and Istituto Luce.",
+      "For each acquired file, create a per-image metadata record and GCP file; run the documented GDAL/QGIS or image-matching workflow.",
+      "Publish only verified image footprints and error metrics to the map; leave unresolved candidates clearly marked as leads."
+    ]
+  }
+}
