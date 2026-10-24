@@ -262,6 +262,66 @@
       "url": "https://github.com/fdahle/hist_georef",
       "status": "open-source research workflow reference",
       "notes": "Uses matching between historical imagery and modern satellite mosaics; repository notes that adaptation may be needed for non-TMA imagery."
+    },
+    {
+      "id": "github-vatican-geojson-gist",
+      "region": "Vatican City",
+      "period": "2016",
+      "media": "boundary GeoJSON",
+      "source": "Public GitHub Gist",
+      "url": "https://gist.github.com/jaakla/ea9d93d542b5cff718163f84b07673c3",
+      "status": "public geometry found; not imagery",
+      "notes": "A Vatican boundary polygon with longitude/latitude coordinates. Useful as an approximate footprint for selecting imagery, not as an authoritative cadastral boundary or historical source."
+    },
+    {
+      "id": "github-dezoomify-vatican-museums-issue",
+      "region": "Vatican Museums",
+      "period": "2022 discussion",
+      "media": "public GitHub issue / IIIF image retrieval",
+      "source": "lovasoa/dezoomify issue #628",
+      "url": "https://github.com/lovasoa/dezoomify/issues/628",
+      "status": "public technical discussion found; not aerial imagery",
+      "notes": "Discusses retrieving high-resolution zoomable images from the Vatican Museums catalogue using its IIIF service. Relevant to lawful access to public museum catalogue images; not evidence of aerial photographs or hidden maps. Respect site terms and rights."
+    },
+    {
+      "id": "github-gehistoricalimagery",
+      "region": "Global",
+      "period": "historical basemap dates vary by location",
+      "media": "open-source historical imagery downloader",
+      "source": "GitHub mbucari/GEHistoricalImagery",
+      "url": "https://github.com/mbucari/gehistoricalimagery",
+      "status": "open-source tool found; source-provider terms and coverage must be checked",
+      "notes": "Can query historical imagery availability and export georeferenced GeoTIFFs from supported Google Earth/Esri World Imagery Wayback sources. It does not create imagery that providers do not expose, and source licensing still applies."
+    },
+    {
+      "id": "github-opendronemap",
+      "region": "Global workflow",
+      "period": "modern aerial/drone imagery",
+      "media": "photogrammetry, orthomosaics, point clouds and 3D models",
+      "source": "GitHub OpenDroneMap",
+      "url": "https://github.com/OpenDroneMap/ODM",
+      "status": "open-source photogrammetry tool found; workflow reference",
+      "notes": "Produces orthorectified imagery, DEMs and 3D models from suitable overlapping images. Not a source of Vatican imagery by itself."
+    },
+    {
+      "id": "github-vatican-worlddb",
+      "region": "Vatican City",
+      "period": "2024 repository",
+      "media": "SVG/world database",
+      "source": "GitHub seanpm2001/Seanpm2001_WorldDB_DB_Earth_Vatican-City",
+      "url": "https://github.com/seanpm2001/seanpm2001_worlddb_db_earth_vatican-city",
+      "status": "public repository found; low relevance to historical imagery",
+      "notes": "Public country-data project; no confirmed historical aerial frames or 3D scan in search results."
+    },
+    {
+      "id": "github-global-building-footprints",
+      "region": "Global",
+      "period": "imagery-derived footprints 2014-2021",
+      "media": "building footprint polygons",
+      "source": "GitHub GlobalMLBuildingFootprintsTest",
+      "url": "https://github.com/ao68/GlobalMLBuildingFootprintsTest",
+      "status": "public dataset/tool lead; not raw imagery",
+      "notes": "Building footprints derived from Bing Maps imagery; useful for comparison/context, not a replacement for source satellite or aerial images."
     }
   ],
   "georeferencingChecklist": [
@@ -287,5 +347,11 @@
       "For each acquired file, create a per-image metadata record and GCP file; run the documented GDAL/QGIS or image-matching workflow.",
       "Publish only verified image footprints and error metrics to the map; leave unresolved candidates clearly marked as leads."
     ]
+  },
+  "githubFindings": {
+    "searchedAt": "2026-10-24",
+    "scope": "Publicly indexed GitHub repositories, Gists, issues and technical discussions related to Vatican mapping, 3D data, imagery retrieval and georeferencing.",
+    "summary": "Search surfaced a public Vatican boundary GeoJSON gist, a GitHub issue discussing IIIF retrieval for Vatican Museums catalogue images, a historical imagery downloader, and open-source photogrammetry tooling. No public evidence was found in these results of a verified stolen/hidden Vatican map or a repository run by a Vatican/Russian hacker containing georeferenced Vatican aerial frames.",
+    "safetyAndEvidence": "Only public, lawful sources are included. Claims about hackers, nationality, or unauthorized access are not inferred from usernames or forum posts. Repository/tool availability does not establish that a particular image exists or has been downloaded."
   }
 }
