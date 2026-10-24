@@ -62,3 +62,85 @@ jobs:
             timeout 8 openssl s_client -connect "$host:443" -servername "$host" </dev/null 2>/dev/null \
               | openssl x509 -noout -subject -issuer -dates 2>&1 || true
           done
+
+      - name: Inspect login form and required static resources (no credentials submitted)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin, urlparse
+          from urllib.request import Request, urlopen
+          import re, time
+
+          BASE = "https://mygonline25.com/login"
+          class PageParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.forms, self.resources, self.links, self.inputs = [], [], [], []
+                  self.active_form = None
+              def handle_starttag(self, tag, attrs):
+                  a = dict(attrs)
+                  if tag == "form":
+                      self.active_form = {"action": a.get("action", ""), "method": a.get("method", "get").upper(), "inputs": []}
+                      self.forms.append(self.active_form)
+                  elif tag == "input" and self.active_form is not None:
+                      typ = a.get("type", "text").lower()
+                      name = a.get("name", "")
+                      if typ in ("password", "hidden"):
+                          label = typ
+                      else:
+                          label = name or typ
+                      self.active_form["inputs"].append(label)
+                  elif tag == "script" and a.get("src"):
+                      self.resources.append(("script", a["src"]))
+                  elif tag == "link" and a.get("href") and ("stylesheet" in a.get("rel", "").lower() or a.get("rel", "").lower() == "icon"):
+                      self.resources.append((a.get("rel", "link"), a["href"]))
+                  elif tag == "a" and a.get("href"):
+                      self.links.append(a["href"])
+              def handle_endtag(self, tag):
+                  if tag == "form":
+                      self.active_form = None
+
+          req = Request(BASE, headers={"User-Agent": "Mozilla/5.0 Gozar reachability diagnostics"})
+          start = time.time()
+          try:
+              with urlopen(req, timeout=15) as r:
+                  html = r.read().decode("utf-8", "replace")
+                  print(f"LOGIN_PAGE status={r.status} seconds={time.time()-start:.3f} final_url={r.geturl()}")
+                  print("LOGIN_HEADERS " + str({k:v for k,v in r.headers.items() if k.lower() in ("server","content-type","set-cookie","content-security-policy","location","cf-ray")}))
+          except Exception as e:
+              print(f"LOGIN_PAGE_ERROR {type(e).__name__}: {e}")
+              raise SystemExit(0)
+
+          p = PageParser()
+          p.feed(html)
+          for f in p.forms:
+              print(f"FORM method={f['method']} action={urljoin(BASE, f['action'])} input_names={f['inputs']}")
+          print(f"STATIC_RESOURCE_COUNT={len(p.resources)}")
+          seen = set()
+          for kind, raw in p.resources:
+              url = urljoin(BASE, raw)
+              if url in seen:
+                  continue
+              seen.add(url)
+              parts = urlparse(url)
+              if parts.scheme not in ("http","https"):
+                  print(f"RESOURCE_SKIP type={kind} url={url}")
+                  continue
+              start = time.time()
+              try:
+                  rq = Request(url, headers={"User-Agent": "Mozilla/5.0 Gozar reachability diagnostics"})
+                  with urlopen(rq, timeout=12) as r:
+                      body = r.read(1500000)
+                      print(f"RESOURCE_OK type={kind} status={r.status} bytes_read={len(body)} seconds={time.time()-start:.3f} host={parts.netloc} path={parts.path}")
+                      if kind == "script":
+                          text = body.decode("utf-8","replace")
+                          patterns = set(re.findall(r"""(?:fetch|axios\.(?:get|post)|XMLHttpRequest|/api/[A-Za-z0-9_/?=&.-]+|csrf|login|captcha|recaptcha)""", text, re.I))
+                          if patterns:
+                              print("SCRIPT_MARKERS " + ",".join(sorted(patterns)[:30]))
+              except Exception as e:
+                  print(f"RESOURCE_FAIL type={kind} host={parts.netloc} path={parts.path} error={type(e).__name__}:{e}")
+          for href in p.links[:20]:
+              print("LOGIN_LINK " + urljoin(BASE, href))
+          print("NOTE no login POST or credential submission was attempted.")
+          PY
