@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "title": "Vatican community, video, and image leads",
+  "caveat": "Social posts and videos are leads for discovery, not authoritative geospatial evidence by themselves. Verify upload date, original capture date, location, provenance, reuse rights, and possible edits before using any media as map evidence.",
+  "records": [
+    {
+      "id": "eth-bib-1928-vatican-0190",
+      "type": "historical aerial image",
+      "date": "1928 collection; verify individual capture metadata",
+      "label": "ETH-BIB: St Peter's and Vatican from the 1928 Mediterranean flight",
+      "url": "https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928",
+      "status": "identified image record; not georeferenced",
+      "details": "The collection includes ETH-BIB-Petersdom und Vatikan in Rom-Mittelmeerflug 1928-LBS MH02-04-0190.tif (4801 x 3325, approximately 45.81 MB)."
+    },
+    {
+      "id": "eth-bib-1928-vatican-0191",
+      "type": "historical aerial image",
+      "date": "1928 collection; verify individual capture metadata",
+      "label": "ETH-BIB: St Peter's Basilica aerial view, 1928 collection",
+      "url": "https://commons.wikimedia.org/wiki/Category:ETH-BIB_Mittelholzer-Mediterranean_flight_1928",
+      "status": "identified image record; not georeferenced",
+      "details": "The collection includes ETH-BIB-Petersdom in Rom-Mittelmeerflug 1928-LBS MH02-04-0191.tif (4902 x 3408, approximately 47.93 MB)."
+    },
+    {
+      "id": "eth-bib-1928-vatican-0227",
+      "type": "historical aerial image",
+      "date": "1928 collection; verify individual capture metadata",
+      "label": "ETH-BIB: St Peter's Basilica and square, 1928 collection",
+      "url": "https://commons.wikimedia.org/wiki/Category:Historical_images_of_Saint_Peter%27s_Square",
+      "status": "identified image record; not georeferenced",
+      "details": "The collection includes ETH-BIB-Petersdom in Rom-Mittelmeerflug 1928-LBS MH02-04-0227.tif (4961 x 3436, approximately 48.89 MB)."
+    },
+    {
+      "id": "commons-aerial-category",
+      "type": "image archive",
+      "label": "Wikimedia Commons: aerial photographs of Vatican City",
+      "url": "https://commons.wikimedia.org/wiki/Category:Aerial_photographs_of_the_Vatican_City",
+      "status": "catalogue",
+      "details": "Search result listed six files, including a 1921 printed aerial view. File-by-file metadata and rights still need review."
+    },
+    {
+      "id": "commons-historical-category",
+      "type": "image archive",
+      "label": "Wikimedia Commons: historical images of Vatican City",
+      "url": "https://commons.wikimedia.org/wiki/Category:Historical_images_of_the_Vatican_City",
+      "status": "catalogue",
+      "details": "Includes historical material and high-resolution aerial records from the ETH-Bibliothek collections."
+    },
+    {
+      "id": "microsoft-digital-twin-video",
+      "type": "official project video",
+      "label": "Microsoft video about the St Peter's Basilica digital twin",
+      "url": "https://www.youtube.com/watch?v=5dQI_TXYJbU",
+      "status": "official project context",
+      "details": "Microsoft's video describes the Vatican, Iconem, and Microsoft collaboration and the digital preservation project. It documents the 3D model process, not historical geospatial frames."
+    },
+    {
+      "id": "vatican-history-youtube",
+      "type": "third-party video",
+      "label": "Vatican City | In 26 minutes",
+      "url": "https://www.youtube.com/watch?v=SSXainH3fV8",
+      "status": "secondary context; verify visual provenance",
+      "details": "A history/architecture overview useful for identifying buildings and visual references, not for georeferencing."
+    },
+    {
+      "id": "aerial-drone-youtube",
+      "type": "third-party aerial video",
+      "label": "Discover Vatican City from Above: 4K Drone Footage",
+      "url": "https://www.youtube.com/watch?v=2QbdFBrLm8A",
+      "status": "visual context; capture date/location and licensing need validation",
+      "details": "Aerial visual reference only; do not treat as a surveyed orthophoto."
+    },
+    {
+      "id": "reddit-vatican-map",
+      "type": "community discussion",
+      "label": "High Definition Map of Vatican City, r/MapPorn",
+      "url": "https://www.reddit.com/r/MapPorn/comments/jfj1mw/high_definition_map_of_vatican_city/",
+      "status": "community lead; inspect original author and underlying source",
+      "details": "Potential lead for a high-resolution map and its author-provided workflow."
+    },
+    {
+      "id": "reddit-ancient-rome-aerial",
+      "type": "community discussion",
+      "label": "Aerial view of ancient Rome with labels, r/ancientrome",
+      "url": "https://www.reddit.com/r/ancientrome/comments/1972c8z/aerial_view_of_ancient_rome_with_labels/",
+      "status": "community lead; not a Vatican georeferenced image",
+      "details": "Useful example of comparing aerial reconstructions and historical labels; not direct evidence for Vatican underground spaces."
+    },
+    {
+      "id": "reddit-old-aerial-methods",
+      "type": "community discussion",
+      "label": "Where can I find old aerial imagery?, r/Maps",
+      "url": "https://www.reddit.com/r/Maps/comments/w9d4rq/where_can_i_find_old_aerial_imagery_middle_east/",
+      "status": "community methods lead",
+      "details": "General discussion of historical aerial image discovery; verify any suggested archive independently."
+    }
+  ],
+  "matchingRules": [
+    "Keep original source URL, creator, upload/publication date, claimed capture date, and access date separately.",
+    "Do not infer coordinates from a video title or subreddit text alone.",
+    "For aerial frames, identify at least three stable control points and document the coordinate reference system and residual error.",
+    "Use social media to discover leads and corroborate claims; do not use likes, repost counts, or anonymous comments as proof.",
+    "Do not draw an underground tunnel unless an authoritative archaeological or engineering source documents its geometry."
+  ]
+}
