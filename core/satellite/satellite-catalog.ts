@@ -6,7 +6,7 @@ import type {
 
 export const SATELLITE_LAYERS: SatelliteLayerDefinition[] = [
   { id: "baseMap", label: "Sentinel Offline Map", description: "Local map tile cache with online provider fallback", liveReady: true, defaultEnabled: true },
-  { id: "satellites", label: "Satellites", description: "Satellite positions", liveReady: true, defaultEnabled: true },
+  { id: "satellites", label: "Satellites", description: "Satellite positions", liveReady: true, defaultEnabled: false },
   { id: "orbits", label: "Orbits", description: "Orbit and ground tracks", liveReady: true, defaultEnabled: false },
   { id: "fires", label: "NASA Fires", description: "NASA FIRMS active fire and thermal anomaly layer", liveReady: true, defaultEnabled: false },
   { id: "weather", label: "Weather", description: "Meteorological satellite products", liveReady: true, defaultEnabled: false },

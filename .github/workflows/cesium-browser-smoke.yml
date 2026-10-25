@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "feat/pnt-multi-source-switch"
+      - "fix/global-street-map-isolated"
   workflow_dispatch:
 
 jobs:
