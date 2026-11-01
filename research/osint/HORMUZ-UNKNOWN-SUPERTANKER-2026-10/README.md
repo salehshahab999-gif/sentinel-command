@@ -127,3 +127,120 @@ No verified incident coordinate is currently available in this dossier. The coor
 
 ### Handover rule
 The dossier is intentionally a reproducible research framework plus a record of the preliminary source work. It is not a claim that satellite scenes, NASA detections, AIS messages, or environmental fields have already been extracted. The next researcher should fill each status field with a source link, file/product ID, timestamp, and method rather than simply changing "proposed" to "completed".
+
+
+---
+
+## Expanded analytical report structure and open-data access guide
+
+This section makes the dossier easier to reproduce and continue. It deliberately follows the structure and level of documentation used in the repository's Jabal Haylan aircraft geolocation assessment, while adapting the evidence model to a moving maritime target. It does **not** claim that the datasets listed below have already been downloaded or analysed.
+
+### 1. Investigation profile
+
+| Field | Current record |
+|---|---|
+| Case | Unidentified crude-oil supertanker incident, reported 10 October 2026 |
+| Primary search period | 8–11 October 2026 (UTC), provisional and subject to the original event timestamp |
+| Geographic scope | Strait of Hormuz / outbound route, broad description only |
+| Vessel identity | Unresolved; no IMO or MMSI assigned |
+| Event position | Not established |
+| Search polygon | Not defensibly defined until the original UKMTO notice and primary Iranian statement are archived |
+| Coordinate reference system for future outputs | WGS 84 (EPSG:4326) |
+| Current analytical status | Preliminary source comparison; no independent geolocation result |
+
+### 2. Geographic and temporal framing
+
+A maritime incident must be reconstructed in space **and time**. A ship's last AIS position, a news article's publication time, the time of an alleged impact, and the time a satellite passed overhead are four different observations. They must never be substituted for one another.
+
+The first spatial anchor must come from the original UKMTO notice or another primary record that states a location, bearing, distance, or coordinate. If that record provides only a broad area, retain a broad area. Do not create a precise point by pinning the centre of a named sea lane or by copying a later vessel position.
+
+The initial temporal window of 8–11 October 2026 is a search window, not a confirmed event interval. Replace or narrow it only when the original source provides an event time and timezone.
+
+### 3. Open satellite and Earth-observation data
+
+The following portals provide public discovery and access routes. Access terms, account requirements, product coverage, and processing status must be checked at acquisition time.
+
+| Dataset / portal | Direct access | Use in this case | Acquisition status |
+|---|---|---|---|
+| Copernicus Data Space Browser | https://browser.dataspace.copernicus.eu/ | Search Sentinel-1 SAR and Sentinel-2 optical scenes after a defensible area/time window exists | Portal identified; no scene downloaded |
+| Copernicus Data Space documentation | https://documentation.dataspace.copernicus.eu/Data.html | Product metadata, APIs, mission/product documentation | Reference identified |
+| Sentinel-1 | https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-data/sentinel-1 | All-weather, day/night radar screening for vessel/surface context; interpretation requires suitable mode, resolution and sea-state checks | No product processed |
+| Sentinel-2 | https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-data/sentinel-2 | Optical context, smoke/cloud and surface observations where daylight and cloud conditions permit | No product processed |
+| Sentinel-3 / EUMETSAT | https://data.eumetsat.int/ | Broad ocean and thermal context; not a substitute for high-resolution ship identification | No product processed |
+| NASA FIRMS archive | https://firms.modaps.eosdis.nasa.gov/download/ | Historical MODIS/VIIRS/Landsat active-fire and thermal-anomaly screening | No case export retrieved |
+| NASA FIRMS API documentation | https://firms.modaps.eosdis.nasa.gov/api/ | Reproducible query and download of available fire/thermal records | API reference identified |
+| NASA Worldview | https://worldview.earthdata.nasa.gov/ | Visual review of broad-scale daily satellite layers and temporal context | No case imagery archived |
+
+**Important sensor limitation:** a shipboard fire may be missed because of overpass timing, cloud, pixel size, thermal contrast, viewing geometry, or a short-lived event. A FIRMS detection is a thermal-anomaly observation, not proof of a vessel fire; no detection is not proof that no fire occurred. Sentinel-2 optical imagery may be unavailable or obscured. Sentinel-1 radar returns can be affected by sea state, wind, incidence angle, ship orientation, and processing choices.
+
+For every scene actually acquired, record: platform, product ID, sensing start/end UTC, processing baseline/level, orbit direction, mode, polarization or bands, footprint, cloud/quality flags where relevant, download URL, retrieval UTC, file checksum, software, and processing parameters.
+
+### 4. AIS and vessel-track evidence
+
+| Access route | Direct access | Geographic / access caveat |
+|---|---|---|
+| Norwegian Coastal Administration open AIS | https://www.kystverket.no/en/sea-transport-and-ports/ais/access-to-ais-data/ | Open coverage is limited to Norwegian waters and cannot reconstruct a Hormuz voyage |
+| Danish Maritime Authority AIS data | https://www.dma.dk/safety-at-sea/navigational-information/ais-data | Historical downloads concern Danish waters; not a source for Gulf-wide historical tracks |
+| OpenAIS project | https://open-ais.org/ | Open-source tools for analysing AIS datasets; it does not itself guarantee access to historical global AIS |
+| US Army ERDC / CMTS review of free AIS sources | https://www.cmts.gov/Portals/75/Documents/page_maritime_data/2023_Kress_Mitchell_AIS%20data%20an%20overview%20of%20free%20sources_ERDC-CHL_CHETN-IX-62.pdf | Useful source comparison; geographic coverage and access conditions vary |
+
+**Hormuz-specific limitation:** the public portals above do not provide a confirmed free, complete historical AIS archive for the Strait of Hormuz. A global historical reconstruction may require a provider archive, an authority request, or a licensed dataset. Do not describe a live map, a vessel's latest position, or a third-party track summary as raw historical AIS.
+
+For each AIS message preserve at minimum: MMSI, message timestamp UTC, reception timestamp UTC if available, latitude, longitude, SOG, COG, true heading, navigation status, message type, receiver/provider, and quality flags. Preserve gaps rather than interpolating them silently. Any interpolation must be marked as derived and must not be used as an observed impact coordinate.
+
+### 5. Ocean, weather, shoreline and bathymetry data
+
+| Dataset | Direct access | Intended use | Status |
+|---|---|---|---|
+| Copernicus Marine Data Store | https://data.marine.copernicus.eu/ | Surface currents, waves and ocean variables where suitable products cover the time/area | Not queried for this case |
+| Copernicus Marine documentation | https://help.marine.copernicus.eu/ | Product metadata, variables, download and API guidance | Reference identified |
+| Copernicus Climate Data Store / ERA5 | https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels | Hourly atmospheric and selected wave variables; grid resolution and variable-specific limitations must be recorded | Not extracted |
+| GEBCO | https://www.gebco.net/data_and_products/gridded_bathymetry_data/ | Bathymetric context and seabed reference, not proof of an incident | Not extracted |
+| OpenStreetMap | https://www.openstreetmap.org/ | General shoreline and geographic reference; not a navigational chart | Not archived |
+
+Environmental fields should be extracted only for a time/area justified by primary evidence. Record dataset version, variable, units, depth, grid spacing, temporal resolution, interpolation method and missing-data treatment. A drift model is inappropriate until a plausible release time and starting position are independently constrained.
+
+### 6. Evidence-to-location method
+
+The investigation should maintain separate candidate records for (a) the Iranian-reported mine incident and (b) the UKMTO-described projectile/fire incident. They may be merged only if independent evidence matches event time, vessel particulars, position, and physical observations.
+
+A candidate coordinate can enter the ledger only with:
+- the original source or dataset identifier;
+- observation/event time in UTC;
+- whether the coordinate is observed, reported, interpolated, or analyst-derived;
+- derivation method and CRS;
+- uncertainty radius or ellipse;
+- confidence grade and contradictory evidence.
+
+The final map may legitimately show a broad polygon, several candidate tracks, or **no defensible location**. A point is not a required deliverable if the evidence cannot support one.
+
+### 7. Reproducible output package
+
+When the relevant data are actually acquired, add these files beside this README:
+- `sources/source_register.csv`: publisher, URL, access date, publication/event time, primary/secondary status.
+- `data_manifest.csv`: dataset, product/message ID, acquisition time, coverage, license, checksum, local filename and processing status.
+- `evidence_ledger.csv`: claim/observation, source, time, location, evidence class, confidence, counter-evidence.
+- `ais_tracks/`: raw AIS exports (where licensing permits) and a separate derived track.
+- `satellite_manifest.csv` and `imagery/`: product IDs and permitted derived outputs; do not redistribute restricted source data.
+- `geospatial/`: GeoJSON polygons/points with uncertainty and provenance.
+- `methods/`: scripts, environment/version notes, parameters and reproducible processing instructions.
+- `figures/`: maps with scale, north arrow, CRS, acquisition timestamps and source credits.
+
+### 8. Current conclusion and confidence
+
+The dossier currently supports the conclusion that two accounts were publicly reported: an Iranian/IRGC mine-strike claim and a separately described UKMTO-related projectile/fire report. It does not yet establish that they describe the same event. No vessel identity, impact coordinate, mine attribution, or independently verified shipboard fire is established here.
+
+**Confidence in the existence of the public claims: medium to high. Confidence in the physical event details and any precise location: unresolved / unverified.** This is an evidence-status judgement, not a probability that the event occurred.
+
+### 9. Reproduction checklist
+
+1. Retrieve and archive the original UKMTO warning and original Iranian statement/media.
+2. Extract the event timestamp and spatial wording without rounding or reinterpretation.
+3. Build a provisional search polygon and document how it was derived.
+4. Search AIS sources and record actual coverage gaps and access limitations.
+5. Search Sentinel products by polygon and time; archive product IDs before interpretation.
+6. Query FIRMS and environmental datasets only within the evidence-bounded interval.
+7. Compare independent observations; preserve contradictions.
+8. Publish only coordinates and uncertainty supported by reproducible evidence.
+
+The status of each source must be one of: **identified, accessed, downloaded, processed, independently checked, unavailable, or not applicable**. A source appearing in this guide does not mean it has been accessed or processed for this case.
