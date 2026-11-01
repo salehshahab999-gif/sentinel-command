@@ -69,3 +69,61 @@ For every new item, preserve publisher/account, source URL, publication timestam
 ## Disclaimer
 
 This is a preliminary OSINT dossier, not a formal maritime casualty investigation. It does not establish vessel identity, responsibility, weapon type, or exact incident location.
+
+
+## Detailed investigation log and geolocation methodology (handover expansion)
+
+This report is being structured to follow the repository's Jabal Haylan aircraft-geolocation assessment: executive summary, estimated-location status, geographic references, methodology, coordinate reduction, remote sensing, environmental context, confidence, limitations, and reproducibility. The subject and evidence differ, so no aircraft-crash assumptions or coordinates are transferred to this maritime case.
+
+### Work actually performed in the earlier research
+- Compared the IRGC Navy account as reported by Tasnim and Anadolu with secondary reporting of a UKMTO-described outbound-tanker incident.
+- Recorded the vessel as unnamed in the Iranian account; no defensible IMO/MMSI/flag/owner match was established.
+- Separated the 10 October report from the later 17 October supertanker report and from the NV SUNSHINE case.
+- Identified the required AIS, Copernicus, NASA FIRMS, and meteorological data streams for follow-up.
+- Established that no numerical incident coordinate could be responsibly assigned from the material then retrieved.
+- No raw AIS export, Sentinel product, FIRMS export, or ERA5/Marine data file was downloaded and processed in that stage.
+
+### Geolocation workflow for the next researcher
+1. **Anchor the event:** obtain the original UKMTO notice and original Iranian statement/media. Extract the event time, publication time, exact wording, named geographic references, and any coordinate or distance statement. Keep event time separate from publication time.
+2. **Define a search polygon:** only after the primary notice is archived, convert its stated location/range into a geographic polygon. Record the coordinate reference system (WGS84), derivation method, and uncertainty. Do not manufacture a point from a broad description.
+3. **AIS candidate search:** query raw AIS messages for outbound crude-oil VLCC/ULCC candidates for 8–11 October 2026. Preserve message time and receiver time separately, plus MMSI, lat/lon, SOG, COG, heading, navigation status, provider, and reception gaps. Resolve MMSI-to-IMO only through documented cross-checks. AIS silence alone is not evidence of intentional concealment.
+4. **Vessel identity test:** compare candidate dimensions, deck/bridge geometry, flag, owner/manager, cargo and voyage context with original video/stills and authoritative vessel records. Require multiple independent matches before naming a vessel.
+5. **Sentinel-1 SAR:** search Copernicus Data Space for all scenes intersecting the polygon and time window. Log product ID, platform, acquisition UTC, mode, polarization, orbit direction, incidence angle, footprint, and processing level. Inspect calibrated imagery and land/sea masks; do not call an unprocessed bright return a confirmed ship or oil slick.
+6. **Sentinel-2 optical:** search the same time/area. Record product ID, acquisition UTC, tile, cloud percentage, relevant bands, quality masks, and georeferencing. Optical non-detection under cloud/night/poor resolution is not evidence of absence.
+7. **Sentinel-3 and NASA:** examine Sentinel-3 SLSTR/OLCI and NASA FIRMS VIIRS/MODIS for broad thermal/ocean context. Record sensor, pixel size, acquisition time, confidence/quality flags and fire radiative power where available. A thermal anomaly is not automatically a ship fire; absence of a detection does not rule one out.
+8. **Terrain and basemap context:** maritime terrain is secondary, but use authoritative shoreline, bathymetry, navigation chart and anchorage references to validate named places and distances. Record dataset edition and scale.
+9. **Wind, waves and currents:** extract hourly ERA5 wind and wave variables and Copernicus Marine surface-current fields for the bounded period and polygon. Preserve grid cell, units, depth, timestamp, dataset version and interpolation method. Do not infer oil-slick drift without a validated starting time/location and an explicit drift model.
+10. **Video/visual evidence:** locate the earliest original upload; preserve URL, uploader, upload time, retrieval time, file hash, frame timestamps and any available metadata. Geolocate using stable vessel features and independently identifiable environmental cues. Do not infer camera coordinates from vessel identity alone.
+11. **Coordinate reduction:** maintain a candidate table with each coordinate, source, timestamp, derivation, uncertainty radius/ellipse, and confidence. Only reduce the search area when independent evidence converges. Report a polygon or radius when a point would overstate precision.
+12. **Independent review:** publish contradictory evidence and invite replication. Keep raw inputs, processing scripts/parameters, and derived outputs distinct.
+
+### Data and source inventory
+| Source | Intended analytical contribution | Current status in this case |
+|---|---|---|
+| UKMTO original notice | Primary event time, location description, incident narrative | Secondary summaries located; original notice not yet archived |
+| Tasnim / IRGC Navy statement | Attribution and official claim | Reported source located; original media asset not archived |
+| Anadolu Agency | Independent reporting of the Iranian statement | Article located; corroborates publication of claim, not physical event |
+| AIS provider archives | Candidate identification and track reconstruction | Search plan only; raw messages not downloaded |
+| Copernicus Sentinel-1 | SAR vessel/surface observation | Collection identified; no product downloaded/processed |
+| Copernicus Sentinel-2 | Optical vessel, smoke, surface context | Collection identified; no product downloaded/processed |
+| Sentinel-3 SLSTR/OLCI | Broad thermal and ocean context | Proposed; no product downloaded/processed |
+| NASA FIRMS VIIRS/MODIS | Thermal-anomaly screening | Proposed; no vessel-linked detection confirmed in prior work |
+| ERA5 | Hourly wind and wave forcing | Proposed; no hourly extraction performed |
+| Copernicus Marine | Surface current and ocean drift context | Proposed; no extraction or drift model performed |
+| Public video/social media | Visual clues, time sequence, vessel-feature comparison | Original source media still required |
+| Nautical charts / shoreline data | Validate geographic references and distance statements | Not yet assembled for this case |
+
+### Coordinate ledger (do not treat as a location result)
+No verified incident coordinate is currently available in this dossier. The coordinate ledger must remain empty until the original notice or independently geolocated primary evidence supports a position. A later AIS point, a broad location phrase, or an approximate map pin must not be relabelled as the impact point.
+
+### Required deliverables for a complete follow-up
+- Original notices and source-media archive with retrieval metadata and hashes.
+- Raw AIS CSV/Parquet with message-level timestamps and provider provenance.
+- Sentinel product manifest and original product identifiers; processed outputs with reproducible parameters.
+- FIRMS export and quality-filter description, if any relevant detections exist.
+- Hourly wind/wave/current extracts and a documented drift-model configuration, if an oil slick is being modelled.
+- GeoJSON search polygon and candidate points, each with uncertainty and source attribution.
+- A chronological evidence matrix separating fact, attributed claim, inference, and unresolved hypothesis.
+
+### Handover rule
+The dossier is intentionally a reproducible research framework plus a record of the preliminary source work. It is not a claim that satellite scenes, NASA detections, AIS messages, or environmental fields have already been extracted. The next researcher should fill each status field with a source link, file/product ID, timestamp, and method rather than simply changing "proposed" to "completed".
