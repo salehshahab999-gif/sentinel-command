@@ -1,0 +1,120 @@
+{
+  "type": "FeatureCollection",
+  "name": "GEM_NO2_UAE_OSINT_reference_points",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "P-01",
+        "name": "UKMTO coordinate attribution; primary verification required",
+        "datetime_utc": "2026-10-09T10:00:00Z",
+        "evidence": "Secondary attribution",
+        "confidence": "Medium-low",
+        "note": "Reported incident area; not a confirmed impact point."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.566667,
+          25.733333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "P-02",
+        "name": "AIS position",
+        "datetime_utc": "2026-10-10T03:18:03Z",
+        "evidence": "Secondary AIS history",
+        "confidence": "Medium",
+        "note": "Post-incident vessel position; raw AIS message unavailable."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.5811,
+          25.7883
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "P-03",
+        "name": "AIS stop position",
+        "datetime_utc": "2026-10-10T03:43:52Z",
+        "evidence": "Secondary AIS history",
+        "confidence": "Medium",
+        "note": "Post-incident position; raw AIS message unavailable."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.5811,
+          25.7886
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "P-04",
+        "name": "Satellite analysis coordinate",
+        "datetime_utc": "2026-10-19",
+        "evidence": "Published image analysis",
+        "confidence": "Medium",
+        "note": "Later observation area; not impact point."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.5862595,
+          25.8058049
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "P-06",
+        "name": "Approximate Sentinel-1 interpretation",
+        "datetime_utc": "2026-10-21",
+        "evidence": "Published secondary interpretation",
+        "confidence": "Low-medium",
+        "note": "Approximate point; raw scene not archived."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.587,
+          25.789
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CAM-01",
+        "name": "Kite Beach Center public webcam listing",
+        "datetime_utc": null,
+        "evidence": "Public webcam directory",
+        "confidence": "Low",
+        "note": "Historical archive for incident dates unconfirmed."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.5369,
+          25.5472
+        ]
+      }
+    }
+  ]
+}
