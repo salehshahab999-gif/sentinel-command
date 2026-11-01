@@ -85,3 +85,61 @@ For each new item, preserve source URL, publisher/account, publication time, eve
 ## Disclaimer
 
 This is a preliminary OSINT dossier, not a formal maritime casualty investigation. The Iranian allegation and PVTrans denial are both documented; the allegation is not treated as an established event.
+
+
+## Detailed investigation log and geolocation methodology (handover expansion)
+
+This report follows the repository's Jabal Haylan geolocation-assessment structure while adapting the method to a maritime allegation contradicted by the operator. The central analytical question is not "where did the attack happen?" but first "does independently verifiable evidence establish that an attack on this named vessel occurred?" The company's denial must remain prominent.
+
+### Work actually performed in the preliminary investigation
+- Located Tasnim's report attributing an attack/fire allegation to the IRGC Navy and Anadolu's report that the allegation was made.
+- Located PVTrans's official English-language response dated 10 October 2026 and the related PVN corporate publication.
+- Recorded PVTrans's statement that NVTrans, identified as the direct owner/manager/operator, checked with the captain and relevant parties and reported that the vessel was not attacked, crew and cargo were safe, and operations continued normally.
+- Collected secondary vessel identifiers and a secondary AIS-monitoring lead.
+- Explicitly classified the case as disputed and not established as an attack.
+- No raw AIS messages, original IRGC media, Sentinel scenes, NASA FIRMS exports, or hourly weather/ocean data were downloaded and processed in the preliminary stage.
+
+### Methodology and next steps
+1. **Preserve both primary accounts:** archive the full PVTrans statement and original Iranian/IRGC statement or media. Record publication time, retrieval time, original language, translation, and exact wording. Do not collapse allegation and denial into a single narrative.
+2. **Verify vessel identity:** cross-check IMO 9350288 and MMSI 574005710 against authoritative vessel registries and raw AIS. Record flag, call sign, dimensions, ship type, owner, manager, and dates each field was valid. The current particulars are secondary leads pending verification.
+3. **Reconstruct voyage:** obtain message-level AIS for 7–11 October 2026. Preserve UTC message and reception times, lat/lon, SOG, COG, heading, navigation status, source/provider, and gaps. Compare the track with port calls, route, and the operator's statement. Do not treat the last reported AIS position as an attack location.
+4. **Test the alleged event time and area:** extract the precise time/location from the original IRGC source, if supplied. Compare against AIS with a stated uncertainty window. If the source provides no coordinates, do not invent them.
+5. **Review original media:** locate the earliest video/image upload and preserve URL, uploader, file hash, metadata, frame sequence, and upload time. Compare visible ship features with independently sourced vessel photographs. Do not assume a video of a fire or tanker depicts NV SUNSHINE.
+6. **Satellite screening:** query Sentinel-1 SAR and Sentinel-2 optical products only after an evidence-based time/area window exists. Record product IDs, acquisition UTC, sensor/mode, polarization/bands, cloud cover, footprint and processing parameters. Check Sentinel-3 SLSTR/OLCI and NASA FIRMS as broad thermal context, with resolution and quality limitations stated.
+7. **Environmental context:** obtain hourly ERA5 wind/wave data and Copernicus Marine surface currents for the candidate time/area if a drift or smoke interpretation is actually required. Record grid, depth, units, dataset version and extraction method.
+8. **Independent corroboration:** seek direct confirmation from NVTrans, the master, port agent, insurer, flag-state authority, or maritime safety authority. Distinguish a company statement from independently inspected physical evidence.
+9. **Coordinate reduction:** only publish a coordinate if it is supported by a primary notice, raw AIS tied to a verified vessel and event, or reproducible visual geolocation. Report uncertainty radius/ellipse, CRS, time, source and confidence. If evidence does not support a location, explicitly state "not established".
+10. **Peer replication:** provide a source ledger, data manifest, method notes and derived GeoJSON/CSV so another researcher can reproduce or challenge the assessment.
+
+### Data and source inventory
+| Source | Intended contribution | Current status |
+|---|---|---|
+| PVTrans official response | Operator's direct denial and reported verification with captain/stakeholders | Located and cited in this dossier |
+| PVN corporate publication | Corroborating corporate publication of denial | Located and cited |
+| Tasnim / IRGC Navy | Original attack allegation | Report located; original media not archived |
+| Anadolu Agency | Independent reporting that allegation was made | Article located |
+| IMO / authoritative registry | Verify vessel identity and particulars | Not yet independently queried in this work |
+| Raw AIS provider archive | Voyage track, timing, gaps and candidate location | Secondary track lead only; raw data not downloaded |
+| Sentinel-1 SAR | Independent vessel/surface observation | Proposed; no scene downloaded/processed |
+| Sentinel-2 optical | Visual observation when acquisition/cloud conditions permit | Proposed; no scene downloaded/processed |
+| Sentinel-3 SLSTR/OLCI | Broad thermal context | Proposed; no product downloaded/processed |
+| NASA FIRMS VIIRS/MODIS | Thermal anomaly screening | Proposed; no vessel-linked detection confirmed |
+| ERA5 / Copernicus Marine | Wind, waves and currents | Proposed; no extraction performed |
+| Original video/social media | Visual verification and upload chronology | Original source media not archived |
+
+### Coordinate ledger
+**No incident coordinate is established.** The secondary AIS position at 25.806°N, 51.774°E at 17:08 UTC on 9 October, cited in the preliminary notes, is a reported vessel position and must not be treated as an attack coordinate. It requires raw-message verification and must be checked against the original source's event time. The coordinate's apparent precision does not make the underlying evidence precise.
+
+### Required handover deliverables
+- Archived primary statements in original language plus faithful translation.
+- Authoritative vessel registry cross-check for IMO/MMSI and ownership/management.
+- Raw AIS message file and reproducible track map.
+- Original media archive, hashes, frame log and source chronology.
+- Satellite product manifest and processed imagery only if relevant scenes exist.
+- NASA FIRMS query/export with quality flags if detections exist.
+- Hourly environmental extracts only if needed to test a specific hypothesis.
+- GeoJSON/CSV of verified track points and any defensible uncertainty area.
+- Evidence matrix that records both confirming and contradictory observations.
+
+### Handover rule
+Do not promote this case to "confirmed attack" unless independent evidence resolves the contradiction between the Iranian allegation and PVTrans's direct denial. Do not label the secondary AIS position as an incident coordinate. Mark every data stream as "located", "downloaded", "processed", or "not available" separately.
