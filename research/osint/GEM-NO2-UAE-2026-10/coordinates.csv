@@ -1,0 +1,8 @@
+id,datetime_utc,latitude,longitude,evidence_type,description,status,source_url,confidence
+P-01,2026-10-09T10:00:00Z,25.733333,55.566667,reported_incident_area,"Coordinate attributed in prior research to a weekly UKMTO summary; original notice must be checked; not confirmed impact point",secondary_attribution_needs_primary_verification,https://mscio.eu/alerts/171,medium-low
+P-02,2026-10-10T03:18:03Z,25.7883,55.5811,AIS_event,"Reported post-incident AIS position; raw AIS message not archived",secondary_AIS_history,https://aisvesseltracker.com/vessel/gem-no2-mmsi-354264000-imo-9735373,medium
+P-03,2026-10-10T03:43:52Z,25.7886,55.5811,AIS_stop,"Reported stop position; raw AIS message not archived",secondary_AIS_history,https://aisvesseltracker.com/vessel/gem-no2-mmsi-354264000-imo-9735373,medium
+P-04,2026-10-19,25.8058049,55.5862595,satellite_analysis_coordinate,"Coordinate cited from published satellite-image analysis; later observation, not impact point",published_secondary_analysis,https://theredzone-newsletter.beehiiv.com/p/umm-al-quwain-spill-imagery-gem-no-2,medium
+P-05,2026-10-19,25.788,55.586,approx_satellite_area,"Approximate image-analysis area; not a precise point",published_secondary_analysis,https://theredzone-newsletter.beehiiv.com/p/umm-al-quwain-spill-imagery-gem-no-2,low-medium
+P-06,2026-10-21,25.789,55.587,sar_interpretation,"Approximate published Sentinel-1 interpretation; raw scene not archived",published_secondary_analysis,https://theredzone-newsletter.beehiiv.com/p/umm-al-quwain-spill-imagery-gem-no-2,low-medium
+CAM-01,,25.5472,55.5369,public_webcam_listing,"Kite Beach Center webcam listing; archive for 9-11 October not confirmed",archive_unconfirmed,https://worldcam.eu/webcams/asia/uae/19880-umm-al-quwain-kite-beach-center,low
