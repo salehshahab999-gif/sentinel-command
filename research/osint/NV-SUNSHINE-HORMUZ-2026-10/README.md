@@ -143,3 +143,126 @@ This report follows the repository's Jabal Haylan geolocation-assessment structu
 
 ### Handover rule
 Do not promote this case to "confirmed attack" unless independent evidence resolves the contradiction between the Iranian allegation and PVTrans's direct denial. Do not label the secondary AIS position as an incident coordinate. Mark every data stream as "located", "downloaded", "processed", or "not available" separately.
+
+
+---
+
+## Expanded analytical report structure and open-data access guide
+
+This section aligns the dossier more closely with the repository's Jabal Haylan aircraft geolocation assessment: a clear investigation profile, geographic references, evidence comparison, data-source inventory, analytical method, confidence, limitations, and reproducibility. The maritime method must account for a moving vessel and the material contradiction between the Iranian allegation and the operator's denial. This guide does **not** claim that the listed datasets have already been downloaded or processed.
+
+### 1. Investigation profile
+
+| Field | Current record |
+|---|---|
+| Case | NV SUNSHINE attack allegation and operator denial |
+| Vessel | NV SUNSHINE |
+| IMO / MMSI | 9350288 / 574005710 (secondary particulars; authoritative verification still required) |
+| Vessel type | LPG carrier |
+| Primary search period | 7–11 October 2026 (UTC), provisional |
+| Geographic scope | Strait of Hormuz / Persian Gulf route as described in the public accounts |
+| Incident coordinate | Not established |
+| Secondary AIS position lead | 25.806°N, 51.774°E at 17:08 UTC, 9 October 2026; secondary record only, not an incident coordinate |
+| Coordinate reference system for future outputs | WGS 84 (EPSG:4326) |
+| Current analytical status | Disputed allegation; operator denial documented; no independent event geolocation |
+
+### 2. Geographic and temporal framing
+
+The first task is to determine whether the alleged event occurred at all, not to assume an attack and then search for its location. The 9 October Iranian/IRGC allegation and 10 October PVTrans denial must remain separate evidence records. The vessel's reported AIS position at 25.806°N, 51.774°E is only a secondary vessel-position lead. It must not be relabelled as the attack location.
+
+Publication time, alleged event time, AIS message time, AIS reception time, and satellite acquisition time must be stored separately. The 7–11 October period is a provisional search interval, not a confirmed incident time window. Narrow it only when the original statement or independently verifiable evidence supports doing so.
+
+### 3. Open satellite and Earth-observation data
+
+| Dataset / portal | Direct access | Use in this case | Acquisition status |
+|---|---|---|---|
+| Copernicus Data Space Browser | https://browser.dataspace.copernicus.eu/ | Search Sentinel-1 SAR and Sentinel-2 scenes after the event time/area is bounded | Portal identified; no scene downloaded |
+| Copernicus Data Space documentation | https://documentation.dataspace.copernicus.eu/Data.html | Product metadata, APIs and mission documentation | Reference identified |
+| Sentinel-1 | https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-data/sentinel-1 | Radar screening for vessel/surface context, subject to mode, resolution, sea state and geometry | No product processed |
+| Sentinel-2 | https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-data/sentinel-2 | Optical observations when daylight, cloud and acquisition timing permit | No product processed |
+| Sentinel-3 / EUMETSAT | https://data.eumetsat.int/ | Broad ocean and thermal context; not definitive ship identification | No product processed |
+| NASA FIRMS archive | https://firms.modaps.eosdis.nasa.gov/download/ | Historical MODIS/VIIRS/Landsat active-fire and thermal-anomaly screening | No case export retrieved |
+| NASA FIRMS API documentation | https://firms.modaps.eosdis.nasa.gov/api/ | Reproducible query/download of fire and thermal records | API reference identified |
+| NASA Worldview | https://worldview.earthdata.nasa.gov/ | Broad-scale daily satellite-layer review and temporal context | No case imagery archived |
+
+**Sensor limitations:** a short-lived engine-room fire may not be visible to an overhead satellite. Cloud, overpass timing, pixel size, thermal contrast and viewing geometry can prevent detection. A FIRMS hotspot does not identify a vessel or prove an attack. A negative FIRMS result does not prove that no fire occurred. Sentinel-2 may be cloud-obscured or lack a suitably timed acquisition. Sentinel-1 interpretation depends on sea state, wind, vessel orientation, incidence angle and processing.
+
+For every scene actually acquired, record platform, product ID, sensing time UTC, processing level/baseline, orbit direction, mode, polarization/bands, footprint, cloud/quality flags, download URL, retrieval UTC, checksum, software and processing parameters.
+
+### 4. AIS and vessel identity
+
+| Access route | Direct access | Geographic / access caveat |
+|---|---|---|
+| Norwegian Coastal Administration open AIS | https://www.kystverket.no/en/sea-transport-and-ports/ais/access-to-ais-data/ | Open AIS coverage is for Norwegian waters; it cannot provide a historical Hormuz track |
+| Danish Maritime Authority AIS data | https://www.dma.dk/safety-at-sea/navigational-information/ais-data | Historical downloads concern Danish waters; not a Gulf-wide source |
+| OpenAIS project | https://open-ais.org/ | Tools for processing AIS datasets; does not itself guarantee global historical data access |
+| US Army ERDC / CMTS review of free AIS sources | https://www.cmts.gov/Portals/75/Documents/page_maritime_data/2023_Kress_Mitchell_AIS%20data%20an%20overview%20of%20free%20sources_ERDC-CHL_CHETN-IX-62.pdf | Overview of sources and limitations; coverage varies |
+
+**Hormuz-specific limitation:** these public portals do not supply a confirmed complete, free historical AIS archive for the Strait of Hormuz. The existing secondary position lead requires raw-message verification. A provider's track summary or current vessel page is not a substitute for the original message-level AIS record.
+
+For every AIS message preserve MMSI, message time UTC, reception time UTC if available, latitude, longitude, SOG, COG, true heading, navigation status, message type, receiver/provider and quality flags. Resolve IMO/MMSI/flag/dimensions against authoritative records where possible. Record gaps and do not silently interpolate missing positions.
+
+### 5. Ocean, weather, shoreline and bathymetry data
+
+| Dataset | Direct access | Intended use | Status |
+|---|---|---|---|
+| Copernicus Marine Data Store | https://data.marine.copernicus.eu/ | Surface currents, waves and ocean variables if relevant to a specific hypothesis | Not queried for this case |
+| Copernicus Marine documentation | https://help.marine.copernicus.eu/ | Product metadata, variables, download and API guidance | Reference identified |
+| Copernicus Climate Data Store / ERA5 | https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels | Hourly atmospheric and selected wave variables; resolution depends on variable/product | Not extracted |
+| GEBCO | https://www.gebco.net/data_and_products/gridded_bathymetry_data/ | Bathymetric context, not evidence of an attack | Not extracted |
+| OpenStreetMap | https://www.openstreetmap.org/ | General shoreline and geographic context; not a navigational chart | Not archived |
+
+Environmental data should be extracted only for a justified event interval and area. Record dataset version, variable, units, depth, grid spacing, temporal resolution, interpolation method and missing-data treatment. Do not use current or wave data to infer a drift path unless the event time, starting position and physical mechanism are sufficiently constrained.
+
+### 6. Competing-hypothesis assessment
+
+The evidence ledger must explicitly test at least these hypotheses:
+
+- **H1: The vessel was attacked and sustained damage/fire.** Requires independent physical evidence, original imagery, credible event-time/position information, or corroboration beyond the initial claim.
+- **H2: The reported attack was mistaken, misattributed, or referred to another vessel/event.** Test against vessel track, vessel appearance, timing, and the original media.
+- **H3: The vessel was not attacked, consistent with the PVTrans statement.** The operator's denial is direct corporate evidence, but independent verification of the underlying voyage and physical condition remains desirable.
+
+Do not treat the number of outlets repeating one statement as multiple independent confirmations. Preserve the original source lineage of each report.
+
+### 7. Evidence-to-location method
+
+A location estimate is permissible only after the event itself has adequate support. A candidate coordinate must include:
+- original source or dataset identifier;
+- event/observation time UTC;
+- whether it is observed, reported, interpolated, or analyst-derived;
+- derivation method and CRS;
+- uncertainty radius or ellipse;
+- confidence grade and counter-evidence.
+
+If the evidence only supports a vessel track or a broad search area, publish that instead of a false point. The final result may correctly remain **no incident coordinate established**.
+
+### 8. Reproducible output package
+
+When data are actually acquired, add:
+- `sources/source_register.csv`: publisher, URL, retrieval date, publication/event time, primary/secondary status.
+- `data_manifest.csv`: dataset, product/message ID, acquisition time, coverage, license, checksum, local filename and processing status.
+- `evidence_ledger.csv`: allegation/observation, source, time, location, evidence class, confidence, contradiction.
+- `ais_tracks/`: raw AIS exports where licensing permits, plus a separate derived track.
+- `satellite_manifest.csv` and `imagery/`: product IDs and permitted derived outputs.
+- `geospatial/`: GeoJSON/CSV with verified track points, candidate areas, uncertainty and provenance.
+- `methods/`: scripts, software versions, parameters and reproducible processing instructions.
+- `figures/`: maps with scale, north arrow, CRS, timestamps and source credits.
+
+### 9. Current conclusion and confidence
+
+The current public record contains an Iranian/IRGC attack allegation and a direct PVTrans denial. The dossier does not independently establish an attack, engine-room fire, damage, or incident coordinate. The secondary AIS point is not an attack coordinate.
+
+**Confidence that both public accounts were issued: high. Confidence in the physical occurrence of an attack: unresolved / disputed. Confidence in any exact incident location: unverified.** These are evidence-status assessments, not numerical probabilities.
+
+### 10. Reproduction checklist
+
+1. Archive the original Iranian/IRGC statement and media and the full PVTrans statement.
+2. Verify vessel identity and particulars against authoritative records.
+3. Obtain raw AIS messages for the provisional 7–11 October interval, or document why they are unavailable.
+4. Compare the track against the operator's account and any port-call or voyage evidence.
+5. Search Sentinel products only within a defensible time/area window.
+6. Query FIRMS and environmental datasets with product IDs, filters and timestamps recorded.
+7. Test the competing hypotheses and preserve contradictory observations.
+8. Publish only supported tracks, polygons, or coordinates with explicit uncertainty.
+
+Use the following status labels for every source: **identified, accessed, downloaded, processed, independently checked, unavailable, or not applicable**. Listing a portal here does not mean that its data have been accessed or processed for this case.
