@@ -60,3 +60,41 @@ Run from the repository root:
     python earth-system-global-review/scripts/validate.py
 
 The validation checks the column schema, row identifiers, HTTPS source links, source-date formats and indicator-to-source references. It does not certify the scientific validity of a number or test whether every URL remains online.
+
+
+### annual-observations.csv
+
+A machine-readable annual time-series register used for strict year-over-year comparisons. It is separate from the indicator snapshot because the same indicator may have several year records, observation windows or source products.
+
+Columns:
+
+| Column | Meaning |
+|---|---|
+| series_id | Stable comparison-series identifier. |
+| year | Observation year, not publication year. |
+| indicator_name | Human-readable metric name. |
+| value / unit | Published numeric value and unit. |
+| reference_baseline | Baseline or reference definition. |
+| geographic_scope | Global, national, polar or other stated area. |
+| method_key | Stable method/product family used to decide comparability. |
+| comparison_window | Calendar year, annual minimum, annual maximum, hydrological year, or named month/interval. |
+| comparison_type | absolute_only or absolute_and_percent. |
+| period | Original observation period as stated by the source. |
+| source_id / source_url | Exact row in the source register and original publication/product link. |
+| publication_date | Source publication date, distinct from observation year. |
+| uncertainty | Published uncertainty, range or explicit unavailable status. |
+| evidence_class | Observation, assessment or estimate. |
+| reported_yoy_percent | Optional source-reported year-on-year percentage. Prefer this when source values are rounded. |
+| notes | Caveats, revision history and comparability restrictions. |
+
+**Comparison rules:** only adjacent years with identical unit, baseline, geographic scope, method key and comparison window are compared. Percent changes are generated only for series marked absolute_and_percent. Temperature anomalies and precipitation departures use absolute or percentage-point changes instead. Preliminary and consolidated emissions estimates are not silently mixed.
+
+The initial baseline contains comparable 2024 and 2025 values for WMO global temperature, WMO greenhouse-gas concentrations and Global Carbon Budget fossil CO₂, plus single-year baselines for regional climate, sea ice, glacier mass, ocean heat, sea level and seafloor mapping.
+
+### Generated visual outputs
+
+- The SVG at assets/earth-system-dashboard.svg is generated from indicator-snapshot.csv.
+- The root-level EARTH-SYSTEM-ANNUAL-COMPARISON.md is generated from annual-observations.csv.
+- The generated annual comparison is also embedded in the single-page Global-Earth-System-Complete-Report.md between AUTO-ANNUAL markers.
+- Run python earth-system-global-review/scripts/build_dashboard.py from the repository root to regenerate the visual outputs.
+- Run python earth-system-global-review/scripts/validate.py to check CSV schemas, source IDs, dates, local links and dashboard integrity.

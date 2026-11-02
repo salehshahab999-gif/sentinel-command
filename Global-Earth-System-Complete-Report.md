@@ -7,9 +7,37 @@
 **Language:** English  
 **Repository:** [Sentinel Command](https://github.com/salehshahab999-gif/sentinel-command)
 
+### 👁️ Visual dashboard
+
+![Global Earth System visual dashboard](earth-system-global-review/assets/earth-system-dashboard.svg)
+
+> [!NOTE]
+> The gauges are visual scales, not danger thresholds. Every figure keeps its own observation period, source, unit and baseline.
+
+| 🌡️ **Global temperature** | 🫧 **Atmospheric CO₂** | 🌊 **Global sea level** | 🗺️ **Seafloor mapped** |
+|---|---|---|---|
+| **+1.43 °C** | **426.8 ppm** | **115.8 mm** | **28.7%** |
+| 2025 annual, WMO | 2025 annual mean, WMO | Oct 2026, relative to 1993 | GEBCO 2026 definition |
+
+| ❄️ **Arctic sea-ice minimum** | 🧊 **Antarctic sea-ice maximum** | 🏔️ **Mountain glacier mass** | 🔥 **Ocean heat change** |
+|---|---|---|---|
+| **4.60 million km²** | **17.59 million km²** | **−408 ± 132 Gt** | **+24 ± 6 ZJ** |
+| NASA/NSIDC, 12 Sep 2026 | NASA/NSIDC, 14 Sep 2026 | 2025 hydrological year | Full-depth, 2024–2025 |
+
+### 🧭 Coordinate and spatial-reference cards
+
+| 📍 **Point observations** | 🌐 **Global and gridded products** | ↕️ **Vertical reference and uncertainty** |
+|---|---|---|
+| Store latitude and longitude with the source coordinate system (CRS), station/event ID and acquisition time. | A global mean is an area or grid statistic, not one geographic point. Preserve the grid footprint or bounding box. | Record elevation or water depth, vertical datum, uncertainty radius/ellipse and product resolution. Decimal places do not equal positional accuracy. |
+
+**Spatial notation:** decimal degrees are preferred for point records; identify WGS 84 / EPSG:4326 only when that is the source CRS. Do not silently relabel coordinates from another datum.
+
+[📊 Open the annual comparison table](EARTH-SYSTEM-ANNUAL-COMPARISON.md) · [🧾 Open the annual observation dataset](earth-system-global-review/data/annual-observations.csv)
+
 > **Single-page edition:** This document combines the complete published Global Earth System Review into one continuous report. It includes the integrated assessment, climate, atmosphere, cryosphere, oceans, solid Earth, tectonics, volcanoes, earthquakes, ocean-floor observations, deep-time context, cross-country comparisons, methods, source catalog, glossary, roadmap, data dictionary, complete indicator dataset and complete source register. Original modular documents remain available for focused reading and citation.
 
-## Contents
+<details>
+<summary>📚 Contents and section navigation</summary>
 
 1. Integrated Executive Assessment
 2. Climate, Atmosphere and Cryosphere
@@ -24,11 +52,13 @@
 11. Glossary
 12. Roadmap and Contribution Guide
 13. Data Dictionary
-14. Complete Indicator Dataset (33 records)
-15. Complete Source Register (67 records)
+14. Complete Indicator Dataset (38 records)
+15. Complete Source Register (69 records)
 16. Changelog
 17. Citation Metadata
 18. License and Reuse Conditions
+
+</details>
 
 ## Scope and evidence boundaries
 
@@ -38,18 +68,26 @@ Observations, institutional claims, assessments, estimates, forecasts, analytica
 
 **Reading rule:** interpret each measurement with its source, product, observation period, publication date, units, baseline, geographic coverage and uncertainty.
 
----
+## 📅 Annual comparison: 2024 → 2025
+
+<!-- AUTO-ANNUAL-START -->
+
+_The annual comparison is generated from annual-observations.csv by GitHub Actions. The visible comparison is refreshed after a verified data update._
+
+<!-- AUTO-ANNUAL-END -->
 
 ---
 
-## 1. Integrated Executive Assessment
+---
+
+## 1. 🌎 Integrated Executive Assessment
 
 _Source document: [earth-system-global-review/EXECUTIVE-ASSESSMENT.md](earth-system-global-review/EXECUTIVE-ASSESSMENT.md)_
 
-#### Global Earth System Assessment
-##### Integrated findings as of 3 November 2026
+### Global Earth System Assessment
+#### Integrated findings as of 3 November 2026
 
-###### Executive conclusion
+##### Executive conclusion
 
 The strongest cross-disciplinary conclusion is that the Earth system is undergoing sustained, human-driven warming while remaining a naturally dynamic planet with regional cooling episodes, tectonic motion, earthquakes, volcanic eruptions and large seasonal changes. The available evidence does **not** support the claim that the planet is entering a global cooling phase, nor does it support the idea that all geophysical systems are synchronously approaching a single global catastrophe.
 
@@ -61,7 +99,7 @@ The evidence is strongest for five concurrent processes:
 4. **The cryosphere is not spatially uniform.** Arctic and Antarctic sea ice have different annual cycles and different regional behaviour. One year's extent cannot substitute for thickness, volume or multi-decadal trend.
 5. **The solid Earth is active but not demonstrably in a globally synchronized acceleration.** The catalogued earthquake rate is affected by monitoring coverage; volcano alert levels are local; plate motion is usually millimetres to centimetres per year.
 
-###### Global evidence snapshot
+##### Global evidence snapshot
 
 | Earth-system component | Best current evidence | Interpretation |
 |---|---|---|
@@ -81,7 +119,7 @@ The evidence is strongest for five concurrent processes:
 | Volcanoes | Smithsonian GVP: 1,214 Holocene volcanoes in its database | Long-term catalogue, not a count of currently erupting volcanoes |
 | Earthquakes | USGS locates about 20,000 per year; long-term expectation about 16 M7+ events annually | No global earthquake acceleration can be inferred from raw counts alone |
 
-###### What the independent sources agree on
+##### What the independent sources agree on
 
 **Climate and atmosphere.** WMO, NOAA, NASA, Berkeley Earth, Copernicus and Japan Meteorological Agency records show a consistent long-term warming direction, although annual rankings and anomaly values vary because of datasets and baseline periods. WMO's 2025 synthesis places the year around 1.43 °C above 1850–1900; JMA's national monitoring page reports the 2025 global anomaly relative to 1991–2020, a different reference period. Those values are not directly interchangeable.
 
@@ -93,7 +131,7 @@ The evidence is strongest for five concurrent processes:
 
 **Ocean floor.** GEBCO and Seabed 2030 supply a global framework; NOAA, JAMSTEC, research vessels, autonomous vehicles, cabled observatories and community bathymetry projects contribute increasingly detailed observations.
 
-###### What the evidence does not show
+##### What the evidence does not show
 
 - It does not show that all regions are warming at the same rate.
 - It does not show that every cold winter or large snowfall contradicts global warming.
@@ -104,7 +142,7 @@ The evidence is strongest for five concurrent processes:
 - It does not show that continents are all moving apart; plates diverge, converge and slide past one another.
 - It does not provide a defensible date for a future major earthquake, eruption or core transition.
 
-###### Confidence assessment
+##### Confidence assessment
 
 | Conclusion | Confidence | Reason |
 |---|---|---|
@@ -119,13 +157,13 @@ The evidence is strongest for five concurrent processes:
 | A synchronized global increase in volcanic activity | Low / unsupported | No consistent global baseline or evidence of a global trigger |
 | Detectable decade-scale changes in deep core/mantle structure | Low to uncertain | Current literature warns of source-repeatability and station artifacts |
 
-###### Overall assessment
+##### Overall assessment
 
 The most defensible model is a **warming climate system embedded in a continuously moving, internally active planet**. Human-caused greenhouse forcing is the dominant explanation for the measured multi-decadal atmospheric and oceanic heat gain. Natural variability shapes regional weather, annual sea-ice extent, ocean circulation and volcanic or seismic events, but it does not erase the long-term climate signal.
 
 The largest research gaps are not a lack of dramatic headlines. They are incomplete ocean-floor mapping, uneven in-situ coverage, inconsistent metadata, different reference baselines and the difficulty of comparing raw observations across agencies.
 
-###### Recommended priorities
+##### Recommended priorities
 
 1. Keep climate and geophysical datasets separate until their units, time windows and baselines are harmonized.
 2. Track sea-ice extent, concentration, thickness and volume as different variables.
@@ -140,14 +178,14 @@ The largest research gaps are not a lack of dramatic headlines. They are incompl
 
 ---
 
-## 2. Climate, Atmosphere and Cryosphere
+## 2. 🌡️ Climate, Atmosphere and Cryosphere
 
 _Source document: [earth-system-global-review/CLIMATE-CRYOSPHERE-ATMOSPHERE.md](earth-system-global-review/CLIMATE-CRYOSPHERE-ATMOSPHERE.md)_
 
-#### Climate, Cryosphere and Atmosphere
-##### Global evidence snapshot: 3 November 2026
+### Climate, Cryosphere and Atmosphere
+#### Global evidence snapshot: 3 November 2026
 
-##### 1. Global temperature
+#### 1. Global temperature
 
 The World Meteorological Organization's State of the Global Climate 2025 report, published on 23 March 2026, assesses 2025 at approximately **1.43 ± 0.13 °C above the 1850–1900 average**. It ranks 2025 as the second or third warmest year, depending on the dataset. WMO also identifies 2015–2025 as the warmest eleven-year sequence in the observational record.
 
@@ -163,11 +201,11 @@ Sources:
 - [NOAA September 2026 global climate summary](https://www.ncei.noaa.gov/news/global-climate-202609)
 - [Japan Meteorological Agency climate monitoring](https://www.jma-net.go.jp/cpdinfo/monitor/index.html)
 
-##### 2. Arctic and Antarctic sea ice
+#### 2. Arctic and Antarctic sea ice
 
 Sea ice is floating ocean ice. Its melting has a different direct sea-level effect from the melting of land-based ice sheets and glaciers. Extent, area, concentration, thickness and volume are distinct variables.
 
-###### Arctic 2026
+##### Arctic 2026
 
 NASA and NSIDC place the 2026 annual minimum at **4.60 million km² on 12 September**, tied for the tenth-lowest minimum in the satellite record. The last twenty years contain the twenty lowest annual minima in the continuous satellite record.
 
@@ -178,7 +216,7 @@ Other observing systems give different values:
 
 These are not interchangeable values. They use different products, algorithms, temporal averaging and ice-edge definitions. See [Cross-country source reconciliation](earth-system-global-review/CROSS-COUNTRY-SOURCE-RECONCILIATION.md).
 
-###### Antarctic 2026
+##### Antarctic 2026
 
 NASA/NSIDC report a likely annual maximum of **17.59 million km² on 14 September**, the third-lowest in their satellite record. EUMETSAT OSI SAF's daily product reports **18.191 million km² on 10 September**, with only two years having a lower maximum in that product's 48-year record.
 
@@ -193,7 +231,7 @@ Sources:
 - [UK Met Office 2026 sea-ice briefing](https://www.metoffice.gov.uk/research/approach/monitoring/sea-ice/2026/briefing-on-arctic-sea-ice-minimum-and-antarctic-sea-ice-maximum-report---september-2026)
 - [EUMETSAT OSI SAF Sea-Ice Index](https://osi-saf.eumetsat.int/sea-ice-index)
 
-##### 3. Land ice: Greenland, Antarctica and mountain glaciers
+#### 3. Land ice: Greenland, Antarctica and mountain glaciers
 
 NASA's GRACE and GRACE Follow-On gravity measurements indicate average mass losses over 2002–2025 of approximately:
 - **Greenland: 264 gigatonnes per year**
@@ -208,7 +246,7 @@ Sources:
 - [WGMS global glacier mass change in 2025](https://wgms.ch/ncc_glaciers_in_2025/)
 - [NASA Antarctic ice mass-loss visualization](https://svs.gsfc.nasa.gov/31158/)
 
-##### 4. Greenhouse-gas concentrations
+#### 4. Greenhouse-gas concentrations
 
 WMO Greenhouse Gas Bulletin No. 22, released on 27 October 2026, reports globally averaged surface concentrations for 2025:
 
@@ -226,7 +264,7 @@ Sources:
 - [WMO Greenhouse Gas Bulletin No. 22](https://wmo.int/resources/publication-series/greenhouse-gas-bulletin/no-22)
 - [NOAA Global Monitoring Laboratory](https://gml.noaa.gov/ccgg/trends/)
 
-##### 5. Fossil fuels and greenhouse-gas emissions
+#### 5. Fossil fuels and greenhouse-gas emissions
 
 Two widely used 2026 assessments estimate 2025 emissions using different boundaries:
 
@@ -245,7 +283,7 @@ Sources:
 - [IEA CO₂ emissions chapter](https://www.iea.org/reports/global-energy-review-2026/co2-emissions)
 - [European Commission EDGAR 2026](https://edgar.jrc.ec.europa.eu/report_2026?vis=ghgtot)
 
-##### 6. Ocean heat and planetary energy imbalance
+#### 6. Ocean heat and planetary energy imbalance
 
 WMO reports that ocean heat content reached a record high in 2025 in the 66-year observational record. It also states that the Earth’s energy imbalance reached the highest level in its 65-year record. WMO estimates that the ocean has absorbed, on average, energy equivalent to about eighteen times annual human energy use per year over the past two decades.
 
@@ -256,7 +294,7 @@ Sources:
 - [Nature Reviews: Ocean heat content in 2025](https://www.nature.com/articles/s43017-026-00775-1)
 - [Copernicus ocean heat content indicator](https://climate.copernicus.eu/climate-indicators/ocean-heat-content)
 
-##### 7. Global sea level
+#### 7. Global sea level
 
 NASA's satellite-altimetry indicator reported **115.8 ± 4.0 mm** of global mean sea-level rise above the 1993 reference in October 2026.
 
@@ -271,7 +309,7 @@ A local coast can experience a different relative sea-level rate because the lan
 Source:
 - [NASA Sea Level Earth Indicator](https://science.nasa.gov/earth/explore/earth-indicators/sea-leve/)
 
-##### 8. Antarctic ozone hole
+#### 8. Antarctic ozone hole
 
 CAMS reported that the 2026 Antarctic ozone-hole area reached approximately **25 million km² on 12 September**, around 5 million km² above the average for that point in the season. Its ozone-column minimum and ozone-mass-deficit indicators, however, remained near average at that time.
 
@@ -284,7 +322,7 @@ Sources:
 - [NASA Ozone Watch](https://ozonewatch.gsfc.nasa.gov/)
 - [2026 WMO/UNEP ozone assessment](https://www.csl.noaa.gov/assessments/ozone/2026/)
 
-##### 9. Regional variation and country-level checks
+#### 9. Regional variation and country-level checks
 
 National annual summaries show why global averages must not be interpreted as uniform local change:
 
@@ -296,26 +334,26 @@ National annual summaries show why global averages must not be interpreted as un
 
 These national and regional values use different spatial domains and baselines. They are evidence of regional diversity, not directly comparable global anomalies.
 
-##### 10. Practical interpretation
+#### 10. Practical interpretation
 
 A colder regional season, a local increase in snow cover or one year of a higher sea-ice extent does not reverse the multi-decadal climate signal. Conversely, a high monthly temperature does not by itself establish a new long-term climate trend. The strongest conclusions come from the combination of long-term temperature series, atmospheric composition, ocean heat content, mass balance and sea-level measurements.
 
 ---
 
-## 3. Solid Earth, Deep Interior and Plate Tectonics
+## 3. 🌍 Solid Earth, Deep Interior and Plate Tectonics
 
 _Source document: [earth-system-global-review/SOLID-EARTH-INTERIOR-TECTONICS.md](earth-system-global-review/SOLID-EARTH-INTERIOR-TECTONICS.md)_
 
-#### Solid Earth, Deep Interior and Plate Tectonics
-##### Global geophysical assessment: 3 November 2026
+### Solid Earth, Deep Interior and Plate Tectonics
+#### Global geophysical assessment: 3 November 2026
 
-##### 1. What is measured and what is inferred
+#### 1. What is measured and what is inferred
 
 The Earth's interior cannot be directly photographed. Its structure is inferred from seismic-wave travel times, wave reflections and conversions, gravity, geomagnetic observations, Earth's rotation, laboratory mineral physics and numerical models.
 
 Satellites contribute important information about gravity and the magnetic field, but they do not provide direct images of the core or mantle. Any claim that a satellite has visually detected a change inside the core is incorrect.
 
-##### 2. Reference structure of the Earth
+#### 2. Reference structure of the Earth
 
 A commonly used one-dimensional reference is the Preliminary Reference Earth Model (PREM). Approximate depth ranges are:
 
@@ -336,7 +374,7 @@ The crust and lithosphere are not the same thing. The lithosphere includes the u
 Reference:
 - [PREM and standard Earth models overview](https://doi.org/10.1036/1097-8542.209200)
 
-##### 3. The mantle and core
+#### 3. The mantle and core
 
 The outer core is liquid because it does not transmit ordinary shear S-waves in the same way as the solid mantle. The inner core is solid under the very high pressure at Earth's centre. The core–mantle boundary is a region of strong thermal and seismic contrast.
 
@@ -345,7 +383,7 @@ Research about the inner core's differential rotation and the deep mantle is act
 Source:
 - [USGS: Evaluation of seismological evidence for decadal changes in the lowermost mantle and outer core, 21 September 2026](https://www.usgs.gov/publications/evaluation-seismological-evidence-decadal-changes-earths-lowermost-mantle-and-outer)
 
-###### What would count as strong evidence of a deep-interior change?
+##### What would count as strong evidence of a deep-interior change?
 
 A robust claim should include:
 1. multiple independent earthquake sources or repeaters;
@@ -357,7 +395,7 @@ A robust claim should include:
 
 Without these controls, small time shifts in waveforms may be misattributed to the core or mantle.
 
-##### 4. Geomagnetic field and satellite monitoring
+#### 4. Geomagnetic field and satellite monitoring
 
 The geomagnetic field is generated mainly by motion of electrically conducting liquid metal in the outer core. It varies in space and time. ESA's Swarm constellation measures the magnetic field from low Earth orbit and helps separate the main field, crustal field, ionospheric and magnetospheric contributions.
 
@@ -374,7 +412,7 @@ Sources:
 - [NOAA National Centers for Environmental Information - Geomagnetism](https://www.ncei.noaa.gov/products/geomagnetic-data)
 - [GFZ German Research Centre for Geosciences](https://www.gfz.de/)
 
-##### 5. Plate tectonics: opening, collision and lateral motion
+#### 5. Plate tectonics: opening, collision and lateral motion
 
 Continents do not all move apart. They are carried by tectonic plates, which interact in three principal ways:
 
@@ -397,7 +435,7 @@ Sources:
 - [GPlates](https://www.gplates.org/)
 - [EarthByte research group](https://www.earthbyte.org/)
 
-##### 6. How to measure present-day crustal motion
+#### 6. How to measure present-day crustal motion
 
 The strongest modern methods include:
 
@@ -413,7 +451,7 @@ The strongest modern methods include:
 
 For a valid velocity comparison, the researcher must record the reference frame, observation period, station quality, uncertainty and whether the velocity is absolute or relative to another plate.
 
-##### 7. Rift systems and continental extension
+#### 7. Rift systems and continental extension
 
 The East African Rift is a major example of continental extension. GNSS and geological studies show that extension rates vary along its branches and between crustal blocks. Rates are generally on the order of millimetres per year, not kilometres per year.
 
@@ -421,7 +459,7 @@ The Red Sea and Gulf of Aden are part of a broader divergent system between Afri
 
 The existence of extension does not mean an entire continent will split abruptly. Continental rifting, ocean-basin formation and plate reorganization occur over geological timescales, commonly millions of years.
 
-##### 8. Geochemistry and subsurface rock records
+#### 8. Geochemistry and subsurface rock records
 
 The Earth's crust and mantle are studied through rock samples, drilling, geochemical analyses and geophysical imaging.
 
@@ -434,7 +472,7 @@ Useful databases:
 
 A database containing many samples does not imply uniform global coverage. Sample density is strongly biased toward accessible, studied and funded regions.
 
-##### 9. Global interpretation
+#### 9. Global interpretation
 
 Current plate motion, geomagnetic variation and deep-Earth dynamics are normal parts of a living planet. Evidence supports ongoing deformation and evolution, but it does not show that all tectonic plates are accelerating together or that the core is undergoing a sudden global event.
 
@@ -449,14 +487,14 @@ Any future claim of rapid global solid-Earth change should be required to pass i
 
 ---
 
-## 4. Volcanoes and Submarine Volcanism
+## 4. 🌋 Volcanoes and Submarine Volcanism
 
 _Source document: [earth-system-global-review/VOLCANOES-SUBMARINE-VOLCANISM.md](earth-system-global-review/VOLCANOES-SUBMARINE-VOLCANISM.md)_
 
-#### Global Volcanoes and Submarine Volcanism
-##### Catalogue, observation methods and selected 2026 activity
+### Global Volcanoes and Submarine Volcanism
+#### Catalogue, observation methods and selected 2026 activity
 
-##### 1. What does “active volcano” mean?
+#### 1. What does “active volcano” mean?
 
 There is no single alert system or universally interchangeable definition of “active.” The Smithsonian Global Volcanism Program uses the Holocene record as a broad catalogue framework. A volcano in that catalogue is not necessarily erupting today.
 
@@ -470,7 +508,7 @@ Use the following operational categories:
 
 National alert levels are not universal. A Level 2 in one country must not be numerically compared with Level 2 in another country without reading the agency's definition.
 
-##### 2. Global catalogue baseline
+#### 2. Global catalogue baseline
 
 The Smithsonian Global Volcanism Program database version 5.4.0, dated 7 August 2026, lists:
 
@@ -489,7 +527,7 @@ Sources:
 - [Smithsonian GVP: active volcano FAQ and statistics](https://volcano.si.edu/faq/index.cfm?lang=en&question=activevolcanoes)
 - [Smithsonian GVP weekly activity report](https://a.cf11.si.edu/reports_weekly.cfm)
 
-##### 3. Selected national monitoring updates available by 3 November 2026
+#### 3. Selected national monitoring updates available by 3 November 2026
 
 | Region / volcano | National monitoring source | Reported situation | Evidence type |
 |---|---|---|---|
@@ -511,7 +549,7 @@ Sources:
 - [Smithsonian GVP report for Sheveluch](https://volcano.si.edu/volcano.cfm?vn=300270)
 - [Smithsonian / USGS weekly report, 22–28 October 2026](https://a.cf11.si.edu/reports_weekly.cfm)
 
-##### 4. Submarine volcanoes: the major observing gap
+#### 4. Submarine volcanoes: the major observing gap
 
 A large share of Earth's volcanic activity occurs underwater. Submarine eruptions can be explosive, effusive or hydrothermal, and many do not produce a visible surface plume. Satellite imagery may detect discoloured water, floating pumice, thermal anomalies or gas-related signals, but these are indirect observations.
 
@@ -523,7 +561,7 @@ The strongest confirmation generally comes from:
 - water-column chemistry and temperature;
 - repeat sampling of lavas, ash and hydrothermal fluids.
 
-##### 5. Mariana Arc: Ahyi, NW Rota-1 and Ruby
+#### 5. Mariana Arc: Ahyi, NW Rota-1 and Ruby
 
 An international Submarine Volcanism Workshop held in October 2026 presented repeat-mapping results for several Mariana Arc submarine volcanoes. The reported observations include:
 
@@ -537,15 +575,15 @@ Primary workshop evidence:
 - [GEOMAR: repeated bathymetric mapping at Ahyi, Ruby and NW Rota-1, presented 20 October 2026](https://events.geomar.de/event/792/contributions/1296/)
 - [IAVCEI: 2nd Submarine Volcanism Workshop](https://www.iavceivolcano.org/event/2nd-submarine-volcanism-workshop/)
 
-###### Ruby Seamount
+##### Ruby Seamount
 
 Ruby lies near Saipan in the Mariana region. A 2023 submarine explosive event was detected through acoustic and satellite-related observations. Subsequent mapping and ROV work in 2026 identified a newly formed crater and fresh lava dome growth. This case demonstrates that a volcano may continue to evolve below the surface after an obvious explosive episode has ended.
 
-###### Ahyi Seamount
+##### Ahyi Seamount
 
 In late October 2026, satellite images from 16 and 21 October showed discoloured water near Ahyi. USGS described a possible gas or hydrothermal source but reported no significant remote geophysical evidence of renewed intensification. The USGS notice listed Volcano Alert Level ADVISORY and Aviation Colour Code YELLOW. This is not confirmation of a new explosive eruption or a forecast that an eruption is imminent. [USGS Ahyi notice, 30 October 2026](https://www.usgs.gov/programs/VHP/volcano-updates?noticeid=13025).
 
-##### 6. Remote sensing of volcanic activity
+#### 6. Remote sensing of volcanic activity
 
 | Sensor / system | What it can contribute | Main limitation |
 |---|---|---|
@@ -560,7 +598,7 @@ In late October 2026, satellite images from 16 and 21 October showed discoloured
 | Hydrophones | Underwater explosions and acoustic signals | Requires suitable ocean coverage |
 | Multibeam sonar / ROV | Direct seafloor morphology and imagery | Expensive, spatially limited surveys |
 
-##### 7. Risk and interpretation rules
+#### 7. Risk and interpretation rules
 
 - Do not equate an eruption count with a global risk index.
 - Do not interpret an aviation colour as a public evacuation order.
@@ -570,20 +608,20 @@ In late October 2026, satellite images from 16 and 21 October showed discoloured
 - Record whether a datum is a direct observation, an agency interpretation or a forecast.
 - For submarine events, retain water depth, survey method, sonar resolution, vehicle path and date.
 
-##### 8. Conclusion
+#### 8. Conclusion
 
 The global volcano system remains active, as it always has. The most important finding of this review is not an alleged global surge but the unevenness of observing capability. Well-instrumented land volcanoes can be monitored continuously, while many submarine volcanoes are known only from sparse ship surveys or indirect surface signals. The Mariana repeat-mapping results show why funding seafloor observation is essential to understanding the true distribution and timing of volcanic activity.
 
 ---
 
-## 5. Global Seismology and Earthquakes
+## 5. 🌐 Global Seismology and Earthquakes
 
 _Source document: [earth-system-global-review/GLOBAL-SEISMOLOGY.md](earth-system-global-review/GLOBAL-SEISMOLOGY.md)_
 
-#### Global Seismology and Earthquake Monitoring
-##### Global catalogue interpretation and national networks
+### Global Seismology and Earthquake Monitoring
+#### Global catalogue interpretation and national networks
 
-##### 1. What the global earthquake record can and cannot show
+#### 1. What the global earthquake record can and cannot show
 
 The USGS National Earthquake Information Center locates approximately **20,000 earthquakes worldwide per year**, or about 55 per day. Its long-term record since about 1900 suggests an average of roughly **16 magnitude 7 or larger earthquakes per year**, including around 15 in the M7 range and about one M8 or larger.
 
@@ -594,23 +632,23 @@ USGS explains that the number of earthquakes in the public catalog has grown as 
 Source:
 - [USGS FAQ: Has natural earthquake activity been increasing?](https://www.usgs.gov/faqs/why-are-we-having-so-many-or-few-earthquakes-has-naturally-occurring-earthquake-activity)
 
-##### 2. The principal international catalogs
+#### 2. The principal international catalogs
 
-###### USGS ComCat
+##### USGS ComCat
 
 A rapid global catalog useful for current event awareness, event parameters, maps and product access. Early event locations and magnitudes can be revised as more data arrive.
 
-###### International Seismological Centre (ISC)
+##### International Seismological Centre (ISC)
 
 The ISC Bulletin integrates event parameters and phase data contributed by many national and international agencies. It is a major reference for reviewed global seismicity. Its manually reviewed bulletin generally lags real time by about two years; the automatic and near-real-time products are more current.
 
 The ISC bulletin available on 1 November 2026 included data through that date, while the reviewed bulletin was up to approximately 1 November 2024.
 
-###### EMSC
+##### EMSC
 
 The European-Mediterranean Seismological Centre combines seismic network information with public felt reports. Its LastQuake and Did You Feel It channels can provide rapid human observations that complement instrumental data.
 
-###### Global Seismographic Network
+##### Global Seismographic Network
 
 The GSN provides near-uniform worldwide monitoring through approximately 150 modern seismic stations operated by USGS, EarthScope and partner organizations. Waveforms are archived through the relevant data centres.
 
@@ -620,7 +658,7 @@ Sources:
 - [EMSC](https://www.emsc.eu/)
 - [USGS / EarthScope Global Seismographic Network](https://www.usgs.gov/programs/earthquake-hazards/gsn-global-seismographic-network)
 
-##### 3. National and regional monitoring examples
+#### 3. National and regional monitoring examples
 
 | Country / region | Network or agency | Principal contribution |
 |---|---|---|
@@ -633,14 +671,14 @@ Sources:
 | Iceland | Icelandic Meteorological Office | Seismicity, ground deformation and volcanic systems |
 | Indonesia | BMKG and PVMBG | Earthquake, tsunami and volcano monitoring |
 
-###### Japan's MOWLAS
+##### Japan's MOWLAS
 
 Japan's MOWLAS system brings together several networks, including Hi-net, S-net, DONET, V-net and newer offshore systems. S-net provides offshore observations across the Japan Trench region, while DONET monitors offshore areas near the Nankai Trough. Offshore pressure and seismic sensors are important for faster tsunami detection and for observing earthquake processes that may not be well captured by land stations.
 
 Source:
 - [NIED MOWLAS](https://www.bosai.go.jp/e/)
 
-##### 4. Submarine earthquakes and tsunami observation
+#### 4. Submarine earthquakes and tsunami observation
 
 A large earthquake beneath the ocean can displace the seafloor and generate a tsunami, but not every offshore earthquake does so. The key variables include:
 - magnitude and seismic moment;
@@ -658,7 +696,7 @@ Useful networks:
 - [NOAA National Data Buoy Center](https://www.ndbc.noaa.gov/)
 - [IOC Global Sea Level Observing System](https://gloss-sealevel.org/)
 
-##### 5. How to compare earthquake rates honestly
+#### 5. How to compare earthquake rates honestly
 
 A defensible global trend analysis must:
 1. choose a magnitude threshold with adequate historical completeness;
@@ -671,7 +709,7 @@ A defensible global trend analysis must:
 
 A simple count of all reported events is not a valid test of global earthquake acceleration.
 
-##### 6. Evidence classification
+#### 6. Evidence classification
 
 - **OBSERVED:** A seismic network recorded a waveform or a public felt report was received.
 - **LOCATED:** An agency estimated origin time, hypocentre and magnitude.
@@ -679,20 +717,20 @@ A simple count of all reported events is not a valid test of global earthquake a
 - **INTERPRETED:** A mechanism, fault geometry or tectonic setting has been inferred.
 - **UNRESOLVED:** Event association, depth or mechanism remains uncertain.
 
-##### 7. Conclusion
+#### 7. Conclusion
 
 The global seismic network documents a permanently active planet. Available evidence does not justify a claim of a synchronized increase in earthquakes worldwide. The main challenge is to distinguish real changes in seismicity from changes in network coverage, detection thresholds, catalog completeness and rapid reporting practices.
 
 ---
 
-## 6. Ocean Floor and Marine Observing
+## 6. 🌊 Ocean Floor and Marine Observing
 
 _Source document: [earth-system-global-review/OCEAN-FLOOR-AND-MARINE-OBSERVING.md](earth-system-global-review/OCEAN-FLOOR-AND-MARINE-OBSERVING.md)_
 
-#### Ocean Floor, Seafloor Mapping and Marine Observing
-##### Bathymetry, submarine geology, ocean heat and coastal change
+### Ocean Floor, Seafloor Mapping and Marine Observing
+#### Bathymetry, submarine geology, ocean heat and coastal change
 
-##### 1. Why the ocean floor is an essential part of the Earth-system picture
+#### 1. Why the ocean floor is an essential part of the Earth-system picture
 
 The ocean floor records plate creation, subduction, volcanism, faulting, sedimentation, landslides and hydrothermal circulation. It also controls ocean circulation and helps determine how tsunamis and other long waves propagate.
 
@@ -703,7 +741,7 @@ The remaining 71.3% has not yet reached that modern mapping standard. It is not 
 Source:
 - [GEBCO_2026 Grid release, 27 April 2026](https://www.gebco.net/news/release-gebco2026-grid)
 
-##### 2. How bathymetry is measured
+#### 2. How bathymetry is measured
 
 **Multibeam echosounder:** A ship sends multiple acoustic beams across the seabed and records depth over a wide swath. It is the core method for high-resolution bathymetric mapping.
 
@@ -715,7 +753,7 @@ Source:
 
 **Seismic reflection and refraction:** Help identify sediment thickness, crustal structure and deeper geological boundaries below the seabed.
 
-##### 3. Seafloor features to track globally
+#### 3. Seafloor features to track globally
 
 - Mid-ocean ridges and spreading centres;
 - subduction trenches and accretionary prisms;
@@ -728,7 +766,7 @@ Source:
 
 A change in bathymetry between two surveys should be accepted only after correcting for navigation, sound-speed profiles, tidal reference, vessel motion, sonar calibration, gridding and survey coverage.
 
-##### 4. Mariana repeat mapping and submarine volcano monitoring
+#### 4. Mariana repeat mapping and submarine volcano monitoring
 
 The 2026 Mariana submarine-volcanism research presented repeat surveys of Ahyi, NW Rota-1 and Ruby. Repeat multibeam surveys and ROV observations identified new volcanic material and a new crater/dome at Ruby. These results show why a single satellite observation cannot fully characterize a submarine volcano.
 
@@ -743,7 +781,7 @@ The project should preserve for each survey:
 - volume-calculation method;
 - uncertainty in change detection.
 
-##### 5. Ocean heat and water-column observations
+#### 5. Ocean heat and water-column observations
 
 The surface of the ocean does not represent its full heat content. Autonomous Argo floats measure temperature and salinity profiles through the upper ocean; Deep Argo extends observations deeper. Moorings, research vessels, gliders, satellite altimetry and ocean reanalysis add complementary coverage.
 
@@ -757,7 +795,7 @@ Useful networks:
 - [NOAA Ocean Exploration](https://oceanexplorer.noaa.gov/)
 - [JAMSTEC](https://www.jamstec.go.jp/e/)
 
-##### 6. Sea level and coastal relative motion
+#### 6. Sea level and coastal relative motion
 
 Satellite altimetry measures sea-surface height over the open ocean and provides the global mean sea-level record. Tide gauges measure sea level relative to land at specific coastlines. GNSS and InSAR can measure the vertical movement of the land.
 
@@ -776,7 +814,7 @@ Sources:
 - [IOC Global Sea Level Observing System](https://gloss-sealevel.org/)
 - [Copernicus Marine Service](https://marine.copernicus.eu/)
 
-##### 7. Maritime and citizen-contributed data
+#### 7. Maritime and citizen-contributed data
 
 Commercial vessels, research ships and fishing vessels can contribute depth soundings to public bathymetry initiatives. The IHO Data Centre for Digital Bathymetry and the Nippon Foundation-GEBCO Seabed 2030 project support the aggregation and improvement of ocean-depth information.
 
@@ -794,7 +832,7 @@ Source:
 - [IHO Data Centre for Digital Bathymetry](https://www.ngdc.noaa.gov/iho/)
 - [Seabed 2030](https://seabed2030.org/)
 
-##### 8. Research priorities
+#### 8. Research priorities
 
 1. Expand modern multibeam coverage in poorly mapped ocean basins.
 2. Prioritize repeat bathymetry around active submarine volcanoes and landslide-prone slopes.
@@ -802,20 +840,20 @@ Source:
 4. Link sea-level measurements to local vertical land-motion estimates.
 5. Improve public metadata so future researchers can distinguish measured seafloor change from survey artifacts.
 
-##### 9. Conclusion
+#### 9. Conclusion
 
 The ocean is both a heat reservoir and an archive of Earth's geological activity. Current global bathymetry remains incomplete, and that limits our ability to count submarine volcanoes, characterize active faults and assess certain tsunami and landslide hazards. The best future progress will come from combining satellite context with repeated ship-based sonar, underwater vehicles and long-duration ocean observatories.
 
 ---
 
-## 7. Paleo-Earth and Deep Time
+## 7. 🕰️ Paleo-Earth and Deep Time
 
 _Source document: [earth-system-global-review/PALEO-EARTH-AND-DEEP-TIME.md](earth-system-global-review/PALEO-EARTH-AND-DEEP-TIME.md)_
 
-#### Paleo-Earth and Deep-Time Evidence
-##### What rocks, fossils, ice cores and sediments can tell us
+### Paleo-Earth and Deep-Time Evidence
+#### What rocks, fossils, ice cores and sediments can tell us
 
-##### 1. Why the geological past matters
+#### 1. Why the geological past matters
 
 Instrumental observations cover a relatively short interval compared with Earth's 4.54-billion-year history. To understand natural climate variability, past ocean chemistry, ice-sheet behaviour and biological change, scientists use geological archives.
 
@@ -833,7 +871,7 @@ Important archives include:
 
 Each archive has its own temporal resolution, dating uncertainty, preservation bias and geographic coverage.
 
-##### 2. Major archives and the variables they preserve
+#### 2. Major archives and the variables they preserve
 
 | Archive | Common information | Typical strength | Main limitation |
 |---|---|---|---|
@@ -846,35 +884,35 @@ Each archive has its own temporal resolution, dating uncertainty, preservation b
 | Fossils and pollen | Biodiversity, ecological shifts and climate habitat | Long-term ecosystem response | Preservation and sampling biases |
 | Seafloor magnetic stripes | Past spreading and plate motion | Broad tectonic chronology | Interpretation depends on dated magnetic reversals and crustal history |
 
-##### 3. Global paleoclimate data centres
+#### 3. Global paleoclimate data centres
 
-###### NOAA National Centers for Environmental Information
+##### NOAA National Centers for Environmental Information
 
 NOAA's World Data Service for Paleoclimatology archives published datasets from tree rings, corals, ice cores, lake and marine sediments and other natural archives.
 
 - [NOAA Paleo Data Search](https://www.ncei.noaa.gov/access/paleo-search/)
 - [NOAA Paleoclimatology](https://www.ncei.noaa.gov/products/paleoclimatology)
 
-###### PANGAEA
+##### PANGAEA
 
 PANGAEA is an open data publisher for earth and environmental science, with major holdings in oceanography, geology, sedimentology, paleontology, climate and polar research.
 
 - [PANGAEA Data Publisher](https://www.pangaea.de/)
 
-###### EarthChem and GEOROC
+##### EarthChem and GEOROC
 
 These repositories provide geochemical and isotopic analyses useful for understanding magma sources, volcanic evolution, crust formation and past environmental change.
 
 - [EarthChem](https://www.earthchem.org/)
 - [GEOROC](https://georoc.eu/)
 
-###### Macrostrat
+##### Macrostrat
 
 Macrostrat provides a framework for geological maps, stratigraphic units and fossil records. Coverage and source-map detail differ by country and region.
 
 - [Macrostrat map](https://www.macrostrat.org/map)
 
-##### 4. Mass extinctions and major Earth-system transitions
+#### 4. Mass extinctions and major Earth-system transitions
 
 The five commonly discussed Phanerozoic mass extinctions are:
 1. End-Ordovician, around 444 million years ago.
@@ -887,7 +925,7 @@ The end-Permian event is associated with exceptionally large Siberian Traps volc
 
 These events differ in cause, speed, duration and biological impact. They should not be treated as templates that prove the same event is occurring today.
 
-##### 5. Past carbon dioxide and temperature
+#### 5. Past carbon dioxide and temperature
 
 Paleo records show that atmospheric composition and global temperature have changed substantially over Earth's history. Some past greenhouse climates had much higher CO₂ and much less permanent ice than today. However, the modern rate of change is important: the rate of current anthropogenic emissions is much faster than many slow geological carbon-cycle changes.
 
@@ -899,28 +937,28 @@ Any comparison between modern and deep-time conditions should state:
 - geographic coverage;
 - the difference between a short event and a multi-million-year climate state.
 
-##### 6. What paleontology contributes
+#### 6. What paleontology contributes
 
 Fossils help reconstruct biodiversity, extinction and migration. Pollen and plant fossils indicate changes in vegetation and moisture. Marine microfossils and isotope records reveal changes in ocean temperature, acidity, oxygenation and circulation.
 
 The fossil record is incomplete by nature. The absence of a fossil in a database is not proof that an organism did not exist in that area or time.
 
-##### 7. Conclusion
+#### 7. Conclusion
 
 Deep-time evidence shows that Earth has experienced extreme climate and biological transitions before. It does not remove the need to quantify the present-day forcing. For the current assessment, instrumental temperature, greenhouse-gas, ocean-heat, sea-level and ice-mass records are the primary evidence; paleoclimate archives provide context for natural variability, rates of change and long-term system response.
 
 ---
 
-## 8. Cross-Country Source Reconciliation
+## 8. 🗺️ Cross-Country Source Reconciliation
 
 _Source document: [earth-system-global-review/CROSS-COUNTRY-SOURCE-RECONCILIATION.md](earth-system-global-review/CROSS-COUNTRY-SOURCE-RECONCILIATION.md)_
 
-#### Cross-Country Source Reconciliation
-##### Comparing independent national agencies and international datasets
+### Cross-Country Source Reconciliation
+#### Comparing independent national agencies and international datasets
 
 **Assessment cut-off:** 3 November 2026
 
-##### 1. Why cross-country comparison is necessary
+#### 1. Why cross-country comparison is necessary
 
 No single agency measures every part of the Earth system. International assessments often combine national meteorological offices, satellite programmes, research institutes, ocean observatories and peer-reviewed datasets.
 
@@ -931,7 +969,7 @@ The purpose of this page is not to select one country's data as universally supe
 - which source is best suited to each question;
 - what can and cannot be concluded from the comparison.
 
-##### 2. Climate-temperature comparison
+#### 2. Climate-temperature comparison
 
 | Country / institution | Published information | Reference period | What it supports |
 |---|---|---|---|
@@ -946,7 +984,7 @@ The purpose of this page is not to select one country's data as universally supe
 | ECMWF/Copernicus and WMO | At least 95% of Europe had above-average annual temperature in 2025 | Regional dataset baseline | European regional signal |
 | WMO Africa report | Africa warming faster than global average since 1991 | Regional assessment | Continental-scale regional signal |
 
-###### Reconciliation rule
+##### Reconciliation rule
 
 WMO's +1.43 °C global anomaly uses 1850–1900. JMA's +0.48 °C global anomaly uses 1991–2020. These numbers describe the same general warming system but are not directly comparable because the reference periods differ. National anomalies also have different land/sea coverage and station networks.
 
@@ -962,7 +1000,7 @@ Sources:
 - [European State of the Climate 2025](https://climate.copernicus.eu/esotc/2025)
 - [WMO State of the Climate in Africa 2025](https://wmo.int/resources/publication-series/state-of-climate-africa/state-of-climate-africa-2025)
 
-##### 3. Sea-ice cross-check: Arctic 2026
+#### 3. Sea-ice cross-check: Arctic 2026
 
 | Institution / product | 2026 Arctic minimum | Rank stated by source | Method note |
 |---|---:|---|---|
@@ -980,7 +1018,7 @@ Sources:
 - [USNIC](https://usnicweb2.espc.nesdis.noaa.gov/PressRelease/ArcticMinimum2026)
 - [Met Office](https://www.metoffice.gov.uk/research/approach/monitoring/sea-ice/2026/briefing-on-arctic-sea-ice-minimum-and-antarctic-sea-ice-maximum-report---september-2026)
 
-##### 4. Sea-ice cross-check: Antarctic 2026
+#### 4. Sea-ice cross-check: Antarctic 2026
 
 NASA/NSIDC reports a likely maximum of 17.59 million km² on 14 September, third-lowest in its satellite record. EUMETSAT OSI SAF reports a daily maximum of 18.191 million km² on 10 September and states that only two years in its 48-year record had a lower maximum.
 
@@ -998,7 +1036,7 @@ Sources:
 - [NASA Antarctic maximum 2026](https://science.nasa.gov/earth/earth-observatory/antarctic-sea-ice-grows-to-its-2026-maximum/)
 - [EUMETSAT OSI SAF](https://osi-saf.eumetsat.int/sea-ice-index)
 
-##### 5. Atmospheric composition versus emissions inventories
+#### 5. Atmospheric composition versus emissions inventories
 
 Three different measurement families are required:
 
@@ -1019,7 +1057,7 @@ Sources:
 - [IEA Global Energy Review 2026](https://www.iea.org/reports/global-energy-review-2026)
 - [EDGAR 2026](https://edgar.jrc.ec.europa.eu/report_2026?vis=ghgtot)
 
-##### 6. National volcano and earthquake monitoring
+#### 6. National volcano and earthquake monitoring
 
 National alert systems are designed for local hazards and use different scales. The following agencies provide useful country-level cross-checks:
 
@@ -1039,7 +1077,7 @@ National alert systems are designed for local hazards and use different scales. 
 
 The existence of different alert systems is not a reason to rank countries by the colour of an alert. Always quote the full agency, volcano, alert level definition, aviation colour and bulletin date.
 
-##### 7. Ocean and geology cross-check
+#### 7. Ocean and geology cross-check
 
 GEBCO_2026 is the international global bathymetric grid. Its compilation depends on national hydrographic offices, research vessels, the Nippon Foundation-GEBCO Seabed 2030 project and other data contributors.
 
@@ -1047,7 +1085,7 @@ Japan's NIPR and JAMSTEC contribute polar and oceanographic observations. NOAA O
 
 For deep-Earth questions, USGS and EarthScope provide seismic evidence and data infrastructure, GFZ provides major geophysical research, and ESA Swarm contributes magnetic-field observations. No one satellite or national agency directly images Earth's core.
 
-##### 8. Public observations and community data
+#### 8. Public observations and community data
 
 Citizen reports can strengthen the event timeline and help identify unreported local impacts, but they are not equivalent to calibrated sensors.
 
@@ -1060,7 +1098,7 @@ Recommended sources:
 
 Repeated copies of one social-media post count as one source lineage, not independent corroboration.
 
-##### 9. Overall cross-country conclusion
+#### 9. Overall cross-country conclusion
 
 The international evidence is more consistent than a simple list of differing numbers may suggest. Most differences arise because agencies are reporting different variables, periods, reference baselines or processing methods. When these distinctions are preserved, global warming, increased atmospheric greenhouse-gas concentrations, increasing ocean heat, rising sea level and net land-ice loss are strongly supported by independent data systems.
 
@@ -1068,14 +1106,14 @@ For geophysical hazards, the source network confirms ongoing activity but does n
 
 ---
 
-## 9. Methods, Uncertainty and Reproducibility
+## 9. 🧪 Methods, Uncertainty and Reproducibility
 
 _Source document: [earth-system-global-review/METHODS-UNCERTAINTY-AND-REPRODUCIBILITY.md](earth-system-global-review/METHODS-UNCERTAINTY-AND-REPRODUCIBILITY.md)_
 
-#### Methods, Uncertainty and Reproducibility
-##### Rules for preserving scientific traceability
+### Methods, Uncertainty and Reproducibility
+#### Rules for preserving scientific traceability
 
-##### 1. Evidence hierarchy
+#### 1. Evidence hierarchy
 
 Use the following order when a claim can be checked:
 
@@ -1089,7 +1127,7 @@ Use the following order when a claim can be checked:
 
 This is a source-quality hierarchy, not a rule that a national source is always correct or that a peer-reviewed paper is automatically error-free. Contradictory evidence must be preserved.
 
-##### 2. Evidence labels
+#### 2. Evidence labels
 
 Every data row and analytical paragraph should be assigned one of these labels:
 
@@ -1103,7 +1141,7 @@ Every data row and analytical paragraph should be assigned one of these labels:
 | HYPOTHESIS | Plausible but unconfirmed explanation | Possible source of discoloured water |
 | UNRESOLVED | Incomplete or contradictory evidence | Different sea-ice products return different extents |
 
-##### 3. Required metadata
+#### 3. Required metadata
 
 Every new indicator should include:
 - stable indicator ID;
@@ -1122,7 +1160,7 @@ Every new indicator should include:
 
 For time-sensitive events, save both local time and UTC. Do not silently convert the source's date to another timezone.
 
-##### 4. Baselines and comparability
+#### 4. Baselines and comparability
 
 A temperature anomaly is meaningless without its baseline. A 2025 national anomaly relative to 1991–2020 cannot be compared directly with a global anomaly relative to 1850–1900.
 
@@ -1138,7 +1176,7 @@ Likewise:
 - volcanic unrest is not an eruption;
 - a thermal satellite pixel is not proof of a specific ground event.
 
-##### 5. Reconciliation of independent products
+#### 5. Reconciliation of independent products
 
 When two sources differ:
 1. record both values without averaging;
@@ -1152,7 +1190,7 @@ When two sources differ:
 
 A product's rank should only be quoted using that product's own record.
 
-##### 6. Uncertainty and confidence
+#### 6. Uncertainty and confidence
 
 Use confidence labels consistently:
 - **Very high:** several independent observing systems agree and the result is physically well understood.
@@ -1163,27 +1201,27 @@ Use confidence labels consistently:
 
 Do not invent a percentage confidence score unless a model has explicitly calculated a calibrated probability. Expert judgement labels are not statistical probabilities.
 
-##### 7. Satellite data rules
+#### 7. Satellite data rules
 
-###### Optical sensors
+##### Optical sensors
 Sentinel-2, Landsat, MODIS and VIIRS can observe surface colour, vegetation, snow, ash and thermal context. Cloud, polar night, viewing geometry and revisit intervals constrain observation.
 
-###### Radar
+##### Radar
 Sentinel-1 SAR can observe surface structure and ground deformation in many cloud conditions and at night. A single radar scene does not directly measure underground magma or the composition of the core.
 
-###### Gravity missions
+##### Gravity missions
 GRACE and GRACE-FO estimate changes in mass distribution over large spatial scales. The product is not a high-resolution photograph of ice or groundwater.
 
-###### Magnetic missions
+##### Magnetic missions
 ESA Swarm measures the magnetic field and helps separate field sources. It does not directly image molten metal inside the core.
 
-###### Ocean-altimetry missions
+##### Ocean-altimetry missions
 Radar altimeters estimate sea-surface height. Tide gauges and GNSS are necessary for local relative sea-level interpretation.
 
-###### Bathymetric sonar
+##### Bathymetric sonar
 Ship-based multibeam sonar measures the seabed directly along survey tracks. Repeated surveys require careful inter-survey calibration.
 
-##### 8. Seismic and volcanic data rules
+#### 8. Seismic and volcanic data rules
 
 - Preserve original event IDs.
 - Keep rapid and reviewed catalogs separate.
@@ -1193,7 +1231,7 @@ Ship-based multibeam sonar measures the seabed directly along survey tracks. Rep
 - Treat volcanic gas, thermal, deformation and seismic signals as distinct channels.
 - For submarine events, record water depth and whether evidence is satellite, acoustic, sonar, ROV or chemical.
 
-##### 9. Forum and social-media rules
+#### 9. Forum and social-media rules
 
 Public discussion can identify an observation or a possible contradiction. It is not a substitute for a calibrated data product.
 
@@ -1206,7 +1244,7 @@ When using forum or citizen evidence:
 - avoid turning anecdotal reports into population-level percentages;
 - do not infer scientific consensus from comment volume.
 
-##### 10. Reproducible update workflow
+#### 10. Reproducible update workflow
 
 1. Choose the indicator and exact question.
 2. Retrieve the primary dataset and documentation.
@@ -1219,7 +1257,7 @@ When using forum or citizen evidence:
 9. Run the project validation script.
 10. Submit a pull request with source links and a short change summary.
 
-##### 11. Rejected analytical shortcuts
+#### 11. Rejected analytical shortcuts
 
 The following shortcuts are not accepted:
 - averaging incompatible satellite products;
@@ -1231,22 +1269,22 @@ The following shortcuts are not accepted:
 - using a dramatic single-year anomaly as proof of a long-term trend;
 - counting repeated posts as independent reports.
 
-##### 12. Public transparency
+#### 12. Public transparency
 
 A public research record should make it possible for another researcher to reproduce the chain from source to conclusion. Corrections should be traceable, the old value should not disappear without explanation, and material changes should be recorded in the changelog.
 
 ---
 
-## 10. International Source and Data Catalog
+## 10. 🧭 International Source and Data Catalog
 
 _Source document: [earth-system-global-review/SOURCE-CATALOG.md](earth-system-global-review/SOURCE-CATALOG.md)_
 
-#### Source and Data Catalog
-##### Curated international institutions for continued Earth-system research
+### Source and Data Catalog
+#### Curated international institutions for continued Earth-system research
 
 This directory is a curated starting list, not a claim that every national data portal or research group has been catalogued. The linked institution is the source of record where possible. A later contributor should add the exact product, version, date range and citation rather than citing only an institution's home page.
 
-##### 1. Global climate coordination and synthesis
+#### 1. Global climate coordination and synthesis
 
 | Institution | Country / scope | Primary use |
 |---|---|---|
@@ -1265,7 +1303,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [Roshydromet](https://meteorf.gov.ru/) | Russian Federation | National meteorology and climate monitoring |
 | [South African Weather Service](https://www.weathersa.co.za/) | South Africa | National observations and climate services |
 
-##### 2. Greenhouse gases, energy and emissions
+#### 2. Greenhouse gases, energy and emissions
 
 | Institution | Country / scope | Primary use |
 |---|---|---|
@@ -1276,7 +1314,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [European Commission EDGAR](https://edgar.jrc.ec.europa.eu/) | European Union | Country/sector greenhouse-gas inventory |
 | [UNEP](https://www.unep.org/) | United Nations | Emissions Gap and environmental assessments |
 
-##### 3. Cryosphere and glaciers
+#### 3. Cryosphere and glaciers
 
 | Institution | Country / scope | Primary use |
 |---|---|---|
@@ -1289,7 +1327,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [World Glacier Monitoring Service](https://wgms.ch/) | Switzerland / global | Glacier mass balance and inventories |
 | [GTN-P](https://gtnp.arcticportal.org/) | International | Permafrost temperature and active-layer observations |
 
-##### 4. Ocean, sea level and marine observations
+#### 4. Ocean, sea level and marine observations
 
 | Institution | Country / scope | Primary use |
 |---|---|---|
@@ -1306,7 +1344,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [NASA Sea Level Change](https://sealevel.nasa.gov/) | United States / global | Satellite-altimetry sea-level record |
 | [IOC GLOSS](https://gloss-sealevel.org/) | International | Tide-gauge sea-level observation |
 
-##### 5. Volcanology and geological hazards
+#### 5. Volcanology and geological hazards
 
 | Institution | Country / scope | Primary use |
 |---|---|---|
@@ -1322,7 +1360,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [PHIVOLCS](https://www.phivolcs.dost.gov.ph/) | Philippines | Volcano, earthquake and tsunami monitoring |
 | [AFAD](https://deprem.afad.gov.tr/) | Türkiye | Earthquake and disaster monitoring |
 
-##### 6. Seismology, geodesy and geomagnetism
+#### 6. Seismology, geodesy and geomagnetism
 
 | Institution | Country / scope | Primary use |
 |---|---|---|
@@ -1335,7 +1373,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [NOAA Geomagnetism](https://www.ncei.noaa.gov/products/geomagnetic-data) | United States / global stations | Geomagnetic observations and models |
 | [NIED](https://www.bosai.go.jp/e/) | Japan | MOWLAS seismic and offshore networks |
 
-##### 7. Geological, geochemical and paleoscience repositories
+#### 7. Geological, geochemical and paleoscience repositories
 
 | Institution / database | Country / scope | Primary use |
 |---|---|---|
@@ -1349,7 +1387,7 @@ This directory is a curated starting list, not a claim that every national data 
 | [EarthByte](https://www.earthbyte.org/) | Australia / international | Plate reconstructions and geodynamics |
 | [International Ocean Discovery Program](https://www.iodp.org/) | International | Scientific ocean drilling and core archives |
 
-##### 8. Community, public and maritime observation
+#### 8. Community, public and maritime observation
 
 | Community / platform | Contribution | Quality control required |
 |---|---|---|
@@ -1360,11 +1398,11 @@ This directory is a curated starting list, not a claim that every national data 
 | [Netweather Community](https://community.netweather.tv/) | Meteorological model discussion | Treat as community interpretation |
 | [Earth Science Stack Exchange](https://earthscience.stackexchange.com/) | Technical questions and peer discussion | Verify answers against primary literature |
 
-##### 9. Source selection rule
+#### 9. Source selection rule
 
 Prefer the original data producer or national monitoring agency over a media summary. Use secondary reporting to discover evidence or understand public discussion, not to replace primary measurements. When the original source is not public or cannot be independently checked, label the claim as secondary and keep it out of the main indicator table until it is corroborated.
 
-##### 10. Additional national and regional source coverage
+#### 10. Additional national and regional source coverage
 
 The following country-specific sources extend the catalogue beyond the major international datasets. Some operational portals publish primarily in their national language; where relevant, the source register records that limitation.
 
@@ -1384,7 +1422,7 @@ The following country-specific sources extend the catalogue beyond the major int
 
 For the Iranian seismic network, the institutional directory is used here as a discovery reference, not as a substitute for direct event data. The Iranian Seismological Center and IIEES endpoints should be independently checked for uptime, data access, event revision policy and metadata before being used as primary quantitative sources.
 
-##### 11. Satellite mission and raw-data access portals
+#### 11. Satellite mission and raw-data access portals
 
 These portals provide access to source observations or mission products. A project report should cite the actual collection or product ID downloaded, not only the portal landing page.
 
@@ -1399,7 +1437,7 @@ These portals provide access to source observations or mission products. A proje
 | NOAA JPSS | [Joint Polar Satellite System](https://www.nesdis.noaa.gov/our-satellites/currently-flying/joint-polar-satellite-system) | VIIRS imagery, atmospheric soundings and environmental observations |
 | Argo | [International Argo Programme](https://argo.ucsd.edu/) | Temperature and salinity profiles; Deep Argo extends observations into deeper water |
 
-###### Product-provenance checklist
+##### Product-provenance checklist
 
 For every downloaded product, record:
 - exact product short name and collection/version;
@@ -1416,11 +1454,11 @@ Portal availability does not imply that a dataset has been independently process
 
 ---
 
-## 11. Glossary
+## 11. 📖 Glossary
 
 _Source document: [earth-system-global-review/GLOSSARY.md](earth-system-global-review/GLOSSARY.md)_
 
-#### Glossary
+### Glossary
 
 | Term | Meaning |
 |---|---|
@@ -1462,7 +1500,7 @@ _Source document: [earth-system-global-review/GLOSSARY.md](earth-system-global-r
 | TROPOMI | Satellite instrument measuring atmospheric trace gases |
 | ZJ | Zettajoule, 10²¹ joules |
 
-##### Key distinctions
+#### Key distinctions
 
 - **Weather** describes short-term atmospheric conditions; **climate** describes statistical patterns over longer periods.
 - **Sea ice** floats; **land ice** rests on bedrock or land.
@@ -1474,20 +1512,20 @@ _Source document: [earth-system-global-review/GLOSSARY.md](earth-system-global-r
 
 ---
 
-## 12. Roadmap and Contribution Guide
+## 12. 🛠️ Roadmap and Contribution Guide
 
 _Source document: [earth-system-global-review/ROADMAP-AND-CONTRIBUTING.md](earth-system-global-review/ROADMAP-AND-CONTRIBUTING.md)_
 
-#### Roadmap and Contribution Guide
-##### How to continue the Global Earth System Review
+### Roadmap and Contribution Guide
+#### How to continue the Global Earth System Review
 
-##### 1. Purpose
+#### 1. Purpose
 
 This project is designed as a public research baseline that future contributors can extend. A researcher should be able to identify the current question, see the sources already checked, understand the uncertainty, and add new evidence without rebuilding the source collection from zero.
 
-##### 2. Priority roadmap
+#### 2. Priority roadmap
 
-###### Phase 1 - Maintain the global indicator snapshot
+##### Phase 1 - Maintain the global indicator snapshot
 - Update global temperature from WMO, NOAA, Berkeley Earth, Copernicus and JMA.
 - Update atmospheric CO₂, methane and nitrous oxide from WMO GAW and NOAA GML.
 - Update fossil and energy-related CO₂ from Global Carbon Budget, IEA and EDGAR.
@@ -1495,22 +1533,22 @@ This project is designed as a public research baseline that future contributors 
 - Update glacier and ice-sheet mass from WGMS and NASA GRACE/GRACE-FO.
 - Update sea level from NASA altimetry, tide gauges and Copernicus Marine.
 
-###### Phase 2 - Expand regional and national comparison
+##### Phase 2 - Expand regional and national comparison
 Prioritize original products from China, Russia, India, Japan, Türkiye, Australia, South Africa, Brazil, Indonesia, Chile, Iceland and New Zealand. Record each nation's baseline and spatial domain. Do not force national anomalies into a global scale without a documented transformation.
 
-###### Phase 3 - Volcano and seismic monitoring atlas
+##### Phase 3 - Volcano and seismic monitoring atlas
 Create structured records for active and restless volcanoes using Smithsonian GVP and national observatories. Track global earthquake events from USGS, ISC and EMSC, while keeping rapid and reviewed catalogs separate. Add local observatory alerts without comparing alert colours as universal danger levels.
 
-###### Phase 4 - Ocean-floor mapping and submarine systems
+##### Phase 4 - Ocean-floor mapping and submarine systems
 Prioritize new GEBCO grids, Seabed 2030 contributions, NOAA/JAMSTEC/GEOMAR expeditions, repeat multibeam surveys and cabled observatories. For submarine volcanoes, track depth, crater geometry, survey date, new volume and the evidence method.
 
-###### Phase 5 - Deep Earth and paleoscience
+##### Phase 5 - Deep Earth and paleoscience
 Add peer-reviewed seismic tomography, mineral physics, geomagnetic models, GPlates plate reconstructions, GEOROC rock analyses, Macrostrat stratigraphy, NOAA paleo records and PANGAEA datasets. Distinguish direct measurement from inversion and interpretation.
 
-###### Phase 6 - Public interface
+##### Phase 6 - Public interface
 Consider a static GitHub Pages dashboard after the data model stabilizes. The dashboard should read only from the versioned CSV/JSON tables and should show source dates, uncertainties and stale-data warnings.
 
-##### 3. How to submit a new data update
+#### 3. How to submit a new data update
 
 A valid update should include:
 1. the source institution;
@@ -1526,7 +1564,7 @@ A valid update should include:
 
 Use the GitHub issue form **Earth-system data update** to propose a new observation. Use **Research correction / source conflict** when an existing statement needs correction or reconciliation.
 
-##### 4. File conventions
+#### 4. File conventions
 
 - Narrative reports: Markdown.
 - Time series and indicators: CSV with one variable per row or a documented wide-format table.
@@ -1535,7 +1573,7 @@ Use the GitHub issue form **Earth-system data update** to propose a new observat
 - Raw scientific datasets: link to the original archive; do not commit very large raw files to this repository.
 - Analysis code: include a README, environment or dependency notes, and validation tests.
 
-##### 5. Naming convention
+#### 5. Naming convention
 
 Use:
 - report: YYYY-MM-DD-topic.md;
@@ -1543,7 +1581,7 @@ Use:
 - source record: stable source ID such as WMO-GHG-2026-22;
 - event ID: agency-native ID where available.
 
-##### 6. Data freshness policy
+#### 6. Data freshness policy
 
 Recommended update frequency:
 - volcano alert bulletins: daily or when an agency changes status;
@@ -1558,7 +1596,7 @@ Recommended update frequency:
 
 Do not fabricate current data to satisfy a schedule. Mark unavailable or not yet updated.
 
-##### 7. Review checklist
+#### 7. Review checklist
 
 Before merging:
 - [ ] primary source linked;
@@ -1573,15 +1611,15 @@ Before merging:
 - [ ] report links resolve;
 - [ ] no unsupported prediction or alarmist language added.
 
-##### 8. Responsible public communication
+#### 8. Responsible public communication
 
 This is a scientific information project, not an emergency warning service. In a hazard situation, readers should follow the official local geological, meteorological and civil-protection authority. The project should not forecast exact earthquake times, eruption times or local tsunami arrival times unless quoting a responsible agency's official warning.
 
-##### 9. Citation and reuse
+#### 9. Citation and reuse
 
 When reusing a value, cite the original data producer and the product. The project documentation is offered under CC BY 4.0 unless a different license applies to the linked source. Always preserve source attribution and respect original dataset terms.
 
-##### 10. Suggested next scientific tasks
+#### 10. Suggested next scientific tasks
 
 1. Download and compare the latest 2026 sea-ice daily grids from NSIDC and OSI SAF.
 2. Build a reproducible monthly global-temperature comparison across NASA GISTEMP, NOAA, JMA, Berkeley Earth and ERA5 using one common baseline.
@@ -1596,17 +1634,17 @@ Contributors are encouraged to open small, well-sourced pull requests rather tha
 
 ---
 
-## 13. Data Dictionary
+## 13. 📦 Data Dictionary
 
 _Source document: [earth-system-global-review/data/README.md](earth-system-global-review/data/README.md)_
 
-#### Data Directory
+### Data Directory
 
 This directory contains compact, human-readable CSV snapshots that complement the narrative reports.
 
-##### Files
+#### Files
 
-###### indicator-snapshot.csv
+##### indicator-snapshot.csv
 
 One row per measured or assessed indicator in the dated release.
 
@@ -1626,7 +1664,7 @@ One row per measured or assessed indicator in the dated release.
 | source_url | Direct source URL |
 | notes | Important interpretation restrictions |
 
-###### source-register.csv
+##### source-register.csv
 
 One row per source, institution or cited product.
 
@@ -1644,7 +1682,7 @@ One row per source, institution or cited product.
 | typical_update | Typical release cadence where known |
 | notes | Limitations, language, scope or usage caveats |
 
-##### Data handling rules
+#### Data handling rules
 
 - Every row must retain its source identifier and direct URL.
 - Do not convert blank values to zero.
@@ -1655,7 +1693,7 @@ One row per source, institution or cited product.
 - When a source revises a value, add a dated change note and preserve the prior release in Git history.
 - Do not place large raw satellite, sonar or waveform archives in this repository. Link to the original archive and record the exact version or retrieval date.
 
-##### CSV validation
+#### CSV validation
 
 Run from the repository root:
 
@@ -1665,11 +1703,14 @@ The validation checks the column schema, row identifiers, HTTPS source links, so
 
 ---
 
-## 14. Complete Indicator Dataset (33 records)
+## 14. 📊 Complete Indicator Dataset (38 records)
 
 _Source file: [earth-system-global-review/data/indicator-snapshot.csv](earth-system-global-review/data/indicator-snapshot.csv)_
 
 The complete published CSV snapshot is embedded below.
+
+<details>
+<summary>📊 Expand all 38 indicator records</summary>
 
 ```csv
 "indicator_id","domain","indicator","value","unit","period","reference_baseline","geographic_scope","status","uncertainty_or_rank","source_id","source_url","notes"
@@ -1706,15 +1747,25 @@ The complete published CSV snapshot is embedded below.
 "REG-004","regional_climate","Türkiye annual precipitation anomaly","-27.6","percent","2025 annual","Türkiye 1991-2020 normal","Türkiye","assessment","Annual precipitation 414.9 mm","MGM-TURKIYE-2025","https://www.mgm.gov.tr/eng/Yearly-Climate/State_of_the_Climate_in_Turkey_in_2025.pdf","Percent departure from national normal"
 "REG-005","regional_climate","Canada mean temperature increase","2.0","degC_change","1948-2023","1948 start of national observational analysis","Canada","assessment","Best estimate over the full observation record","ECCC-CANADA-2026","https://www.canada.ca/en/environment-climate-change/services/science-technology/changing-climate-report-2026/cccr-report-summary-en.html","Multi-decadal change, not a 2025 annual anomaly"
 "REG-006","regional_climate","Northern Canada mean temperature increase","2.6","degC_change","1948-2023","1948 start of national observational analysis","Yukon, Northwest Territories and Nunavut","assessment","Best estimate over the full observation record","ECCC-CANADA-2026","https://www.canada.ca/en/environment-climate-change/services/science-technology/changing-climate-report-2026/cccr-report-summary-en.html","Northern Canada definition follows ECCC report"
+"CLIM-004","climate","Global mean temperature anomaly","1.55","degC","2024 annual","1850-1900","Global","assessment","±0.13 degC; warmest year in WMO 175-year record","WMO-STATE-2024","https://wmo.int/publication-series/state-of-global-climate/state-of-global-climate-2024","WMO synthesis of six datasets; annual anomaly, not long-term Paris Agreement warming level"
+"GHG-004","atmosphere","Carbon dioxide concentration","423.9","ppm","2024 annual mean","Pre-industrial comparison in WMO bulletin","Global","observation","±0.2 ppm; 52% above pre-industrial","WMO-GHG-21","https://wmo.int/resources/publication-series/greenhouse-gas-bulletin/wmo-greenhouse-gas-bulletin-no-21","WMO GAW global annual mean surface concentration; not annual emissions"
+"GHG-005","atmosphere","Methane concentration","1942","ppb","2024 annual mean","Pre-industrial comparison in WMO bulletin","Global","observation","±2 ppb; 166% above pre-industrial","WMO-GHG-21","https://wmo.int/resources/publication-series/greenhouse-gas-bulletin/wmo-greenhouse-gas-bulletin-no-21","WMO GAW global annual mean surface concentration; not annual emissions"
+"GHG-006","atmosphere","Nitrous oxide concentration","338.0","ppb","2024 annual mean","Pre-industrial comparison in WMO bulletin","Global","observation","±0.1 ppb; 25% above pre-industrial","WMO-GHG-21","https://wmo.int/resources/publication-series/greenhouse-gas-bulletin/wmo-greenhouse-gas-bulletin-no-21","WMO GAW global annual mean surface concentration; not annual emissions"
+"EMIS-003","emissions","Fossil CO2 including cement-related processes","37.8","GtCO2","2024 annual","Not applicable","Global","estimate","±1.8 GtCO2; consolidated 2024 value in Global Carbon Budget 2025","GCP-2025","https://essd.copernicus.org/articles/18/3211/2026/","Consolidated 2024 estimate; same Global Carbon Budget 2025 paper projects 38.1 GtCO2 for 2025; 2025 projected growth is reported by source as +1.0%; do not recompute from rounded display values"
 ```
+
+</details>
 
 ---
 
-## 15. Complete Source Register (67 records)
+## 15. 🗂️ Complete Source Register (69 records)
 
 _Source file: [earth-system-global-review/data/source-register.csv](earth-system-global-review/data/source-register.csv)_
 
 The complete published CSV source register is embedded below.
+
+<details>
+<summary>🗂️ Expand all 69 source records</summary>
 
 ```csv
 "source_id","institution","country_or_scope","domain","product_or_report","observation_period_or_coverage","publication_or_update_date","source_url","evidence_type","typical_update","notes"
@@ -1785,19 +1836,23 @@ The complete published CSV source register is embedded below.
 "EUMETSAT-DATA","EUMETSAT","Europe / global","Satellite meteorology and oceanography","EUMETSAT Data Store","Meteorological and ocean satellite observations","2026","https://data.eumetsat.int/","data_portal","continuous_and_as_released","Check instrument, calibration, processing level and data licence"
 "NOAA-JPSS","NOAA NESDIS","United States / global","Satellite meteorology","Joint Polar Satellite System (JPSS)","Suomi-NPP, NOAA-20, NOAA-21 and associated instruments","2026","https://www.nesdis.noaa.gov/our-satellites/currently-flying/joint-polar-satellite-system","mission_and_data_portal","continuous","Atmospheric temperature and moisture soundings, imagery and environmental observations"
 "ARGO-DATA","International Argo Programme","International ocean network","Oceanography","Argo and Deep Argo float data","2000-present; Deep Argo expansion","2026","https://argo.ucsd.edu/","observation_network","continuous","Profile data require pressure, quality-control flag, float cycle and delayed-mode status"
+"WMO-STATE-2024","World Meteorological Organization","International","Climate","State of the Global Climate 2024","2024 annual","2025-03-19","https://wmo.int/publication-series/state-of-global-climate/state-of-global-climate-2024","assessment","annual","WMO consolidated global annual mean surface temperature; 2024 anomaly uses 1850-1900 baseline; preserve uncertainty and multi-dataset synthesis method"
+"WMO-GHG-21","WMO Global Atmosphere Watch","International","Atmospheric composition","Greenhouse Gas Bulletin No. 21","2024 annual mean","2025-10-16","https://wmo.int/resources/publication-series/greenhouse-gas-bulletin/wmo-greenhouse-gas-bulletin-no-21","observation_and_assessment","annual","Global annual mean surface concentrations from WMO GAW in-situ network; values are not emissions totals"
 ```
+
+</details>
 
 ---
 
-## 16. Changelog
+## 16. 🕘 Changelog
 
 _Source document: [earth-system-global-review/CHANGELOG.md](earth-system-global-review/CHANGELOG.md)_
 
-#### Changelog
+### Changelog
 
 All important changes to this public research collection are recorded here.
 
-##### 2026-11-03 - Initial public global baseline
+#### 2026-11-03 - Initial public global baseline
 
 - Added an integrated global Earth-system assessment covering climate, atmosphere, cryosphere, ocean heat, sea level, ozone, solid-Earth structure, tectonic motion, volcanism, submarine volcanism, earthquakes, bathymetry and paleoscience.
 - Added cross-country source reconciliation for WMO, NOAA, NASA, NSIDC, NIPR/Japan, EUMETSAT/OSI SAF, JMA, IMD/India, Türkiye MGM, Copernicus/ECMWF, WGMS, IEA, Global Carbon Budget, EDGAR and additional national agencies/data portals.
@@ -1808,13 +1863,13 @@ All important changes to this public research collection are recorded here.
 - Added automated documentation/data validation through GitHub Actions.
 - Added GitHub issue and pull-request templates for future updates and corrections.
 
-##### Update policy
+#### Update policy
 
 New releases must add a dated entry with changed indicators, source versions and unresolved conflicts. Do not erase past values without preserving the revision history and reason for correction.
 
 ---
 
-## 17. Citation Metadata
+## 17. 📚 Citation Metadata
 
 _Source document: [earth-system-global-review/CITATION.cff](earth-system-global-review/CITATION.cff)_
 
@@ -1854,11 +1909,11 @@ keywords:
 
 ---
 
-## 18. License and Reuse Conditions
+## 18. ⚖️ License and Reuse Conditions
 
 _Source document: [earth-system-global-review/LICENSE.txt](earth-system-global-review/LICENSE.txt)_
 
-#### License for this research subproject
+### License for this research subproject
 
 The original documentation, report text, project-authored summaries and curated CSV selection/arrangement in this directory are offered under the Creative Commons Attribution 4.0 International license (CC BY 4.0).
 

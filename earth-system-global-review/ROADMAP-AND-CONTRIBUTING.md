@@ -113,3 +113,21 @@ When reusing a value, cite the original data producer and the product. The proje
 8. Build a plate-motion table from GNSS velocity products, with reference-frame metadata.
 
 Contributors are encouraged to open small, well-sourced pull requests rather than one large, unauditable revision.
+
+
+## Annual year-over-year review cycle
+
+The project maintains annual series in data/annual-observations.csv. Each row stores the observation year, source publication date, product/method key, comparison window, unit, baseline, geography and uncertainty. Add a new year only after its primary source is available and verified.
+
+The scheduled GitHub Actions workflow opens an annual review issue each 15 April at 08:23 UTC, targeting the previous complete calendar year against the year before it. The issue is a research checklist, not an automated data claim. Publication windows differ by agency, so unreleased values must remain pending.
+
+After source review:
+
+1. Add or revise the source-register row.
+2. Add the annual value to annual-observations.csv and, where appropriate, indicator-snapshot.csv.
+3. Keep method_key, comparison_window, unit, baseline and geography explicit.
+4. Use absolute change for temperature anomalies; use percentage points for percent departures; only calculate relative percentages for meaningful series.
+5. Run build_dashboard.py and validate.py.
+6. Submit the changes for review. GitHub Actions checks them and regenerates the dashboard and single-page annual panel after the verified data update reaches master.
+
+Do not compare unlike products or treat a change in data coverage as a physical Earth-system change.

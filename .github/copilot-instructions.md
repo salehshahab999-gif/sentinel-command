@@ -38,3 +38,15 @@ This repository contains the Sentinel Command application and separate public re
 - [AI Research Guide](../AI-RESEARCH-GUIDE.md)
 - [Global Earth System Review](../earth-system-global-review/README.md)
 - [Public OSINT Satellite Toolkit](../public-osint-satellite-toolkit/README.md)
+
+
+## Visual and annual-report rules
+
+- Keep the single-page Global Earth System report as the primary reading experience. Use consistent heading levels, clear whitespace, concise metric cards, collapsible long CSV sections and accessible text alternatives for SVGs.
+- Treat dashboard gauge ranges as display aids, never as risk thresholds unless an authoritative threshold source is explicitly cited.
+- Use annual-observations.csv for year-over-year work. Compare only adjacent years with matching unit, baseline, geographic scope, method_key and comparison_window.
+- Do not calculate percentage change for temperature anomalies or precipitation departures. Use absolute change or percentage-point change.
+- Prefer source-reported percentage changes when published values are rounded; explain any difference between displayed-value arithmetic and the source-reported rate.
+- Keep WMO/NSIDC/NIPR and other incompatible products separate. Never force a false average.
+- Before publishing a new annual value, check the original data product and publication date, update its source-register entry, and run build_dashboard.py plus validate.py.
+- GitHub Actions may regenerate the image and comparison table after a data update. The scheduled yearly issue is a reminder for source review, not permission to invent or infer missing data.

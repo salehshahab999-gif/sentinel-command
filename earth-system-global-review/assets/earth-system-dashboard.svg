@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1200 900" width="1200" height="900">
+<title id="title">Global Earth System visual dashboard</title>
+<desc id="desc">Source-traceable dashboard of global temperature, greenhouse gases, sea level, ice, glaciers, ocean heat, seafloor mapping and coordinate conventions.</desc>
+<rect width="1200" height="900" rx="28" fill="#0b1220"/>
+<path d="M0 120H1200" stroke="#29415e" stroke-width="2"/>
+<text x="42" y="54" fill="#f4f7fb" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="700">GLOBAL EARTH SYSTEM</text>
+<text x="44" y="88" fill="#a8bbcf" font-family="Inter,Arial,sans-serif" font-size="16">VISUAL RESEARCH DASHBOARD  •  SNAPSHOT: 03 NOV 2026</text>
+<rect x="902" y="32" width="250" height="52" rx="15" fill="#172942" stroke="#29415e"/>
+<text x="1027" y="64" text-anchor="middle" fill="#57d3e5" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">SOURCE-TRACEABLE • NOT LIVE</text>
+<g font-family="Inter,Arial,sans-serif">
+<g transform="translate(38 142)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🌡 GLOBAL TEMPERATURE</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">+1.43 °C</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">1850–1900 reference • WMO 2025</text>
+<text x="20" y="132" fill="#f5c56b" font-size="12" font-weight="700">2024 → 2025: −0.12 °C</text>
+<rect x="20" y="151" width="316" height="9" rx="4.5" fill="#263d57"/>
+<rect x="20" y="151" width="226" height="9" rx="4.5" fill="#57d3e5"/>
+<text x="20" y="179" fill="#a8bbcf" font-size="8">DISPLAY SCALE 0–2 °C • NOT A RISK THRESHOLD</text>
+</g>
+<g transform="translate(422 142)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">CO₂ ATMOSPHERIC CONCENTRATION</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">426.8 ppm</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">WMO annual mean • 2025</text>
+<text x="20" y="132" fill="#70d6a5" font-size="12" font-weight="700">2024 → 2025: +2.9 ppm • +0.68%</text>
+<rect x="20" y="151" width="316" height="9" rx="4.5" fill="#263d57"/>
+<rect x="20" y="151" width="258" height="9" rx="4.5" fill="#57d3e5"/>
+<text x="20" y="179" fill="#a8bbcf" font-size="8">DISPLAY SCALE 280–460 ppm • NOT A RISK THRESHOLD</text>
+</g>
+<g transform="translate(806 142)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🌊 GLOBAL SEA LEVEL</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">115.8 mm</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">October 2026 • 1993 reference • NASA</text>
+<text x="20" y="132" fill="#a8bbcf" font-size="12">Global mean, not a local coastal reading</text>
+<rect x="20" y="151" width="316" height="9" rx="4.5" fill="#263d57"/>
+<rect x="20" y="151" width="244" height="9" rx="4.5" fill="#57d3e5"/>
+<text x="20" y="179" fill="#a8bbcf" font-size="8">DISPLAY SCALE 0–150 mm • 1993 REFERENCE</text>
+</g>
+<g transform="translate(38 350)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🗺 SEAFLOOR MAPPED</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">28.7%</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">GEBCO 2026 • modern-standard coverage</text>
+<text x="20" y="132" fill="#f5c56b" font-size="12" font-weight="700">71.3% not mapped to this standard</text>
+<rect x="20" y="151" width="316" height="9" rx="4.5" fill="#263d57"/>
+<rect x="20" y="151" width="91" height="9" rx="4.5" fill="#57d3e5"/>
+<text x="20" y="179" fill="#a8bbcf" font-size="8">PERCENT OF GLOBAL OCEAN FLOOR</text>
+</g>
+<g transform="translate(422 350)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">❄ ARCTIC SEA-ICE MINIMUM</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">4.60 million km²</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">12 Sep 2026 • NASA / NSIDC product</text>
+<text x="20" y="137" fill="#f5c56b" font-size="13" font-weight="700">Tied tenth-lowest in this record</text>
+<text x="20" y="169" fill="#a8bbcf" font-size="10">Extent is not thickness, volume or ice area.</text>
+</g>
+<g transform="translate(806 350)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🧊 ANTARCTIC SEA-ICE MAXIMUM</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">17.59 million km²</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">14 Sep 2026 • NASA / NSIDC product</text>
+<text x="20" y="137" fill="#f5c56b" font-size="13" font-weight="700">Third-lowest in this record</text>
+<text x="20" y="169" fill="#a8bbcf" font-size="10">NIPR and OSI SAF values remain separate.</text>
+</g>
+<g transform="translate(38 558)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🏔 MOUNTAIN GLACIER MASS</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">−408 Gt</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">2025 hydrological year • WGMS</text>
+<text x="20" y="137" fill="#f5c56b" font-size="13" font-weight="700">Uncertainty: ±132 Gt</text>
+<text x="20" y="169" fill="#a8bbcf" font-size="10">Mountain glaciers; excludes the two ice sheets.</text>
+</g>
+<g transform="translate(422 558)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🔥 FULL-DEPTH OCEAN HEAT</text>
+<text x="20" y="82" fill="#f4f7fb" font-size="32" font-weight="700">+24 ± 6 ZJ</text>
+<text x="20" y="108" fill="#a8bbcf" font-size="12">2024–2025 change • 2026 review estimate</text>
+<text x="20" y="137" fill="#a8bbcf" font-size="13">Cumulative increase since 1960: 481 ± 48 ZJ</text>
+<text x="20" y="169" fill="#a8bbcf" font-size="10">Full-depth global ocean estimate.</text>
+</g>
+<g transform="translate(806 558)">
+<rect width="356" height="190" rx="20" fill="#121f33" stroke="#29415e" stroke-width="1.5"/>
+<text x="20" y="34" fill="#a8bbcf" font-size="14" font-weight="700">🧭 GEO-SPATIAL READOUT</text>
+<text x="20" y="82" fill="#57d3e5" font-size="22" font-weight="700">LAT / LON / CRS / Z</text>
+<text x="20" y="112" fill="#f4f7fb" font-size="12">Coordinates belong to a station, event or grid cell.</text>
+<text x="20" y="138" fill="#f4f7fb" font-size="12">A global average is an area/grid, not one point.</text>
+<text x="20" y="166" fill="#a8bbcf" font-size="10">Record datum, elevation/depth and uncertainty.</text>
+</g>
+<g transform="translate(38 774)">
+<rect width="1124" height="88" rx="18" fill="#172942" stroke="#29415e"/>
+<text x="22" y="32" fill="#57d3e5" font-size="14" font-weight="700">ANNUAL COMPARISON ENGINE</text>
+<text x="22" y="60" fill="#f4f7fb" font-size="14">2024 → 2025 pairs: global temperature, CO₂, CH₄, N₂O and fossil CO₂.</text>
+<text x="22" y="80" fill="#a8bbcf" font-size="11">Future values compare only when method, unit, baseline, geography and observation window match.</text>
+</g>
+</g>
+</svg>

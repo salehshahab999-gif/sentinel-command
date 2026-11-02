@@ -16,3 +16,16 @@ All important changes to this public research collection are recorded here.
 ## Update policy
 
 New releases must add a dated entry with changed indicators, source versions and unresolved conflicts. Do not erase past values without preserving the revision history and reason for correction.
+
+
+## 2026-11-03 - Visual dashboard and annual comparison system
+
+- Added a visual dashboard with temperature and measurement gauges, percent coverage bars, polar sea-ice cards, glacier and ocean indicators, and a spatial-reference panel.
+- Added a 2024–2025 comparable annual baseline for WMO global temperature, CO₂, methane, nitrous oxide and Global Carbon Budget fossil CO₂.
+- Expanded the indicator snapshot to 38 records and the source register to 69 records, adding the WMO 2024 global climate report and Greenhouse Gas Bulletin No. 21.
+- Added annual-observations.csv with explicit method keys, comparison windows, baselines, units, source links and uncertainty fields.
+- Added deterministic Python dashboard and annual-table generation using the standard library only.
+- Added GitHub Actions to rebuild generated outputs after verified data changes and to open a yearly data-review issue on 15 April.
+- Improved the single-page report with visual cards, expanded heading hierarchy, emoji navigation, collapsible data tables and coordinate/CRS guidance.
+
+The annual workflow creates a review task; it does not automatically assert that all annual scientific reports have been released or scrape unverified values.

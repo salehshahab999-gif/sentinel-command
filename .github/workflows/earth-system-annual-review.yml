@@ -1,0 +1,37 @@
+name: Earth System Annual Review - Open Yearly Research Issue
+
+on:
+  schedule:
+    - cron: "23 8 15 4 *"
+  workflow_dispatch:
+    inputs:
+      target_year:
+        description: "Calendar year to review (defaults to the last complete UTC year)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: earth-system-annual-review
+  cancel-in-progress: false
+
+jobs:
+  open-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Open annual source-review issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TARGET_YEAR: ${{ inputs.target_year }}
+        run: python earth-system-global-review/scripts/open_annual_review.py
