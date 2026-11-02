@@ -1,0 +1,7 @@
+# License for this research subproject
+
+The original documentation, report text, project-authored summaries and curated CSV selection/arrangement in this directory are offered under the Creative Commons Attribution 4.0 International license (CC BY 4.0).
+
+License text: https://creativecommons.org/licenses/by/4.0/
+
+This notice does not relicense third-party datasets, figures, images, trademarks, article text or linked material. Those remain subject to their original licenses and terms. Reusers must cite the original data producer and comply with its attribution and redistribution rules.

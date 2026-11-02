@@ -1,0 +1,37 @@
+name: Research correction or source conflict
+description: Report an incorrect value, broken citation, methodology issue or disagreement between datasets.
+title: "[CORRECTION] "
+body:
+  - type: input
+    id: report
+    attributes:
+      label: Affected report or data row
+      placeholder: File path, section title or indicator ID
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is incorrect, incomplete or inconsistent?
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Authoritative replacement source
+      placeholder: https://... or DOI
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence and dates
+      description: Quote only the minimum needed; describe method, units and baseline.
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Proposed correction
+    validations:
+      required: true

@@ -64,3 +64,32 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Next.js GitHub repository](https://github.com/vercel/next.js)
 - [Vercel](https://vercel.com/)
+
+
+## Public Global Earth System Review
+
+A new public, English-language research collection brings together a dated global assessment of climate, the cryosphere, oceans, atmospheric composition, sea level, ozone, solid-Earth structure, plate tectonics, volcanoes, submarine volcanism, earthquakes, bathymetry and paleoscience.
+
+**[Open the Global Earth System Review](./earth-system-global-review/)**
+
+Key documents:
+
+- [Integrated executive assessment](./earth-system-global-review/EXECUTIVE-ASSESSMENT.md)
+- [Climate, cryosphere and atmosphere](./earth-system-global-review/CLIMATE-CRYOSPHERE-ATMOSPHERE.md)
+- [Solid Earth, deep interior and plate tectonics](./earth-system-global-review/SOLID-EARTH-INTERIOR-TECTONICS.md)
+- [Global volcanoes and submarine volcanism](./earth-system-global-review/VOLCANOES-SUBMARINE-VOLCANISM.md)
+- [Global seismology](./earth-system-global-review/GLOBAL-SEISMOLOGY.md)
+- [Ocean floor and marine observing](./earth-system-global-review/OCEAN-FLOOR-AND-MARINE-OBSERVING.md)
+- [Paleo-Earth and deep time](./earth-system-global-review/PALEO-EARTH-AND-DEEP-TIME.md)
+- [Cross-country source reconciliation](./earth-system-global-review/CROSS-COUNTRY-SOURCE-RECONCILIATION.md)
+- [Source catalog](./earth-system-global-review/SOURCE-CATALOG.md)
+- [Methods, uncertainty and reproducibility](./earth-system-global-review/METHODS-UNCERTAINTY-AND-REPRODUCIBILITY.md)
+- [Public data snapshot: 33 indicators](./earth-system-global-review/data/indicator-snapshot.csv)
+- [Source register: 67 source records](./earth-system-global-review/data/source-register.csv)
+- [Roadmap and contribution guide](./earth-system-global-review/ROADMAP-AND-CONTRIBUTING.md)
+
+The report distinguishes direct observations, agency assessments, estimates, forecasts, interpretations and unresolved questions. Different datasets are not averaged when their definitions or baselines differ. It is a dated public research baseline, not a live hazard-warning service.
+
+Contributions are supported through GitHub issue forms for data updates and research corrections, a pull-request checklist, and a GitHub Actions validation workflow.
+
+Snapshot date: **3 November 2026**.
