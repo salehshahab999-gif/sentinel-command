@@ -1,0 +1,52 @@
+name: Earth System Dashboard - Regenerate Visuals and Annual Tables
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "Global-Earth-System-Complete-Report.md"
+      - "earth-system-global-review/data/indicator-snapshot.csv"
+      - "earth-system-global-review/data/annual-observations.csv"
+      - "earth-system-global-review/scripts/build_dashboard.py"
+      - ".github/workflows/earth-system-dashboard.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: earth-system-dashboard-master
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rebuild visual dashboard and annual comparison
+        run: python earth-system-global-review/scripts/build_dashboard.py
+      - name: Validate rebuilt report and data
+        run: python earth-system-global-review/scripts/validate.py
+      - name: Confirm generated files are reproducible
+        run: python earth-system-global-review/scripts/build_dashboard.py --check
+      - name: Commit generated outputs when changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Global-Earth-System-Complete-Report.md EARTH-SYSTEM-ANNUAL-COMPARISON.md earth-system-global-review/assets/earth-system-dashboard.svg
+          if git diff --cached --quiet; then
+            echo "Dashboard outputs are already current."
+          else
+            git commit -m "chore: refresh Earth System dashboard and annual comparison"
+            git push origin HEAD:master
+          fi
