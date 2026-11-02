@@ -84,8 +84,8 @@ Key documents:
 - [Cross-country source reconciliation](./earth-system-global-review/CROSS-COUNTRY-SOURCE-RECONCILIATION.md)
 - [Source catalog](./earth-system-global-review/SOURCE-CATALOG.md)
 - [Methods, uncertainty and reproducibility](./earth-system-global-review/METHODS-UNCERTAINTY-AND-REPRODUCIBILITY.md)
-- [Public data snapshot: 33 indicators](./earth-system-global-review/data/indicator-snapshot.csv)
-- [Source register: 67 source records](./earth-system-global-review/data/source-register.csv)
+- [Public data snapshot: 38 indicators](./earth-system-global-review/data/indicator-snapshot.csv)
+- [Source register: 69 source records](./earth-system-global-review/data/source-register.csv)
 - [Roadmap and contribution guide](./earth-system-global-review/ROADMAP-AND-CONTRIBUTING.md)
 
 The report distinguishes direct observations, agency assessments, estimates, forecasts, interpretations and unresolved questions. Different datasets are not averaged when their definitions or baselines differ. It is a dated public research baseline, not a live hazard-warning service.
@@ -109,3 +109,13 @@ The archive intentionally excludes private chat transcripts, user-authored messa
 ## Complete single-page Global Earth System Report
 
 Read the entire global Earth-system assessment in one continuous document: **[Global Earth System Complete Report](./Global-Earth-System-Complete-Report.md)**. It includes all scientific chapters, methods, source catalog, glossary, and the complete 33-indicator and 67-source tables.
+
+
+### Visual dashboard and annual monitoring
+
+- [Visual dashboard](./earth-system-global-review/assets/earth-system-dashboard.svg)
+- [2024 → 2025 year-over-year comparison](./EARTH-SYSTEM-ANNUAL-COMPARISON.md)
+- [Annual observations dataset](./earth-system-global-review/data/annual-observations.csv)
+- [One-page full report](./Global-Earth-System-Complete-Report.md)
+
+GitHub Actions regenerates the dashboard and annual tables after verified data-file updates. A scheduled annual review issue requests the previous complete year's official data; the workflow does not invent or silently scrape scientific values.
