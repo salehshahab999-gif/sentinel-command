@@ -93,3 +93,14 @@ The report distinguishes direct observations, agency assessments, estimates, for
 Contributions are supported through GitHub issue forms for data updates and research corrections, a pull-request checklist, and a GitHub Actions validation workflow.
 
 Snapshot date: **3 November 2026**.
+
+
+## Public research archive and AI assistance
+
+This repository now has a central index of published research outputs and research tracks that still need source-level reconstruction.
+
+- [Public Research Archive and Output Inventory](./PUBLIC-RESEARCH-ARCHIVE.md)
+- [AI Research Guide: use GitHub Copilot and other AI assistants with this repository](./AI-RESEARCH-GUIDE.md)
+- [Repository-wide GitHub Copilot instructions](./.github/copilot-instructions.md)
+
+The archive intentionally excludes private chat transcripts, user-authored messages, personal information and private project configuration. The inventory distinguishes reports already published from earlier research topics that have not yet been reconstructed into verified public reports.
