@@ -98,3 +98,15 @@ Start with the [Roadmap and contribution guide](ROADMAP-AND-CONTRIBUTING.md), us
 ## Read the complete report on one page
 
 **[Open the Global Earth System Complete Report](../Global-Earth-System-Complete-Report.md)**. The single document includes the full assessment, all scientific chapters, methods, source catalog, glossary and both complete data tables. The modular files remain available for focused citations and maintenance.
+
+
+## Visual dashboard and annual comparison
+
+The single-page report now opens with a visual dashboard built from the indicator table:
+
+- [Visual dashboard SVG](assets/earth-system-dashboard.svg)
+- [Annual comparison: 2024 versus 2025](../EARTH-SYSTEM-ANNUAL-COMPARISON.md)
+- [Annual observation series (CSV)](data/annual-observations.csv)
+- [Complete one-page report](../Global-Earth-System-Complete-Report.md)
+
+The dashboard uses visual gauges with clearly stated display ranges, not risk thresholds. Coordinates are shown only for point observations and retain the source CRS, vertical datum and uncertainty; global means are spatial areas or grids rather than a single coordinate.
