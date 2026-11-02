@@ -1,52 +1,40 @@
 # GitHub Copilot instructions
 
+## Repository purpose
 
+This repository contains the Sentinel Command application and separate public research collections. Research documentation is not a live operational feed. Read the relevant README and research index before answering questions.
 
+## Research behavior
 
+- Use repository files as context, not as proof that a claim is currently true.
+- Cite exact repository paths and original source URLs for substantive claims.
+- Preserve observation date, publication date, retrieval date, timezone, product/version, units, baseline, geographic coverage and uncertainty.
+- Separate direct observations, source claims, assessments, estimates, forecasts, analytical inferences, hypotheses and unresolved questions.
+- Cross-check primary sources and independent corroboration where available. Reposted versions of one report are not independent confirmation.
+- Do not average products with incompatible methods, definitions, baselines or time windows.
+- Never invent missing values, source links, citations, coordinates or test results.
+- Do not describe raw satellite scenes, AIS, waveforms or other archives as independently processed unless the processing is documented.
+- Treat forum and social-media samples as limited samples, not representative measurements of a population.
+- For changing facts, require fresh dated sources. Clearly label stale snapshots.
 
+## Public-release and privacy rules
 
+- Never publish user-authored messages, private chat transcripts, personal or health information, account identifiers, passwords, tokens, API keys, cookies, private URLs, local machine paths, private network settings or private database records.
+- Review geospatial outputs for public-interest and safety before publication. Generalize or omit operationally precise details that could materially facilitate targeting of sensitive infrastructure.
+- Keep source provenance and uncertainty notes with every public report.
+- Use English for repository research documentation unless the user explicitly requests another language.
 
+## Change-control rules
 
+- Do not modify application source, database schemas, APIs, authentication, secrets or deployment settings for a research-only task.
+- For documentation or data changes, use a separate branch and propose a pull request.
+- Do not merge or deploy unless the user explicitly requests it.
+- Run the repository's relevant validation workflow and report exactly what passed or failed.
+- Do not claim a change is public or merged until GitHub confirms it.
 
+## Research entry points
 
-
-
-
-
-
-
-
-<!-- github-copilot-toolbox:mcp-skills-awareness-begin -->
-
-### MCP & Skills awareness (GitHub Copilot Toolbox)
-
-_Last synced: 2026-08-14T21:12:11.236Z._
-
-- **Full report:** `.github/copilot-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
-- **MCP:** For **live tools**, use **Copilot Chat → Agent** and **trust/start** the right servers in the MCP UI.
-- **When the user’s task matches a server** (e.g. “open this Confluence page” and a **Confluence** / **Atlassian** MCP is listed), **prefer that server id** and plan on Agent + MCP for actions—not only file search.
-- **Skills:** Folders below contain `SKILL.md`; attach or cite paths in chat when relevant.
-
-#### Workspace MCP
-
-- `c:\Users\Saleh Shahab\sentinel-command\.vscode\mcp.json` _(workspace: sentinel-command)_ — _file missing_
-
-_No active workspace servers in mcp.json._
-
-#### User MCP
-
-- `C:\Users\Saleh Shahab\AppData\Roaming\Code\User\mcp.json` — _file missing_
-
-_No active user-scoped servers in mcp.json._
-
-#### Project skills
-
-_None found (or no workspace open)._
-
-#### User skills
-
-- **microsoft-foundry** — `C:\Users\Saleh Shahab\.agents\skills\microsoft-foundry` — Deploy, evaluate, fine-tune, and manage Foundry agents end-to-end with azd: hosted agent scaffold/run/deploy, prompt agent create, batch eval, continuous eval, prompt optimizer, Agent Optimizer scaffold, agent.yaml, data
-
-- **use-tinyfish** — `C:\Users\Saleh Shahab\.agents\skills\use-tinyfish` — Use TinyFish for web search, fetching URLs, reading pages, current information, source-backed answers, research, docs, pricing/product pages, extraction, scraping, and browser automation. Use whenever the user asks to se
-
-<!-- github-copilot-toolbox:mcp-skills-awareness-end -->
+- [Public Research Archive](../PUBLIC-RESEARCH-ARCHIVE.md)
+- [AI Research Guide](../AI-RESEARCH-GUIDE.md)
+- [Global Earth System Review](../earth-system-global-review/README.md)
+- [Public OSINT Satellite Toolkit](../public-osint-satellite-toolkit/README.md)
