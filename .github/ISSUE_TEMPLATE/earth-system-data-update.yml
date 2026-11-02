@@ -1,0 +1,70 @@
+name: Earth-system data update
+description: Propose a new observation, dataset release or national-agency update.
+title: "[DATA UPDATE] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submit primary-source observations whenever possible. Separate measured data from interpretation and forecasts.
+  - type: input
+    id: indicator
+    attributes:
+      label: Indicator or research topic
+      description: Example: Antarctic sea-ice extent, methane, volcano unrest, seafloor bathymetry.
+      placeholder: Indicator name
+    validations:
+      required: true
+  - type: input
+    id: institution
+    attributes:
+      label: Producing institution
+      placeholder: WMO, NSIDC, JMA, USGS, national observatory...
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Direct source URL or DOI
+      placeholder: https://...
+    validations:
+      required: true
+  - type: input
+    id: dates
+    attributes:
+      label: Observation period and publication date
+      placeholder: YYYY-MM-DD to YYYY-MM-DD; published YYYY-MM-DD
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Measurement, unit and baseline
+      description: Include uncertainty, product name and definition.
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: Evidence class
+      options:
+        - Direct observation
+        - Agency assessment
+        - Estimate or model-derived product
+        - Forecast
+        - Forum or citizen report
+        - Interpretation / hypothesis
+    validations:
+      required: true
+  - type: textarea
+    id: reconciliation
+    attributes:
+      label: Independent comparison and known conflicts
+      description: Does another national agency or dataset confirm or differ?
+    validations:
+      required: true
+  - type: textarea
+    id: caveats
+    attributes:
+      label: Uncertainty, coverage and limitations
+    validations:
+      required: true

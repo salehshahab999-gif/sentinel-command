@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "Please cite the dated assessment and the original data producers referenced in it."
+title: "Global Earth System Review: Climate, Cryosphere, Oceans and Solid Earth"
+type: dataset
+authors:
+  - family-names: Shahab
+    given-names: Saleh
+date-released: 2026-11-03
+version: "2026-11-03"
+repository-code: "https://github.com/salehshahab999-gif/sentinel-command"
+url: "https://github.com/salehshahab999-gif/sentinel-command/tree/research/global-earth-system-2026-11-03/earth-system-global-review"
+license: CC-BY-4.0
+keywords:
+  - Earth system science
+  - climate
+  - cryosphere
+  - sea ice
+  - glacier mass balance
+  - greenhouse gases
+  - ocean heat content
+  - sea level
+  - ozone
+  - geology
+  - plate tectonics
+  - geophysics
+  - volcanology
+  - submarine volcanoes
+  - seismology
+  - bathymetry
+  - paleoclimate
+  - satellite Earth observation
