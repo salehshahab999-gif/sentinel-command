@@ -346,7 +346,9 @@ def main() -> int:
     annual = annual_markdown(annual_rows)
     image = svg_dashboard(indicator_rows, annual_rows)
     report_text = REPORT.read_text(encoding="utf-8")
-    updated_report = replace_block(report_text, annual)
+    embedded_annual = annual.replace("# 🌍 Annual Earth-System Comparison", "### 📊 Annual year-over-year results", 1)
+    embedded_annual = embedded_annual.replace("\n## ", "\n#### ")
+    updated_report = replace_block(report_text, embedded_annual)
 
     ok = True
     for path, content in ((ASSET, image), (ANNUAL_MD, annual), (REPORT, updated_report)):
