@@ -109,3 +109,15 @@ For instructions on asking an AI assistant to search and explain this repository
 ## Single-page consolidated report
 
 For a single-document reading experience, see the [Global Earth System Complete Report](Global-Earth-System-Complete-Report.md). It combines the complete scientific chapters, methods, glossary, roadmap, data dictionary, 33 indicator records and 67 source-register records.
+
+
+## Visual dashboard and annual tracking
+
+The Global Earth System report now includes a visual dashboard, a 2024–2025 comparison table and a structured annual time-series register. See:
+
+- [Visual dashboard](earth-system-global-review/assets/earth-system-dashboard.svg)
+- [Annual comparison](EARTH-SYSTEM-ANNUAL-COMPARISON.md)
+- [Annual observations dataset](earth-system-global-review/data/annual-observations.csv)
+- [Single-page full report](Global-Earth-System-Complete-Report.md)
+
+The annual tracking pipeline compares only like-for-like series. GitHub Actions opens a review issue each year; it does not auto-publish unverified measurements.
