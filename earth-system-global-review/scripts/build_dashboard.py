@@ -236,15 +236,15 @@ def svg_dashboard(indicators: list[dict[str, str]], annual_rows: list[dict[str, 
     ]
 
     specs = [
-        ("THERMOMETER", "GLOBAL TEMPERATURE", "CLIM-001", 0.0, 2.0, "1850–1900 reference", "GLOBAL_TEMP_WMO"),
-        ("CO₂", "ATMOSPHERIC CO₂", "GHG-001", 280.0, 460.0, "WMO annual mean", "CO2_WMO_GAW"),
-        ("SEA LEVEL", "GLOBAL SEA LEVEL", "OCEAN-003", 0.0, 150.0, "1993 reference", "NASA_SEA_LEVEL_OCTOBER"),
-        ("MAP", "SEAFLOOR MAPPED", "EARTH-001", 0.0, 100.0, "Modern-standard coverage", "GEBCO_MAPPING_COVERAGE"),
-        ("ARCTIC ICE", "ARCTIC SEA-ICE MINIMUM", "ICE-001", None, None, "NASA / NSIDC product", "ARCTIC_MIN_NSIDC"),
-        ("ANTARCTIC ICE", "ANTARCTIC SEA-ICE MAXIMUM", "ICE-005", None, None, "NASA / NSIDC product", "ANTARCTIC_MAX_NSIDC"),
-        ("GLACIERS", "MOUNTAIN GLACIER MASS", "ICE-009", None, None, "2025 hydrological year", "MOUNTAIN_GLACIER_MASS_BALANCE"),
-        ("OCEAN HEAT", "OCEAN HEAT CHANGE", "OCEAN-001", None, None, "Full-depth • 2024–2025", "GLOBAL_OCEAN_HEAT_CHANGE"),
-        ("COORDINATES", "GEO-SPATIAL READOUT", None, None, None, "Location-aware records", None),
+        ("🌡️", "GLOBAL TEMPERATURE", "CLIM-001", 0.0, 2.0, "1850–1900 reference", "GLOBAL_TEMP_WMO"),
+        ("🫧", "ATMOSPHERIC CO₂", "GHG-001", 280.0, 460.0, "WMO annual mean", "CO2_WMO_GAW"),
+        ("🌊", "GLOBAL SEA LEVEL", "OCEAN-003", 0.0, 150.0, "1993 reference", "NASA_SEA_LEVEL_OCTOBER"),
+        ("🗺️", "SEAFLOOR MAPPED", "EARTH-001", 0.0, 100.0, "Modern-standard coverage", "GEBCO_MAPPING_COVERAGE"),
+        ("❄️", "ARCTIC SEA-ICE MINIMUM", "ICE-001", None, None, "NASA / NSIDC product", "ARCTIC_MIN_NSIDC"),
+        ("🧊", "ANTARCTIC SEA-ICE MAXIMUM", "ICE-005", None, None, "NASA / NSIDC product", "ANTARCTIC_MAX_NSIDC"),
+        ("🏔️", "MOUNTAIN GLACIER MASS", "ICE-009", None, None, "2025 hydrological year", "MOUNTAIN_GLACIER_MASS_BALANCE"),
+        ("🔥", "OCEAN HEAT CHANGE", "OCEAN-001", None, None, "Full-depth • 2024–2025", "GLOBAL_OCEAN_HEAT_CHANGE"),
+        ("📍", "GEO-SPATIAL READOUT", None, None, None, "Location-aware records", None),
     ]
     card_w, card_h = 356, 190
     xs, ys = [38, 422, 806], [142, 350, 558]
@@ -298,7 +298,7 @@ def svg_dashboard(indicators: list[dict[str, str]], annual_rows: list[dict[str, 
 
         if lo is not None and hi is not None and v is not None:
             pct = max(0.0, min(1.0, (v - lo) / (hi - lo)))
-            gx, gy, gw = x + 20, y + 151, card_w - 40, 9
+            gx, gy, gw = x + 20, y + 151, card_w - 40
             out.append(f'<rect x="{gx}" y="{gy}" width="{gw}" height="9" rx="4.5" fill="{palette["track"]}"/>')
             out.append(f'<rect x="{gx}" y="{gy}" width="{gw*pct:.1f}" height="9" rx="4.5" fill="{palette["cyan"]}"/>')
             txt(gx, y + 178, f"DISPLAY SCALE {fmt(lo,0)}–{fmt(hi,0)} {row_data['unit']} • NOT A RISK THRESHOLD", 8, palette["muted"])
