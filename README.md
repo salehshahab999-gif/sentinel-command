@@ -108,7 +108,7 @@ The archive intentionally excludes private chat transcripts, user-authored messa
 
 ## Complete single-page Global Earth System Report
 
-Read the entire global Earth-system assessment in one continuous document: **[Global Earth System Complete Report](./Global-Earth-System-Complete-Report.md)**. It includes all scientific chapters, methods, source catalog, glossary, and the complete 33-indicator and 67-source tables.
+Read the entire global Earth-system assessment in one continuous document: **[Global Earth System Complete Report](./Global-Earth-System-Complete-Report.md)**. It includes all scientific chapters, methods, source catalog, glossary, and the complete 38-indicator and 69-source tables.
 
 
 ### Visual dashboard and annual monitoring
