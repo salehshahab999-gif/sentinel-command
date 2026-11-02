@@ -93,3 +93,8 @@ Start with the [Roadmap and contribution guide](ROADMAP-AND-CONTRIBUTING.md), us
 **Snapshot prepared:** 3 November 2026  
 **Repository:** https://github.com/salehshahab999-gif/sentinel-command  
 **Project directory:** earth-system-global-review/
+
+
+## Read the complete report on one page
+
+**[Open the Global Earth System Complete Report](../Global-Earth-System-Complete-Report.md)**. The single document includes the full assessment, all scientific chapters, methods, source catalog, glossary and both complete data tables. The modular files remain available for focused citations and maintenance.
