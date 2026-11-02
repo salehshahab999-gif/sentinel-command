@@ -1,17 +1,26 @@
-name: Earth System Review - Documentation Check
+name: Earth System Review - Documentation and Dashboard Check
 
 on:
   push:
     branches:
       - master
+      - "feature/earth-system-*"
       - "research/global-earth-system-*"
     paths:
+      - "Global-Earth-System-Complete-Report.md"
+      - "EARTH-SYSTEM-ANNUAL-COMPARISON.md"
       - "earth-system-global-review/**"
       - ".github/workflows/earth-system-review-check.yml"
+      - ".github/workflows/earth-system-dashboard.yml"
+      - ".github/workflows/earth-system-annual-review.yml"
   pull_request:
     paths:
+      - "Global-Earth-System-Complete-Report.md"
+      - "EARTH-SYSTEM-ANNUAL-COMPARISON.md"
       - "earth-system-global-review/**"
       - ".github/workflows/earth-system-review-check.yml"
+      - ".github/workflows/earth-system-dashboard.yml"
+      - ".github/workflows/earth-system-annual-review.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,9 +32,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Validate reports and data tables
+    name: Build and validate Earth System research
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -33,5 +42,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate required files, CSV schemas, identifiers and links
+      - name: Regenerate visual dashboard and annual comparison
+        run: python earth-system-global-review/scripts/build_dashboard.py
+      - name: Validate reports, data, sources, links and SVG
         run: python earth-system-global-review/scripts/validate.py
+      - name: Confirm generated outputs are reproducible
+        run: python earth-system-global-review/scripts/build_dashboard.py --check
