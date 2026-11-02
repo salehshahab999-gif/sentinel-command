@@ -36,7 +36,7 @@ Start here:
 - [Indicator snapshot CSV](earth-system-global-review/data/indicator-snapshot.csv)
 - [Source register CSV](earth-system-global-review/data/source-register.csv)
 
-The published baseline contains 33 indicator rows and 67 source-register records. It uses published agency products and assessments; it does not claim that every raw satellite, sonar or seismic archive was independently downloaded and reprocessed.
+The published baseline contains 38 indicator rows and 69 source-register records. It uses published agency products and assessments; it does not claim that every raw satellite, sonar or seismic archive was independently downloaded and reprocessed.
 
 ### 2. Riyadh fire/smoke OSINT case file
 
@@ -108,7 +108,7 @@ For instructions on asking an AI assistant to search and explain this repository
 
 ## Single-page consolidated report
 
-For a single-document reading experience, see the [Global Earth System Complete Report](Global-Earth-System-Complete-Report.md). It combines the complete scientific chapters, methods, glossary, roadmap, data dictionary, 33 indicator records and 67 source-register records.
+For a single-document reading experience, see the [Global Earth System Complete Report](Global-Earth-System-Complete-Report.md). It combines the complete scientific chapters, methods, glossary, roadmap, data dictionary, 38 indicator records and 69 source-register records.
 
 
 ## Visual dashboard and annual tracking
