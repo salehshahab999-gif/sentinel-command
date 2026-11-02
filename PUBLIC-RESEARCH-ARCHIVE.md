@@ -104,3 +104,8 @@ The following topics appeared in earlier research requests and discussions. They
 This archive currently indexes the research artifacts that can be verified in the repository and the research tracks that can be identified from available project context. It is **not a complete historical export of every assistant response from every past conversation**. Full historical chat text is not available as one retrievable source in this workflow, so missing reports must be reconstructed from primary sources rather than invented or attributed to an unverified past answer.
 
 For instructions on asking an AI assistant to search and explain this repository, see the [AI Research Guide](AI-RESEARCH-GUIDE.md).
+
+
+## Single-page consolidated report
+
+For a single-document reading experience, see the [Global Earth System Complete Report](Global-Earth-System-Complete-Report.md). It combines the complete scientific chapters, methods, glossary, roadmap, data dictionary, 33 indicator records and 67 source-register records.
