@@ -155,3 +155,25 @@ For geospatial OSINT, use an explicit public-interest and safety review. General
 - [Repository custom instructions](https://docs.github.com/en/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide)
 - [Repository indexing](https://docs.github.com/en/copilot/concepts/prompting-and-context/repository-indexing)
 - [Responsible use of Copilot Chat](https://docs.github.com/copilot/responsible-use/chat-in-github)
+
+
+## 8. Annual Earth-system comparison
+
+The project keeps annual values in earth-system-global-review/data/annual-observations.csv and publishes the generated table in EARTH-SYSTEM-ANNUAL-COMPARISON.md. The single-page report embeds the same comparison panel.
+
+Use this prompt when preparing the next annual update:
+
+~~~text
+Prepare the annual Earth-system comparison for [YEAR] versus [PREVIOUS YEAR].
+Read annual-observations.csv, the current indicator snapshot and source register.
+For each series, locate the original agency report or dataset. Verify observation
+period, publication date, source/product version, method, unit, baseline,
+geography and uncertainty. Compare only adjacent years with matching metadata.
+Do not calculate a percentage for temperature anomalies or precipitation
+departures. Preserve product differences and source-reported percentage changes
+when source values are rounded. Mark unavailable values as pending. Produce the
+proposed CSV rows, source-register updates and report changes, but do not commit
+until the sources have been independently checked.
+~~~
+
+The annual GitHub Actions workflow creates a dated review issue each April. It does not scrape or invent scientific values. A generated chart is only as reliable as its source rows.
