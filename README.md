@@ -104,3 +104,8 @@ This repository now has a central index of published research outputs and resear
 - [Repository-wide GitHub Copilot instructions](./.github/copilot-instructions.md)
 
 The archive intentionally excludes private chat transcripts, user-authored messages, personal information and private project configuration. The inventory distinguishes reports already published from earlier research topics that have not yet been reconstructed into verified public reports.
+
+
+## Complete single-page Global Earth System Report
+
+Read the entire global Earth-system assessment in one continuous document: **[Global Earth System Complete Report](./Global-Earth-System-Complete-Report.md)**. It includes all scientific chapters, methods, source catalog, glossary, and the complete 33-indicator and 67-source tables.
