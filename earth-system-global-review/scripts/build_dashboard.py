@@ -230,7 +230,7 @@ def svg_dashboard(indicators: list[dict[str, str]], annual_rows: list[dict[str, 
         f'<rect width="{width}" height="{height}" rx="28" fill="{palette["background"]}"/>',
         f'<path d="M0 120 H1200" stroke="{palette["border"]}" stroke-width="2"/>',
         f'<text x="42" y="54" fill="{palette["text"]}" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="700">GLOBAL EARTH SYSTEM</text>',
-        f'<text x="44" y="88" fill="{palette["muted"]}" font-family="Inter,Arial,sans-serif" font-size="16">VISUAL RESEARCH DASHBOARD  •  SNAPSHOT: 03 NOV 2026</text>',
+        f'<text x="44" y="88" fill="{palette["muted"]}" font-family="Inter,Arial,sans-serif" font-size="16">VISUAL RESEARCH DASHBOARD  •  SNAPSHOT: {date.today().strftime('%d %b %Y').upper()}</text>',
         f'<rect x="902" y="32" width="250" height="52" rx="15" fill="{palette["panel2"]}" stroke="{palette["border"]}"/>',
         f'<text x="1027" y="64" text-anchor="middle" fill="{palette["cyan"]}" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">SOURCE-TRACEABLE • NOT LIVE</text>',
     ]
