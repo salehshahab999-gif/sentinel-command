@@ -119,3 +119,15 @@ Read the entire global Earth-system assessment in one continuous document: **[Gl
 - [One-page full report](./Global-Earth-System-Complete-Report.md)
 
 GitHub Actions regenerates the dashboard and annual tables after verified data-file updates. A scheduled annual review issue requests the previous complete year's official data; the workflow does not invent or silently scrape scientific values.
+
+
+## Public Elon Musk Financing Network Research
+
+A dated English-language public-record dossier tracks personal credit disclosures, the unnamed 2016/2017 lender pools, Tesla and SolarCity corporate facilities, and related-party debt securities. Personal loans, corporate borrowing and debt investments are kept separate.
+
+- [Elon Musk Financing Network - research dossier](./elon-musk-financing-network/)
+- [Consolidated research report](./elon-musk-financing-network/FINANCING-NETWORK-RESEARCH-REPORT.md)
+- [Primary-source register](./elon-musk-financing-network/SOURCE-REGISTER.md)
+- [Research log and continuation plan](./elon-musk-financing-network/RESEARCH-LOG.md)
+
+Snapshot date: **5 November 2026**. This is a curated public-record research artifact, not a private chat transcript or a claim that all historical lender identities have been resolved.
