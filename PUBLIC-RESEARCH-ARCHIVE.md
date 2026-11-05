@@ -121,3 +121,16 @@ The Global Earth System report now includes a visual dashboard, a 2024–2025 co
 - [Single-page full report](Global-Earth-System-Complete-Report.md)
 
 The annual tracking pipeline compares only like-for-like series. GitHub Actions opens a review issue each year; it does not auto-publish unverified measurements.
+
+
+### 5. Elon Musk financing network (2015–2017 baseline)
+
+**Snapshot date:** 5 November 2026  
+**Status:** Published initial public-record baseline; lender identification remains an active research question.
+
+- [Dossier index](elon-musk-financing-network/README.md)
+- [Consolidated research report](elon-musk-financing-network/FINANCING-NETWORK-RESEARCH-REPORT.md)
+- [Primary-source register](elon-musk-financing-network/SOURCE-REGISTER.md)
+- [Research log and continuation plan](elon-musk-financing-network/RESEARCH-LOG.md)
+
+The dossier distinguishes personal credit to Musk and his revocable trust from corporate credit to Tesla/SolarCity and debt securities purchased by Musk, the trust or SpaceX. It does not identify the unnamed institutions behind the approximately $187.0 million (May 2016) and $279.9 million aggregate (28 February 2017) disclosures; those figures are not added together.
