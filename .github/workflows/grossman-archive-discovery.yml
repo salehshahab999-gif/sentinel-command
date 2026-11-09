@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.5: trace the actual search form DTO before issuing the public POST.
+# Deep catalog discovery revision 2.6: test ISBN search payloads using frontend DTO enums.
 name: Grossman Archive Discovery
 
 on:
