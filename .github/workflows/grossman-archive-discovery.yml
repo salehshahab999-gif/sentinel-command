@@ -14,128 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/grossman-archive-fetch
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Search public catalogs and probe alternate hosts
+      - name: Run deep archive and catalog discovery
         run: |
           python -m pip install --disable-pip-version-check requests
-          python - <<'PY'
-          import requests, json, hashlib
-          from urllib.parse import quote
-          from pathlib import Path
-
-          s=requests.Session()
-          s.headers["User-Agent"]="Mozilla/5.0 (compatible; GrossmanResearch/1.0)"
-          results=[]
-
-          # Search Internet Archive metadata, not full-text copyrighted content.
-          queries=[
-            'title:"Знамя" AND year:1988',
-            'title:"Znamia" AND year:1988',
-            '"Дух свободы" AND Лазарев',
-            '"Жизнь и судьба" AND Гроссман AND Каunas'
-          ]
-          for q in queries:
-            url="https://archive.org/advancedsearch.php"
-            try:
-              r=s.get(url,params={"q":q,"fl[]":["identifier","title","year","mediatype"],"rows":50,"page":1,"output":"json"},timeout=25)
-              item={"kind":"archive.org-search","query":q,"status":r.status_code,"url":r.url}
-              if r.ok:
-                data=r.json()
-                item["numFound"]=data.get("response",{}).get("numFound")
-                item["docs"]=data.get("response",{}).get("docs",[])
-              else: item["body"]=r.text[:400]
-              results.append(item)
-            except Exception as e: results.append({"kind":"archive.org-search","query":q,"error":str(e)})
-
-          # Publicly indexed candidates. Alternate editions are explicitly labelled, not Kaunas.
-          candidates=[
-            ("oldjornal-index","https://oldjornal.ucoz.net/index/zhurnaly_quot_znamja_quot/0-6","index only; may link to issue 9"),
-            ("yandex-issue9-old","https://yadi.sk/i/aoMayfFymfCSN","old issue-9 link; prior API returned 404"),
-            ("imwerden-grossman-1998","https://imwerden.de/pdf/grossman_sobranie_sochineny_v_4_tomakh_tom2_1998__ocr.pdf","alternate 1998 collected works, not Kaunas"),
-            ("imwerden-kuibyshev-1990","https://imwerden.de/pdf/grossman_zhizn_i_sudba_1990_text.pdf","Kuibyshev edition, not Kaunas"),
-            ("djvu-online-znamya-1988-03","https://djvu.online/file/73PKnvJSlRCAE","issue 3 only, not issue 9"),
-            ("archive-org-known-issue8","https://archive.org/details/B-001-028-257-1988-08-PDF","issue 8, not issue 9"),
-            ("grossman-digital-center","https://dc.grossmanweb.eu/","digital archive landing page"),
-            ("belousenko-grossman-index","https://www.belousenko.com/wr_Grossman_Vasily.htm","author bibliography page")
-          ]
-          for label,url,note in candidates:
-            try:
-              r=s.get(url,timeout=30,allow_redirects=True,stream=True)
-              chunk=next(r.iter_content(2048),b"")
-              results.append({"kind":"candidate","label":label,"requested_url":url,"final_url":r.url,
-                "status":r.status_code,"content_type":r.headers.get("content-type"),
-                "content_length":r.headers.get("content-length"),"sample_bytes":len(chunk),
-                "note":note})
-              r.close()
-            except Exception as e: results.append({"kind":"candidate","label":label,"requested_url":url,"error":str(e),"note":note})
-
-
-          # Inspect the complete public Grossman archive directory for any Kaunas-labelled files.
-          try:
-            rr=s.get("https://www.publ.lib.ru/ARCHIVES/G/GROSSMAN_Vasiliy_Semenovich/",timeout=30)
-            import re
-            links=re.findall(r"""href=["']([^"']+)["']""",rr.text,flags=re.I)
-            results.append({"kind":"publ-lib-directory","status":rr.status_code,"url":rr.url,
-              "grossman_files":[x for x in links if "grossman" in x.lower() or "jizn" in x.lower() or "sud" in x.lower()],
-              "kaunas_mentions":rr.text.lower().count("kaunas")+rr.text.lower().count("швиеса")})
-          except Exception as e: results.append({"kind":"publ-lib-directory","error":str(e)})
-          # Search catalogs for the exact Kaunas ISBN and bibliographic fingerprints.
-          catalog_queries=[
-            ("archive-isbn","https://archive.org/advancedsearch.php",{"q":'"5-430-00856-7"','fl[]':['identifier','title','year','mediatype'],'rows':100,'output':'json'}),
-            ("archive-title-kaunas","https://archive.org/advancedsearch.php",{"q":'title:"Жизнь и судьба" AND "Швиеса"','fl[]':['identifier','title','year','mediatype'],'rows':100,'output':'json'}),
-            ("archive-kaunas-year","https://archive.org/advancedsearch.php",{"q":'"Каунас" AND "Гроссман" AND year:1990','fl[]':['identifier','title','year','mediatype'],'rows':100,'output':'json'})
-          ]
-          for label,url,params in catalog_queries:
-            try:
-              rr=s.get(url,params=params,timeout=30)
-              rec={"kind":"catalog-search","label":label,"status":rr.status_code,"url":rr.url}
-              if rr.ok:
-                jj=rr.json(); rec["numFound"]=jj.get("response",{}).get("numFound"); rec["docs"]=jj.get("response",{}).get("docs",[])
-              else: rec["body"]=rr.text[:500]
-              results.append(rec)
-            except Exception as e: results.append({"kind":"catalog-search","label":label,"error":str(e)})
-          try:
-            rr=s.get("https://openlibrary.org/isbn/5430008567.json",timeout=25)
-            results.append({"kind":"openlibrary-isbn","status":rr.status_code,"url":rr.url,"body":rr.json() if rr.ok else rr.text[:500]})
-          except Exception as e: results.append({"kind":"openlibrary-isbn","error":str(e)})
-          try:
-            rr=s.get("https://www.googleapis.com/books/v1/volumes",params={"q":"isbn:5430008567"},timeout=25)
-            results.append({"kind":"google-books-isbn","status":rr.status_code,"body":rr.json() if rr.ok else rr.text[:500]})
-          except Exception as e: results.append({"kind":"google-books-isbn","error":str(e)})
-
-          # Global national-library and union-catalogue probes: metadata/search pages only.
-          global_catalogs=[
-            ("DNB-SRU","https://services.dnb.de/sru/dnb",{"version":"1.1","operation":"searchRetrieve","query":'pica.isb="'+ "5-430-00856-7" + '"',"recordSchema":"dc","maximumRecords":10}),
-            ("WorldCat","https://search.worldcat.org/search",{"query":"5-430-00856-7"}),
-            ("KVK","https://kvk.bibliothek.kit.edu/",{"digitalOnly":"0","embedFulltitle":"0","newTab":"0","ALL":"5-430-00856-7"}),
-            ("LIBIS-Lithuania","https://www.ibiblioteka.lt/",{"query":"5-430-00856-7"}),
-            ("OpenLibrary-search","https://openlibrary.org/search.json",{"q":"5-430-00856-7"}),
-            ("GoogleBooks-search","https://www.googleapis.com/books/v1/volumes",{"q":"isbn:5-430-00856-7"}),
-            ("InternetArchive-exact-ISBN","https://archive.org/advancedsearch.php",{"q":'identifier:* AND "5-430-00856-7"',"fl[]":["identifier","title","year","mediatype"],"rows":50,"output":"json"})
-          ]
-          for label,url,params in global_catalogs:
-            try:
-              rr=s.get(url,params=params,timeout=35,allow_redirects=True)
-              rec={"kind":"global-catalog","label":label,"status":rr.status_code,"final_url":rr.url,
-                   "content_type":rr.headers.get("content-type"),"bytes":len(rr.content)}
-              if "json" in (rr.headers.get("content-type") or ""):
-                try: rec["data"]=rr.json()
-                except Exception: rec["sample"]=rr.text[:1200]
-              else:
-                import re
-                title=re.search(r"<title[^>]*>(.*?)</title>",rr.text,re.I|re.S)
-                rec["page_title"]=re.sub(r"\\s+"," ",title.group(1)).strip() if title else None
-                rec["sample"]=re.sub(r"\\s+"," ",rr.text[:1800])
-              results.append(rec)
-            except Exception as e: results.append({"kind":"global-catalog","label":label,"error":str(e)})
-
-          Path("discovery-results.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")
-          print(json.dumps(results,ensure_ascii=False,indent=2))
-          PY
+          python .github/scripts/grossman_deep_discovery.py
       - uses: actions/upload-artifact@v4
         with:
-          name: grossman-discovery-results
-          path: discovery-results.json
+          name: grossman-deep-discovery-results
+          path: grossman-deep-results.json
           retention-days: 3
