@@ -237,5 +237,56 @@ try:
 except Exception as e:
     add("ibibl-search-dto-contexts",error=str(e))
 
+# 6) Test likely request DTO shapes, now using the canonical apex API host.
+try:
+    if config_obj:
+        api_base = "https://ibiblioteka.lt/metis-api"
+        route = api_base + "/bibliographic-records/public/detailed-search/filter"
+        bodies = [
+            {"searchFields":[{"searchPhrase":"5-430-00856-7","searchField":"ISBN"}]},
+            {"searchFields":[{"searchPhrase":"5430008567","searchField":"ISBN"}],
+             "sourceTitleView":None,"source":None,"publicationTypes":[]},
+            {"searchFields":[{"searchPhrase":"5-430-00856-7","searchField":"ISBN","phraseMatch":"EXACT_PHRASE"}],
+             "sourceTitleView":None,"source":None,"publicationTypes":[],"page":0,"size":10},
+            {"searchFields":[{"searchPhrase":"5-430-00856-7","searchField":"DEFAULT"}],
+             "sourceTitleView":None,"source":None,"publicationTypes":[]},
+        ]
+        for body in bodies:
+            try:
+                pr=S.post(route,json=body,timeout=35,headers={"Content-Type":"application/json"},allow_redirects=False)
+                pb=pr.content[:2_000_000]
+                add("ibibl-dto-test",body=body,status=pr.status_code,
+                    location=pr.headers.get("location"),content_type=pr.headers.get("content-type"),
+                    sample=pb.decode("utf-8","replace")[:3500])
+            except Exception as e:
+                add("ibibl-dto-test",body=body,error=str(e))
+        # unauthenticated by-ISBN route diagnostic only; no attempt to bypass login.
+        try:
+            r,b=get(api_base+"/bibliographic-records/by-isbn-issn-and-title",
+                    {"isbn":"5-430-00856-7","title":"Жизнь и судьба"},timeout=25,limit=500_000)
+            add("ibibl-auth-route-diagnostic",status=r.status_code,url=r.url,
+                content_type=r.headers.get("content-type"),sample=b.decode("utf-8","replace")[:900])
+        except Exception as e:
+            add("ibibl-auth-route-diagnostic",error=str(e))
+except Exception as e:
+    add("ibibl-dto-test",error=str(e))
+
+# Capture further enum and form-model source around key search DTO symbols.
+try:
+    for u,t,n in assets:
+        contexts=[]
+        for needle in ["addSearchField","searchPhrase","phraseMatch","EXACT_PHRASE","FAST_SEARCH",
+                       "BibliographicRecordSearchFieldEnum","DEFAULT","ISBN","getDetailedSearchFilterResultView("]:
+            p=0; hits=0
+            while hits<4:
+                i=t.find(needle,p)
+                if i<0: break
+                contexts.append({"needle":needle,"context":t[max(0,i-500):i+1250]})
+                p=i+len(needle);hits+=1
+        if contexts:
+            add("ibibl-enum-model-contexts",url=u,contexts=contexts[:60])
+except Exception as e:
+    add("ibibl-enum-model-contexts",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
