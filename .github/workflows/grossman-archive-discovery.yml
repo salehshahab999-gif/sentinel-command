@@ -105,6 +105,32 @@ jobs:
             results.append({"kind":"google-books-isbn","status":rr.status_code,"body":rr.json() if rr.ok else rr.text[:500]})
           except Exception as e: results.append({"kind":"google-books-isbn","error":str(e)})
 
+          # Global national-library and union-catalogue probes: metadata/search pages only.
+          global_catalogs=[
+            ("DNB-SRU","https://services.dnb.de/sru/dnb",{"version":"1.1","operation":"searchRetrieve","query":'pica.isb="'+ "5-430-00856-7" + '"',"recordSchema":"dc","maximumRecords":10}),
+            ("WorldCat","https://search.worldcat.org/search",{"query":"5-430-00856-7"}),
+            ("KVK","https://kvk.bibliothek.kit.edu/",{"digitalOnly":"0","embedFulltitle":"0","newTab":"0","ALL":"5-430-00856-7"}),
+            ("LIBIS-Lithuania","https://www.ibiblioteka.lt/",{"query":"5-430-00856-7"}),
+            ("OpenLibrary-search","https://openlibrary.org/search.json",{"q":"5-430-00856-7"}),
+            ("GoogleBooks-search","https://www.googleapis.com/books/v1/volumes",{"q":"isbn:5-430-00856-7"}),
+            ("InternetArchive-exact-ISBN","https://archive.org/advancedsearch.php",{"q":'identifier:* AND "5-430-00856-7"',"fl[]":["identifier","title","year","mediatype"],"rows":50,"output":"json"})
+          ]
+          for label,url,params in global_catalogs:
+            try:
+              rr=s.get(url,params=params,timeout=35,allow_redirects=True)
+              rec={"kind":"global-catalog","label":label,"status":rr.status_code,"final_url":rr.url,
+                   "content_type":rr.headers.get("content-type"),"bytes":len(rr.content)}
+              if "json" in (rr.headers.get("content-type") or ""):
+                try: rec["data"]=rr.json()
+                except Exception: rec["sample"]=rr.text[:1200]
+              else:
+                import re
+                title=re.search(r"<title[^>]*>(.*?)</title>",rr.text,re.I|re.S)
+                rec["page_title"]=re.sub(r"\\s+"," ",title.group(1)).strip() if title else None
+                rec["sample"]=re.sub(r"\\s+"," ",rr.text[:1800])
+              results.append(rec)
+            except Exception as e: results.append({"kind":"global-catalog","label":label,"error":str(e)})
+
           Path("discovery-results.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")
           print(json.dumps(results,ensure_ascii=False,indent=2))
           PY
