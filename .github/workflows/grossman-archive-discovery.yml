@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.4: enforce apex-host API requests so POST filters are not redirected.
+# Deep catalog discovery revision 2.5: trace the actual search form DTO before issuing the public POST.
 name: Grossman Archive Discovery
 
 on:
