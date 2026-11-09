@@ -1,0 +1,125 @@
+name: Grossman Archive Fetch (manual, isolated)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: "Public archive URL (Yandex Disk or Internet Archive)"
+        required: true
+        type: string
+        default: "https://yadi.sk/i/aoMayfFymfCSN"
+      label:
+        description: "Short source label"
+        required: false
+        type: string
+        default: "znamya-1988-09"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grossman-archive-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch public archive file safely
+        env:
+          SOURCE_URL: ${{ inputs.source_url }}
+          SOURCE_LABEL: ${{ inputs.label }}
+        run: |
+          python -m pip install --disable-pip-version-check requests
+          python - <<'PY'
+          import os, re, sys, json, hashlib
+          from pathlib import Path
+          from urllib.parse import urlparse
+          import requests
+
+          source = os.environ["SOURCE_URL"].strip()
+          label = re.sub(r"[^A-Za-z0-9._-]+", "-", os.environ.get("SOURCE_LABEL","archive"))[:70] or "archive"
+          u = urlparse(source)
+          allowed = {"yadi.sk", "disk.yandex.ru", "archive.org", "www.archive.org", "imwerden.de", "www.imwerden.de"}
+          if u.scheme != "https" or (u.hostname or "").lower() not in allowed:
+              raise SystemExit("Blocked: only HTTPS Yandex Disk, Internet Archive, and ImWerden URLs are allowed.")
+
+          s = requests.Session()
+          s.headers.update({"User-Agent":"Mozilla/5.0 (compatible; GrossmanArchiveResearch/1.0)"})
+          download_url = source
+
+          if (u.hostname or "").lower() in {"yadi.sk", "disk.yandex.ru"}:
+              api = "https://cloud-api.yandex.net/v1/disk/public/resources/download"
+              r = s.get(api, params={"public_key": source}, timeout=30)
+              print("Yandex public-link API:", r.status_code, r.headers.get("content-type"))
+              r.raise_for_status()
+              data = r.json()
+              download_url = data.get("href")
+              if not download_url:
+                  raise SystemExit("Yandex did not return a public download URL: " + json.dumps(data)[:1000])
+
+          # Stream to disk; reject unexpected redirect destinations and cap at 200 MiB.
+          resp = s.get(download_url, stream=True, timeout=(20, 60), allow_redirects=True)
+          resp.raise_for_status()
+          final_host = (urlparse(resp.url).hostname or "").lower()
+          redirect_allow = allowed | {"yandex.net", "storage.yandex.net", "downloader.disk.yandex.ru", "yadisk.net", "ia801xxx.us.archive.org"}
+          if not (final_host in redirect_allow or final_host.endswith(".yandex.net") or final_host.endswith(".archive.org")):
+              raise SystemExit("Blocked unexpected final host: " + final_host)
+
+          outdir = Path("archive-output")
+          outdir.mkdir(exist_ok=True)
+          ctype = resp.headers.get("content-type","").lower()
+          ext = ".bin"
+          if "pdf" in ctype: ext = ".pdf"
+          elif "djvu" in ctype: ext = ".djvu"
+          elif "zip" in ctype: ext = ".zip"
+          elif "html" in ctype: ext = ".html"
+          elif "text" in ctype: ext = ".txt"
+
+          path = outdir / (label + ext)
+          total = 0
+          h = hashlib.sha256()
+          with path.open("wb") as f:
+              for chunk in resp.iter_content(1024*1024):
+                  if not chunk: continue
+                  total += len(chunk)
+                  if total > 200*1024*1024:
+                      raise SystemExit("Stopped: file exceeds 200 MiB safety limit.")
+                  h.update(chunk)
+                  f.write(chunk)
+
+          with path.open("rb") as f: magic = f.read(16)
+          if magic.startswith(b"%PDF-"): detected = "PDF"
+          elif magic[:4] in (b"AT&TF", b"FORM"): detected = "possible DjVu/FORM container"
+          elif magic.startswith(b"PK\x03\x04"): detected = "ZIP"
+          elif magic.startswith(b"<!DO") or b"<html" in magic.lower(): detected = "HTML page, not the document"
+          else: detected = "unknown/binary; inspect before treating as a scan"
+
+          report = {
+            "requested_url": source,
+            "final_url": resp.url,
+            "final_host": final_host,
+            "http_status": resp.status_code,
+            "content_type": ctype,
+            "bytes": total,
+            "sha256": h.hexdigest(),
+            "magic_detection": detected,
+            "saved_file": str(path)
+          }
+          (outdir / "fetch-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          if detected == "HTML page, not the document":
+              print("NOTICE: the archive returned a web page, not a document file.")
+          PY
+      - name: Upload fetched file and diagnostic report
+        uses: actions/upload-artifact@v4
+        with:
+          name: grossman-archive-${{ inputs.label }}
+          path: archive-output/
+          if-no-files-found: error
+          retention-days: 3
