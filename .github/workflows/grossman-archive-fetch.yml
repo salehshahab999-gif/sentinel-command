@@ -126,3 +126,56 @@ jobs:
           path: archive-output/
           if-no-files-found: error
           retention-days: 3
+
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Search public catalogs and probe alternate hosts
+        run: |
+          python -m pip install --disable-pip-version-check requests
+          python - <<'PY'
+          import requests, json
+          from pathlib import Path
+          s=requests.Session()
+          s.headers["User-Agent"]="Mozilla/5.0 (compatible; GrossmanResearch/1.0)"
+          results=[]
+          queries=['title:"Знамя" AND year:1988','title:"Znamia" AND year:1988','"Дух свободы" AND Лазарев','"Жизнь и судьба" AND Гроссман AND Каunas']
+          for q in queries:
+            try:
+              r=s.get("https://archive.org/advancedsearch.php",params={"q":q,"fl[]":["identifier","title","year","mediatype"],"rows":50,"page":1,"output":"json"},timeout=25)
+              item={"kind":"archive.org-search","query":q,"status":r.status_code,"url":r.url}
+              if r.ok:
+                d=r.json(); item["numFound"]=d.get("response",{}).get("numFound"); item["docs"]=d.get("response",{}).get("docs",[])
+              else: item["body"]=r.text[:300]
+              results.append(item)
+            except Exception as e: results.append({"kind":"archive.org-search","query":q,"error":str(e)})
+          candidates=[
+            ("oldjornal-index","https://oldjornal.ucoz.net/index/zhurnaly_quot_znamja_quot/0-6","index only"),
+            ("yandex-issue9-old","https://yadi.sk/i/aoMayfFymfCSN","old link"),
+            ("imwerden-grossman-1998","https://imwerden.de/pdf/grossman_sobranie_sochineny_v_4_tomakh_tom2_1998__ocr.pdf","alternate 1998 edition, not Kaunas"),
+            ("imwerden-kuibyshev-1990","https://imwerden.de/pdf/grossman_zhizn_i_sudba_1990_text.pdf","Kuibyshev edition, not Kaunas"),
+            ("djvu-online-znamya-1988-03","https://djvu.online/file/73PKnvJSlRCAE","issue 3, not issue 9"),
+            ("archive-org-issue8","https://archive.org/details/B-001-028-257-1988-08-PDF","issue 8, not issue 9"),
+            ("grossman-digital-center","https://dc.grossmanweb.eu/","digital archive landing page"),
+            ("belousenko-index","https://www.belousenko.com/wr_Grossman_Vasily.htm","author bibliography")
+          ]
+          for label,url,note in candidates:
+            try:
+              r=s.get(url,timeout=25,allow_redirects=True,stream=True); chunk=next(r.iter_content(1024),b"")
+              results.append({"kind":"candidate","label":label,"requested_url":url,"final_url":r.url,"status":r.status_code,"content_type":r.headers.get("content-type"),"content_length":r.headers.get("content-length"),"sample_bytes":len(chunk),"note":note})
+              r.close()
+            except Exception as e: results.append({"kind":"candidate","label":label,"requested_url":url,"error":str(e),"note":note})
+          Path("discovery-results.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")
+          print(json.dumps(results,ensure_ascii=False,indent=2))
+          PY
+      - name: Upload discovery report
+        uses: actions/upload-artifact@v4
+        with:
+          name: grossman-discovery-results
+          path: discovery-results.json
+          retention-days: 3
