@@ -45,8 +45,8 @@ jobs:
           from urllib.parse import urlparse
           import requests
 
-          source = os.environ["SOURCE_URL"].strip()
-          label = re.sub(r"[^A-Za-z0-9._-]+", "-", os.environ.get("SOURCE_LABEL","archive"))[:70] or "archive"
+          source = (os.environ.get("SOURCE_URL") or "https://yadi.sk/i/aoMayfFymfCSN").strip()
+          label = re.sub(r"[^A-Za-z0-9._-]+", "-", os.environ.get("SOURCE_LABEL") or "znamya-1988-09")[:70] or "znamya-1988-09"
           u = urlparse(source)
           allowed = {"yadi.sk", "disk.yandex.ru", "archive.org", "www.archive.org", "imwerden.de", "www.imwerden.de"}
           if u.scheme != "https" or (u.hostname or "").lower() not in allowed:
