@@ -339,5 +339,39 @@ try:
 except Exception as e:
     add("ibibl-full-model-search",error=str(e))
 
+# 8) Fetch the actual result page for the two exact-ISBN matches returned by the public filter endpoint.
+try:
+    if config_obj and "bodies" in globals():
+        for idx in [0,1]:
+            body=bodies[idx]
+            url="https://ibiblioteka.lt/metis-api/bibliographic-records/public/detailed-search/page"
+            try:
+                pr=S.post(url,json=body,timeout=45,
+                    headers={"Content-Type":"application/json","Accept":"application/json"},
+                    allow_redirects=False)
+                raw=pr.content[:4_000_000]
+                sample=raw.decode("utf-8","replace")
+                summary=None
+                try:
+                    data=json.loads(sample)
+                    if isinstance(data,dict):
+                        keys=list(data.keys())
+                        content=data.get("content") or data.get("results") or data.get("items") or data.get("data")
+                        summary={"keys":keys,"totalElements":data.get("totalElements"),
+                                 "totalPages":data.get("totalPages"),"number":data.get("number"),
+                                 "size":data.get("size"),"content_count":len(content) if isinstance(content,list) else None,
+                                 "content_preview":content[:8] if isinstance(content,list) else content}
+                    elif isinstance(data,list):
+                        summary={"list_length":len(data),"preview":data[:8]}
+                except Exception:
+                    pass
+                add("ibibl-result-page",searchFields=body["searchFields"],status=pr.status_code,
+                    content_type=pr.headers.get("content-type"),summary=summary,
+                    sample=sample[:18000])
+            except Exception as e:
+                add("ibibl-result-page",searchFields=body["searchFields"],error=str(e))
+except Exception as e:
+    add("ibibl-result-page",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
