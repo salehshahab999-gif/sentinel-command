@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.8: retrieve full public record pages for exact ISBN matches.
+# Deep catalog discovery revision 2.9: separate same-ISBN editions by publisher and inspect local holdings.
 name: Grossman Archive Discovery
 
 on:
