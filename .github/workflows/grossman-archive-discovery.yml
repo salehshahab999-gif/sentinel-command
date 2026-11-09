@@ -71,6 +71,31 @@ jobs:
               r.close()
             except Exception as e: results.append({"kind":"candidate","label":label,"requested_url":url,"error":str(e),"note":note})
 
+
+          # Search catalogs for the exact Kaunas ISBN and bibliographic fingerprints.
+          catalog_queries=[
+            ("archive-isbn","https://archive.org/advancedsearch.php",{"q":'"5-430-00856-7"','fl[]':['identifier','title','year','mediatype'],'rows':100,'output':'json'}),
+            ("archive-title-kaunas","https://archive.org/advancedsearch.php",{"q":'title:"Жизнь и судьба" AND "Швиеса"','fl[]':['identifier','title','year','mediatype'],'rows':100,'output':'json'}),
+            ("archive-kaunas-year","https://archive.org/advancedsearch.php",{"q":'"Каунас" AND "Гроссман" AND year:1990','fl[]':['identifier','title','year','mediatype'],'rows':100,'output':'json'})
+          ]
+          for label,url,params in catalog_queries:
+            try:
+              rr=s.get(url,params=params,timeout=30)
+              rec={"kind":"catalog-search","label":label,"status":rr.status_code,"url":rr.url}
+              if rr.ok:
+                jj=rr.json(); rec["numFound"]=jj.get("response",{}).get("numFound"); rec["docs"]=jj.get("response",{}).get("docs",[])
+              else: rec["body"]=rr.text[:500]
+              results.append(rec)
+            except Exception as e: results.append({"kind":"catalog-search","label":label,"error":str(e)})
+          try:
+            rr=s.get("https://openlibrary.org/isbn/5430008567.json",timeout=25)
+            results.append({"kind":"openlibrary-isbn","status":rr.status_code,"url":rr.url,"body":rr.json() if rr.ok else rr.text[:500]})
+          except Exception as e: results.append({"kind":"openlibrary-isbn","error":str(e)})
+          try:
+            rr=s.get("https://www.googleapis.com/books/v1/volumes",params={"q":"isbn:5430008567"},timeout=25)
+            results.append({"kind":"google-books-isbn","status":rr.status_code,"body":rr.json() if rr.ok else rr.text[:500]})
+          except Exception as e: results.append({"kind":"google-books-isbn","error":str(e)})
+
           Path("discovery-results.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")
           print(json.dumps(results,ensure_ascii=False,indent=2))
           PY
