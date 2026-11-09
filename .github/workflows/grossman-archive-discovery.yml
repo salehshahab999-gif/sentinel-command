@@ -75,9 +75,8 @@ jobs:
           # Inspect the complete public Grossman archive directory for any Kaunas-labelled files.
           try:
             rr=s.get("https://www.publ.lib.ru/ARCHIVES/G/GROSSMAN_Vasiliy_Semenovich/",timeout=30)
-            from bs4 import BeautifulSoup
-            soup=BeautifulSoup(rr.text,"html.parser")
-            links=[a.get("href") for a in soup.find_all("a",href=True)]
+            import re
+            links=re.findall(r'href=["\\']([^"\\']+)["\\']',rr.text,flags=re.I)
             results.append({"kind":"publ-lib-directory","status":rr.status_code,"url":rr.url,
               "grossman_files":[x for x in links if "grossman" in x.lower() or "jizn" in x.lower() or "sud" in x.lower()],
               "kaunas_mentions":rr.text.lower().count("kaunas")+rr.text.lower().count("швиеса")})
