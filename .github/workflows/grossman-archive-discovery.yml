@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.9: separate same-ISBN editions by publisher and inspect local holdings.
+# Deep catalog discovery revision 3.0: isolate the Kaunas record's exact library facets and UNIMARC.
 name: Grossman Archive Discovery
 
 on:
