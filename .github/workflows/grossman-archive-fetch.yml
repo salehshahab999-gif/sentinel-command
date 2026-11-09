@@ -161,6 +161,8 @@ jobs:
             ("imwerden-kuibyshev-1990","https://imwerden.de/pdf/grossman_zhizn_i_sudba_1990_text.pdf","Kuibyshev edition, not Kaunas"),
             ("djvu-online-znamya-1988-03","https://djvu.online/file/73PKnvJSlRCAE","issue 3, not issue 9"),
             ("archive-org-issue8","https://archive.org/details/B-001-028-257-1988-08-PDF","issue 8, not issue 9"),
+            ("archive-org-issue9-scan","https://archive.org/download/B-001-028-257-1988-09-PDF/Znamia_1988_09.pdf","exact September 1988 issue 9 scan"),
+            ("archive-org-issue9-ocr","https://archive.org/download/B-001-028-257-1988-09-PDF/Znamia_1988_09_djvu.txt","OCR text derivative of exact issue 9"),
             ("grossman-digital-center","https://dc.grossmanweb.eu/","digital archive landing page"),
             ("belousenko-index","https://www.belousenko.com/wr_Grossman_Vasily.htm","author bibliography")
           ]
