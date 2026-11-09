@@ -142,5 +142,68 @@ try:
 except Exception as e:
     add("ibibl-recursive-scan",error=str(e))
 
+# 4) Load iBiblioteka's public runtime config and test its documented-by-code public search routes.
+try:
+    config_obj = None
+    config_sources = [
+        ("www-cachebusted", "https://www.ibiblioteka.lt/metis/assets/config.json", {"v":"7f67561c0"}),
+        ("apex-cachebusted", "https://ibiblioteka.lt/metis/assets/config.json", {"v":"7f67561c0"}),
+        ("www-no-cache", "https://www.ibiblioteka.lt/metis/assets/config.json", None),
+        ("apex-no-cache", "https://ibiblioteka.lt/metis/assets/config.json", None),
+    ]
+    for label, url, params in config_sources:
+        try:
+            cr, cb = get(url, params, timeout=25, limit=1_000_000)
+            txt = cb.decode("utf-8","replace")
+            add("ibibl-config-probe",label=label,status=cr.status_code,url=cr.url,
+                content_type=cr.headers.get("content-type"),sample=txt[:500])
+            if cr.ok:
+                candidate = json.loads(txt)
+                if isinstance(candidate,dict) and candidate.get("apiUrl"):
+                    config_obj = candidate
+                    break
+        except Exception as e:
+            add("ibibl-config-probe",label=label,error=str(e))
+    if config_obj:
+        api_base = config_obj.get("apiUrl","")
+        if not re.match(r"^https?://",api_base):
+            api_base = urljoin(base,api_base)
+        add("ibibl-api-config",api_base=api_base,
+            externalUrl=config_obj.get("externalUrl"),
+            authConfigured=bool(config_obj.get("auth")))
+        public_routes = [
+            "/bibliographic-records/public/autocomplete",
+            "/bibliographic-records/public/detailed-search/filter"
+        ]
+        for q in ["5-430-00856-7","5430008567","Жизнь и судьба","Žiznʹ i sudʹba"]:
+            try:
+                ur = api_base.rstrip("/") + public_routes[0]
+                ar, ab = get(ur,{"searchText":q},timeout=35,limit=2_000_000)
+                add("ibibl-autocomplete-query",query=q,status=ar.status_code,url=ar.url,
+                    content_type=ar.headers.get("content-type"),
+                    sample=ab.decode("utf-8","replace")[:5000])
+            except Exception as e:
+                add("ibibl-autocomplete-query",query=q,error=str(e))
+        # Public detailed-search filter route; try minimal ISBN/title bodies to reveal the accepted shape.
+        bodies = [
+            {"searchText":"5-430-00856-7"},
+            {"searchText":"5430008567","searchFields":["ISBN"],"page":0,"size":10},
+            {"searchText":"Жизнь и судьба","searchFields":["TITLE"],"page":0,"size":10},
+        ]
+        for body in bodies:
+            try:
+                ur=api_base.rstrip("/") + public_routes[1]
+                pr=S.post(ur,json=body,timeout=35,headers={"Content-Type":"application/json"})
+                pb=pr.content[:2_000_000]
+                add("ibibl-detailed-search-probe",body=body,status=pr.status_code,url=pr.url,
+                    content_type=pr.headers.get("content-type"),
+                    sample=pb.decode("utf-8","replace")[:4500])
+            except Exception as e:
+                add("ibibl-detailed-search-probe",body=body,error=str(e))
+    else:
+        add("ibibl-api-config",result="No public assets/config.json response with apiUrl found")
+except Exception as e:
+    add("ibibl-api-config",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
