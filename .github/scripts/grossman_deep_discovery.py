@@ -208,5 +208,34 @@ try:
 except Exception as e:
     add("ibibl-api-config",error=str(e))
 
+# 5) Extract the actual frontend request DTO call sites for public detailed search.
+try:
+    dto_needles=[
+        "getDetailedSearchFilterResultView",
+        "getDetailedSearchPageResultView",
+        "getDetailedSearchFilter",
+        "searchFields",
+        "searchField",
+        "searchText",
+        "searchRequest",
+        "searchCriteria",
+        "SearchFilter",
+        "ISBN",
+        "ISBN_OR_ISSN_AND_TITLEVIEW"
+    ]
+    for u,t,n in assets:
+        contexts=[]
+        for needle in dto_needles:
+            p=0; found=0
+            while found<8:
+                i=t.find(needle,p)
+                if i<0: break
+                contexts.append({"needle":needle,"context":t[max(0,i-800):i+1600]})
+                p=i+len(needle); found+=1
+        if contexts:
+            add("ibibl-search-dto-contexts",url=u,contexts=contexts[:70])
+except Exception as e:
+    add("ibibl-search-dto-contexts",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
