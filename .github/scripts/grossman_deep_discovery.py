@@ -373,5 +373,41 @@ try:
 except Exception as e:
     add("ibibl-result-page",error=str(e))
 
+# 9) Disambiguate the Kaunas edition from the same-ISBN Kuibyshev record using publisher fields.
+try:
+    if config_obj and "common" in globals():
+        api="https://ibiblioteka.lt/metis-api"
+        for publisher in ["Šviesa","Швиеса"]:
+            body={**common,"searchFields":[
+                {"searchPhrase":"Жизнь и судьба","searchField":"TITLE",
+                 "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]},
+                {"searchPhrase":publisher,"searchField":"PUBLISHER",
+                 "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]}
+            ]}
+            try:
+                p=S.post(api+"/bibliographic-records/public/detailed-search/page",json=body,
+                         timeout=45,headers={"Content-Type":"application/json","Accept":"application/json"},
+                         allow_redirects=False)
+                txt=p.content[:3_000_000].decode("utf-8","replace")
+                add("ibibl-publisher-disambiguation",publisher=publisher,status=p.status_code,
+                    sample=txt[:18000])
+            except Exception as e:
+                add("ibibl-publisher-disambiguation",publisher=publisher,error=str(e))
+    # Probe the public validated-record endpoint for the Kaunas result ID.
+    api="https://ibiblioteka.lt/metis-api"
+    for path in [
+        "/bibliographic-records/5484675/validated",
+        "/bibliographic-records/public/5484675/validated",
+        "/bibliographic-records/public/5484675"
+    ]:
+        try:
+            r,b=get(api+path,{"language":"lt"},timeout=30,limit=2_000_000)
+            add("ibibl-record-detail-probe",path=path,status=r.status_code,
+                content_type=r.headers.get("content-type"),sample=b.decode("utf-8","replace")[:6000])
+        except Exception as e:
+            add("ibibl-record-detail-probe",path=path,error=str(e))
+except Exception as e:
+    add("ibibl-publisher-disambiguation",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
