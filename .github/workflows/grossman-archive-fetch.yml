@@ -1,6 +1,11 @@
 name: Grossman Archive Fetch (manual, isolated)
 
 on:
+  push:
+    branches:
+      - research/grossman-archive-fetch
+    paths:
+      - '.github/workflows/grossman-archive-fetch.yml'
   workflow_dispatch:
     inputs:
       source_url:
