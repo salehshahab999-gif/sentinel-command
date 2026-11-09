@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.6: test ISBN search payloads using frontend DTO enums.
+# Deep catalog discovery revision 2.7: submit full default detailed-search model to public ISBN filter.
 name: Grossman Archive Discovery
 
 on:
