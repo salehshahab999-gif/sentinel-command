@@ -1,6 +1,6 @@
 import json, re
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 import xml.etree.ElementTree as ET
 import requests
 
@@ -167,7 +167,10 @@ try:
     if config_obj:
         api_base = config_obj.get("apiUrl","")
         if not re.match(r"^https?://",api_base):
-            api_base = urljoin(base,api_base)
+            # Runtime config is served from the apex host; use that same origin to avoid
+            # www -> apex 302 redirects that silently convert POST requests to GET.
+            origin = urlsplit(cr.url).scheme + "://" + urlsplit(cr.url).netloc
+            api_base = origin.rstrip("/") + "/" + api_base.lstrip("/")
         add("ibibl-api-config",api_base=api_base,
             externalUrl=config_obj.get("externalUrl"),
             authConfigured=bool(config_obj.get("auth")))
@@ -193,7 +196,7 @@ try:
         for body in bodies:
             try:
                 ur=api_base.rstrip("/") + public_routes[1]
-                pr=S.post(ur,json=body,timeout=35,headers={"Content-Type":"application/json"})
+                pr=S.post(ur,json=body,timeout=35,headers={"Content-Type":"application/json"},allow_redirects=False)
                 pb=pr.content[:2_000_000]
                 add("ibibl-detailed-search-probe",body=body,status=pr.status_code,url=pr.url,
                     content_type=pr.headers.get("content-type"),
