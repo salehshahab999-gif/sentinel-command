@@ -170,6 +170,18 @@ jobs:
               results.append({"kind":"candidate","label":label,"requested_url":url,"final_url":r.url,"status":r.status_code,"content_type":r.headers.get("content-type"),"content_length":r.headers.get("content-length"),"sample_bytes":len(chunk),"note":note})
               r.close()
             except Exception as e: results.append({"kind":"candidate","label":label,"requested_url":url,"error":str(e),"note":note})
+          # Inspect the exact Internet Archive item metadata and available file names.
+          try:
+            item_id="B-001-028-257-1988-09-PDF"
+            mr=s.get("https://archive.org/metadata/"+item_id,timeout=30)
+            meta={"kind":"archive.org-item-metadata","identifier":item_id,"status":mr.status_code}
+            if mr.ok:
+              md=mr.json()
+              meta["metadata"]=md.get("metadata",{})
+              meta["files"]=[{"name":x.get("name"),"size":x.get("size"),"format":x.get("format"),"source":x.get("source"),"private":x.get("private")} for x in md.get("files",[])]
+            else: meta["body"]=mr.text[:500]
+            results.append(meta)
+          except Exception as e: results.append({"kind":"archive.org-item-metadata","error":str(e)})
           Path("discovery-results.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")
           print(json.dumps(results,ensure_ascii=False,indent=2))
           PY
