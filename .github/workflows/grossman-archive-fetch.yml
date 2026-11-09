@@ -181,6 +181,21 @@ jobs:
               meta["files"]=[{"name":x.get("name"),"size":x.get("size"),"format":x.get("format"),"source":x.get("source"),"private":x.get("private")} for x in md.get("files",[])]
             else: meta["body"]=mr.text[:500]
             results.append(meta)
+
+              # Fetch the public OCR derivative and verify Lazarev article heading.
+              try:
+                tx=s.get("https://archive.org/download/"+item_id+"/Znamia_1988_09_djvu.txt",timeout=40)
+                check={"kind":"issue9-ocr-check","status":tx.status_code,"content_type":tx.headers.get("content-type"),"bytes":len(tx.content)}
+                if tx.ok:
+                  body=tx.content.decode("utf-8",errors="replace")
+                  for term in ["Дух свободы","Лазарев","Л. Лазарев"]:
+                    check[term]=body.lower().find(term.lower())
+                  pos=body.lower().find("дух свободы")
+                  if pos>=0: check["context"]=body[max(0,pos-800):pos+2200]
+                else: check["body"]=tx.text[:500]
+                results.append(check)
+              except Exception as e: results.append({"kind":"issue9-ocr-check","error":str(e)})
+
           except Exception as e: results.append({"kind":"archive.org-item-metadata","error":str(e)})
           Path("discovery-results.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")
           print(json.dumps(results,ensure_ascii=False,indent=2))
