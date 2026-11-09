@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.3: resolve the Lithuanian public API base and test ISBN/title lookup.
+# Deep catalog discovery revision 2.4: enforce apex-host API requests so POST filters are not redirected.
 name: Grossman Archive Discovery
 
 on:
