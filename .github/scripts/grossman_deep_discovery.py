@@ -409,5 +409,49 @@ try:
 except Exception as e:
     add("ibibl-publisher-disambiguation",error=str(e))
 
+# 10) Pull the facet counts for the publisher-disambiguated Kaunas record and full public MARC display.
+try:
+    if config_obj and "common" in globals():
+        api="https://ibiblioteka.lt/metis-api"
+        body={**common,"searchFields":[
+            {"searchPhrase":"Жизнь и судьба","searchField":"TITLE",
+             "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]},
+            {"searchPhrase":"Швиеса","searchField":"PUBLISHER",
+             "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]}
+        ]}
+        try:
+            pr=S.post(api+"/bibliographic-records/public/detailed-search/filter",json=body,
+                timeout=45,headers={"Content-Type":"application/json","Accept":"application/json"},
+                allow_redirects=False)
+            x=pr.content[:3_000_000].decode("utf-8","replace")
+            try:
+                dd=json.loads(x)
+                libraries=dd.get("libraries",[])
+                add("ibibl-kaunas-library-facets",status=pr.status_code,totalHits=dd.get("totalHits"),
+                    library_facets=libraries,full_facets={k:dd.get(k) for k in ["authors","languages","typeFilter","recordStatuses"]})
+            except Exception:
+                add("ibibl-kaunas-library-facets",status=pr.status_code,sample=x[:12000])
+        except Exception as e:
+            add("ibibl-kaunas-library-facets",error=str(e))
+    # Parse the public record's UNIMARC display lines separately from the raw JSON.
+    api="https://ibiblioteka.lt/metis-api"
+    r,b=get(api+"/bibliographic-records/public/5484675",timeout=35,limit=4_000_000)
+    try:
+        rec=json.loads(b.decode("utf-8","replace"))
+        lines=rec.get("unimarcContentHtml",{}).get("htmlLines",[])
+        parsed=[]
+        for line in lines:
+            fragments=line.get("htmlFragments",[])
+            parsed.append("".join(f.get("text","") for f in fragments))
+        add("ibibl-kaunas-unimarc-lines",status=r.status_code,id=rec.get("id"),
+            isbd=rec.get("isbd"),persons=rec.get("initialPersons"),unimarc_lines=parsed[:100],
+            attachments=rec.get("attachments"),availableInLibraries=rec.get("availableInLibraries"),
+            mediaConsumptionAvailable=rec.get("mediaConsumptionAvailable"))
+    except Exception as e:
+        add("ibibl-kaunas-unimarc-lines",status=r.status_code,error=str(e),
+            sample=b[:1200].decode("utf-8","replace"))
+except Exception as e:
+    add("ibibl-kaunas-final-check",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
