@@ -1,4 +1,4 @@
-# Deep catalog discovery revision 2.7: submit full default detailed-search model to public ISBN filter.
+# Deep catalog discovery revision 2.8: retrieve full public record pages for exact ISBN matches.
 name: Grossman Archive Discovery
 
 on:
