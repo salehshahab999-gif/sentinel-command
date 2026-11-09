@@ -288,5 +288,56 @@ try:
 except Exception as e:
     add("ibibl-enum-model-contexts",error=str(e))
 
+# 7) Retry public filter search with the app's full default DetailedSearch model structure.
+try:
+    if config_obj:
+        api="https://ibiblioteka.lt/metis-api"
+        empty_date={"from":None,"to":None}
+        selected={
+          "audiences":[],"authors":[],"languages":[],"typeFilter":[],"subjects":[],
+          "sources":[],"libraries":[],"releaseStatus":[],"rateAverages":[],
+          "accessibleOnline":[],"accessiblePublications":[],"accessibilityFeatures":[],
+          "mediaProperties":[],"recordStatuses":[],"dateRange":empty_date
+        }
+        library_data={
+          "bookReceivedDateTypeEnumLastTwoWeeks":False,
+          "bookReceivedDateTypeEnumLastMonth":False,
+          "bookReceivedDateTypeEnumLastThreeMonths":False,
+          "bookReceivedDateTypeEnumLastSixMonths":False,
+          "bookReceivedDateTypeEnumLastYear":False,
+          "bookReceivedDateTypes":[]
+        }
+        common={
+          "hierarchicalListMode":False,"pageStartIndex":0,
+          "selectedFilters":selected,"librariesData":[library_data],
+          "publicationTypes":[],"publicationAttributes":[],"serialPublicationTypes":[],
+          "publicationFormats":[],"rubricSubjects":[],"audiences":[],"udcSubjects":[],
+          "articleSubjects":[],"publicationDateRange":empty_date,"publicationCountries":[],
+          "languages":[],"translateFromLanguages":[],"pageSize":10,"page":0,
+          "sortBy":"MATCH","recentlySearchedByFilters":False,"accessiblePublications":[],
+          "accessibilityType":[],"informationAccessibilityMethod":[],
+          "accessibilityFeatures":[],"accessibilityHazards":[],"contentManagement":[]
+        }
+        bodies=[
+          {**common,"searchFields":[{"searchPhrase":"5430008567","searchField":"DEFAULT",
+                                    "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]}]},
+          {**common,"searchFields":[{"searchPhrase":"Жизнь и судьба","searchField":"DEFAULT",
+                                    "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]}]},
+          {**common,"searchFields":[{"searchPhrase":"5-430-00856-7","searchField":None,
+                                    "phraseMatch":"EXACT_PHRASE","logicalOperator":"AND","keywords":[]}]},
+        ]
+        for body in bodies:
+            try:
+                pr=S.post(api+"/bibliographic-records/public/detailed-search/filter",json=body,
+                          timeout=40,headers={"Content-Type":"application/json","Accept":"application/json"},
+                          allow_redirects=False)
+                pb=pr.content[:2_000_000]
+                add("ibibl-full-model-search",searchFields=body["searchFields"],status=pr.status_code,
+                    content_type=pr.headers.get("content-type"),sample=pb.decode("utf-8","replace")[:6000])
+            except Exception as e:
+                add("ibibl-full-model-search",searchFields=body["searchFields"],error=str(e))
+except Exception as e:
+    add("ibibl-full-model-search",error=str(e))
+
 Path("grossman-deep-results.json").write_text(json.dumps(OUT,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(OUT,ensure_ascii=False,indent=2))
