@@ -6,7 +6,7 @@
 **CIAAW standard atomic weight:** 162.500(1)  
 **Neutral ground-state configuration:** [Xe] 4f¹⁰ 6s²  
 **Ground-state term:** ⁵I₈  
-**First ionization energy:** 5.939061 eV (NIST current element-data index)  
+**First ionization energy:** 5.939061 eV (current NIST Elements index); an older NIST Atomic Data Handbook table reports 5.9389 eV.  
 **Naturally occurring isotopes:** ¹⁵⁶Dy, ¹⁵⁸Dy, ¹⁶⁰Dy, ¹⁶¹Dy, ¹⁶²Dy, ¹⁶³Dy and ¹⁶⁴Dy  
 **Evidence status:** structured research draft; detailed nuclear, magnetic and materials datasets remain open.
 
@@ -40,8 +40,8 @@ Dysprosium was named from the Greek *dysprositos*, meaning difficult to obtain, 
 ## References
 1. CIAAW, [Standard Atomic Weights](https://www.ciaaw.org/atomic-weights.htm); accessed 2026-11-18.
 2. CIAAW, [Dysprosium isotope data](https://ciaaw.org/dysprosium.htm); accessed 2026-11-18.
-3. NIST, [Atomic Data for Dysprosium](https://physics.nist.gov/PhysRefData/Handbook/Tables/dysprosiumtable1.htm); accessed 2026-11-18.
-4. NIST, [Dysprosium element data index](https://physics.nist.gov/cgi-bin/Elements/elInfo.pl?context=frames&element=66); accessed 2026-11-18.
+3. NIST, [Dysprosium element data index](https://physics.nist.gov/cgi-bin/Elements/elInfo.pl?context=frames&element=66); accessed 2026-11-18. The current index reports 5.939061 eV.
+4. NIST, [Atomic Data for Dysprosium, Handbook table](https://physics.nist.gov/PhysRefData/Handbook/Tables/dysprosiumtable1.htm); accessed 2026-11-18. This older table reports 5.9389 eV; the difference is retained as a source/version discrepancy pending full ASD audit.
 5. NIST, [Atomic Spectra Database](https://physics.nist.gov/asd); live database, version/date to be recorded on full extraction.
 6. Royal Society of Chemistry, [Dysprosium](https://periodic-table.rsc.org/element/66/Dysprosium); accessed 2026-11-18.
 7. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
