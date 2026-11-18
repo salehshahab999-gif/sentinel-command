@@ -9,7 +9,7 @@
 
 **Block note:** Helium is placed in Group 18 because its filled 1s shell gives it noble-gas behaviour, but its block assignment is s-block because its ground-state configuration ends in 1s².
 **Standard atomic weight (CIAAW 2024):** 4.002602(2) [1]
-**Ground-state electron configuration:** 1s²   [3]
+**Ground-state electron configuration:** 1s² [3]
 **Physical state at approximately 298 K and 1 bar:** Gas [4]
 
 ## 1. Atomic and periodic context
