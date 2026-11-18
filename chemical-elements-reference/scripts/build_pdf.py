@@ -14,11 +14,21 @@ OUT = ROOT / "dist" / "The_Elements_Advanced_Scientific_Reference_PREVIEW.pdf"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 PAGE = (6.3 * inch, 9.2 * inch)
 
+# Register an embedded Unicode font so isotope superscripts/subscripts and
+# Greek/scientific symbols render correctly in the PDF on GitHub Actions.
+FONT_DIR = Path("/usr/share/fonts/truetype/noto")
+pdfmetrics.registerFont(TTFont("NotoSans", str(FONT_DIR / "NotoSans-Regular.ttf")))
+pdfmetrics.registerFont(TTFont("NotoSans-Bold", str(FONT_DIR / "NotoSans-Bold.ttf")))
+pdfmetrics.registerFont(TTFont("NotoSans-Italic", str(FONT_DIR / "NotoSans-Italic.ttf")))
+pdfmetrics.registerFont(TTFont("NotoSans-BoldItalic", str(FONT_DIR / "NotoSans-BoldItalic.ttf")))
+pdfmetrics.registerFontFamily("NotoSans", normal="NotoSans", bold="NotoSans-Bold", italic="NotoSans-Italic", boldItalic="NotoSans-BoldItalic")
+
 styles = getSampleStyleSheet()
-styles.add(ParagraphStyle(name="CoverTitle", parent=styles["Title"], fontName="Helvetica-Bold", fontSize=25, leading=30, alignment=TA_CENTER, textColor=colors.HexColor("#14263D"), spaceAfter=14))
-styles.add(ParagraphStyle(name="CoverSub", parent=styles["Normal"], fontName="Helvetica", fontSize=10, leading=15, alignment=TA_CENTER, textColor=colors.HexColor("#526477")))
+styles.add(ParagraphStyle(name="CoverTitle", parent=styles["Title"], fontName="NotoSans-Bold", fontSize=25, leading=30, alignment=TA_CENTER, textColor=colors.HexColor("#14263D"), spaceAfter=14))
+styles.add(ParagraphStyle(name="CoverSub", parent=styles["Normal"], fontName="NotoSans", fontSize=10, leading=15, alignment=TA_CENTER, textColor=colors.HexColor("#526477")))
 styles.add(ParagraphStyle(name="H1x", parent=styles["Heading1"], fontSize=17, leading=21, textColor=colors.HexColor("#14263D"), spaceBefore=12, spaceAfter=8))
-styles.add(ParagraphStyle(name="H2x", parent=styles["Heading2"], fontSize=12, leading=15, textColor=colors.HexColor("#235B75"), spaceBefore=9, spaceAfter=5))
+styles.add(ParagraphStyle(name="H2x", parent=styles["Heading2"], fontName="NotoSans-Bold", fontSize=12, leading=15, textColor=colors.HexColor("#235B75"), spaceBefore=9, spaceAfter=5))
+styles["Heading3"].fontName = "NotoSans-Bold"
 styles.add(ParagraphStyle(name="Bodyx", parent=styles["BodyText"], fontSize=8.7, leading=12.2, spaceAfter=6))
 styles.add(ParagraphStyle(name="Smallx", parent=styles["BodyText"], fontSize=7.2, leading=9, textColor=colors.HexColor("#526477")))
 styles.add(ParagraphStyle(name="Cellx", parent=styles["BodyText"], fontSize=7.2, leading=9))
@@ -38,7 +48,7 @@ def footer(canvas, doc):
     w, h = PAGE
     canvas.setStrokeColor(colors.HexColor("#D7DEE5"))
     canvas.line(15*mm, 13*mm, w-15*mm, 13*mm)
-    canvas.setFont("Helvetica", 7)
+    canvas.setFont("NotoSans", 7)
     canvas.setFillColor(colors.HexColor("#657789"))
     canvas.drawString(15*mm, 8*mm, "THE ELEMENTS | DEVELOPMENT PREVIEW")
     canvas.drawRightString(w-15*mm, 8*mm, str(doc.page))
@@ -97,7 +107,7 @@ story = [
     Spacer(1, 10*mm),
     Paragraph("Atomic, Nuclear, Physical, Chemical, and Materials Properties of the 118 Elements", styles["CoverSub"]),
     Spacer(1, 35*mm),
-    Paragraph("DEVELOPMENT PREVIEW", ParagraphStyle("preview", parent=styles["CoverSub"], fontName="Helvetica-Bold", textColor=colors.HexColor("#A14B32"))),
+    Paragraph("DEVELOPMENT PREVIEW", ParagraphStyle("preview", parent=styles["CoverSub"], fontName="NotoSans-Bold", textColor=colors.HexColor("#A14B32"))),
     Spacer(1, 5*mm),
     Paragraph("Development build. This is an evolving research reference, not yet a complete or fully peer-reviewed 118-element encyclopedia.", styles["Smallx"]),
     PageBreak(),
