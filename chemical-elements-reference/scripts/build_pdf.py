@@ -16,15 +16,15 @@ from reportlab.platypus import (
 from reportlab.platypus.tableofcontents import TableOfContents
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "dist" / "The_Elements_Advanced_Scientific_Reference_PREVIEW.pdf"
+OUT = ROOT / "dist" / "The_Elements_Advanced_Scientific_Reference_Professional.pdf"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
 # A4 is a standard, print-friendly page size with enough width for research tables.
 PAGE = A4
 PAGE_WIDTH, PAGE_HEIGHT = PAGE
-LEFT = RIGHT = 18 * mm
-TOP = 22 * mm
-BOTTOM = 19 * mm
+LEFT = RIGHT = 19 * mm
+TOP = 24 * mm
+BOTTOM = 21 * mm
 CONTENT_WIDTH = PAGE_WIDTH - LEFT - RIGHT
 
 # Embed Noto Sans to preserve isotope superscripts, subscripts, Greek letters,
@@ -43,72 +43,97 @@ pdfmetrics.registerFontFamily(
 )
 
 NAVY = colors.HexColor("#14263D")
-BLUE = colors.HexColor("#235B75")
-MUTED = colors.HexColor("#5D6F80")
-RULE = colors.HexColor("#CBD5DF")
-PALE = colors.HexColor("#EDF2F6")
-PALE_BLUE = colors.HexColor("#F2F6F9")
-STATUS = colors.HexColor("#F7F2E9")
+BLUE = colors.HexColor("#1F5F85")
+BLUE_DARK = colors.HexColor("#174663")
+BLUE_MID = colors.HexColor("#4F88A8")
+MUTED = colors.HexColor("#647789")
+RULE = colors.HexColor("#C9D7E2")
+PALE = colors.HexColor("#E8F0F6")
+PALE_BLUE = colors.HexColor("#F3F7FA")
+PALE_CYAN = colors.HexColor("#EAF4F8")
+STATUS = colors.HexColor("#F5F7F9")
+WARNING = colors.HexColor("#FCF5E8")
+WARNING_RULE = colors.HexColor("#D9B979")
+TEXT = colors.HexColor("#1E2A35")
+WHITE = colors.white
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(
     name="CoverTitle", parent=styles["Title"], fontName="NotoSans-Bold",
-    fontSize=31, leading=38, alignment=TA_CENTER, textColor=NAVY,
+    fontSize=32, leading=40, alignment=TA_CENTER, textColor=NAVY,
     spaceAfter=12
 ))
 styles.add(ParagraphStyle(
     name="CoverSub", parent=styles["Normal"], fontName="NotoSans",
-    fontSize=11, leading=16, alignment=TA_CENTER, textColor=MUTED
+    fontSize=11.5, leading=17, alignment=TA_CENTER, textColor=MUTED
 ))
 styles.add(ParagraphStyle(
     name="CoverTag", parent=styles["Normal"], fontName="NotoSans-Bold",
-    fontSize=9, leading=13, alignment=TA_CENTER, textColor=BLUE
+    fontSize=9.2, leading=14, alignment=TA_CENTER, textColor=BLUE
+))
+styles.add(ParagraphStyle(
+    name="CoverMeta", parent=styles["Normal"], fontName="NotoSans",
+    fontSize=9.1, leading=13.5, textColor=TEXT
 ))
 styles.add(ParagraphStyle(
     name="H1x", parent=styles["Heading1"], fontName="NotoSans-Bold",
-    fontSize=18, leading=23, textColor=NAVY, spaceBefore=10,
-    spaceAfter=9, keepWithNext=1
-))
-styles.add(ParagraphStyle(
-    name="ElementTitle", parent=styles["Heading1"], fontName="NotoSans-Bold",
-    fontSize=19, leading=24, textColor=NAVY, spaceBefore=2,
+    fontSize=19, leading=25, textColor=NAVY, spaceBefore=14,
     spaceAfter=11, keepWithNext=1
 ))
 styles.add(ParagraphStyle(
+    name="ElementTitle", parent=styles["Heading1"], fontName="NotoSans-Bold",
+    fontSize=21, leading=27, textColor=NAVY, spaceBefore=3,
+    spaceAfter=12, keepWithNext=1
+))
+styles.add(ParagraphStyle(
     name="H2x", parent=styles["Heading2"], fontName="NotoSans-Bold",
-    fontSize=12.5, leading=16, textColor=BLUE, spaceBefore=10,
-    spaceAfter=5, keepWithNext=1
+    fontSize=13.5, leading=18, textColor=BLUE_DARK, spaceBefore=12,
+    spaceAfter=6, keepWithNext=1
 ))
 styles.add(ParagraphStyle(
     name="H3x", parent=styles["Heading3"], fontName="NotoSans-Bold",
-    fontSize=10.5, leading=13.5, textColor=NAVY, spaceBefore=8,
-    spaceAfter=4, keepWithNext=1
+    fontSize=11.5, leading=15.5, textColor=NAVY, spaceBefore=9,
+    spaceAfter=5, keepWithNext=1
 ))
 styles.add(ParagraphStyle(
     name="Bodyx", parent=styles["BodyText"], fontName="NotoSans",
-    fontSize=9.4, leading=13.7, spaceAfter=6, textColor=colors.HexColor("#202B35")
+    fontSize=10.1, leading=15.1, spaceAfter=7.2, textColor=TEXT,
+    allowWidows=0, allowOrphans=0
 ))
 styles.add(ParagraphStyle(
     name="Listx", parent=styles["BodyText"], fontName="NotoSans",
-    fontSize=9.2, leading=13.2, leftIndent=11, firstLineIndent=-8,
-    spaceAfter=3.5, textColor=colors.HexColor("#202B35")
+    fontSize=9.8, leading=14.4, leftIndent=13, firstLineIndent=-9,
+    spaceAfter=4.5, textColor=TEXT, allowWidows=0, allowOrphans=0
 ))
 styles.add(ParagraphStyle(
     name="Smallx", parent=styles["BodyText"], fontName="NotoSans",
-    fontSize=8, leading=10.5, textColor=MUTED
+    fontSize=8.4, leading=11.5, textColor=MUTED
 ))
 styles.add(ParagraphStyle(
     name="Cellx", parent=styles["BodyText"], fontName="NotoSans",
-    fontSize=8.15, leading=10.5, textColor=colors.HexColor("#202B35")
+    fontSize=8.8, leading=12.2, textColor=TEXT,
+    allowWidows=0, allowOrphans=0
+))
+styles.add(ParagraphStyle(
+    name="CellHeadx", parent=styles["BodyText"], fontName="NotoSans-Bold",
+    fontSize=8.5, leading=11.5, textColor=WHITE
 ))
 styles.add(ParagraphStyle(
     name="Statusx", parent=styles["BodyText"], fontName="NotoSans",
-    fontSize=7.9, leading=10.5, textColor=colors.HexColor("#5B4A31")
+    fontSize=8.7, leading=12.5, textColor=TEXT
+))
+styles.add(ParagraphStyle(
+    name="MetaLabelx", parent=styles["BodyText"], fontName="NotoSans-Bold",
+    fontSize=7.8, leading=10.5, textColor=BLUE_DARK
+))
+styles.add(ParagraphStyle(
+    name="MetaValuex", parent=styles["BodyText"], fontName="NotoSans",
+    fontSize=8.5, leading=11.3, textColor=TEXT
 ))
 styles.add(ParagraphStyle(
     name="TOCEntry", parent=styles["BodyText"], fontName="NotoSans",
-    fontSize=8.5, leading=11.2, leftIndent=13, firstLineIndent=-13,
-    textColor=colors.HexColor("#243746"), spaceBefore=1
+    fontSize=9.2, leading=12.6, leftIndent=15, firstLineIndent=-15,
+    textColor=colors.HexColor("#243746"), spaceBefore=1.7
 ))
 
 def esc(text):
@@ -149,18 +174,47 @@ def inline(text):
 def draw_page_chrome(canvas, doc):
     canvas.saveState()
     if doc.page > 1:
-        canvas.setFont("NotoSans-Bold", 7.2)
-        canvas.setFillColor(MUTED)
-        canvas.drawString(LEFT, PAGE_HEIGHT - 11 * mm, "THE ELEMENTS  |  ADVANCED SCIENTIFIC REFERENCE")
-        canvas.setStrokeColor(RULE)
-        canvas.setLineWidth(0.55)
-        canvas.line(LEFT, PAGE_HEIGHT - 14 * mm, PAGE_WIDTH - RIGHT, PAGE_HEIGHT - 14 * mm)
-
-        canvas.line(LEFT, 13 * mm, PAGE_WIDTH - RIGHT, 13 * mm)
+        # Restrained blue running head and hairline rule.
+        canvas.setFillColor(BLUE_DARK)
+        canvas.setFont("NotoSans-Bold", 7.4)
+        canvas.drawString(LEFT, PAGE_HEIGHT - 12.5 * mm, "THE ELEMENTS  |  SCIENTIFIC REFERENCE")
         canvas.setFont("NotoSans", 7.2)
         canvas.setFillColor(MUTED)
-        canvas.drawString(LEFT, 8 * mm, "DEVELOPMENT PREVIEW  |  18 NOVEMBER 2026")
-        canvas.drawRightString(PAGE_WIDTH - RIGHT, 8 * mm, f"PAGE {doc.page}")
+        canvas.drawRightString(PAGE_WIDTH - RIGHT, PAGE_HEIGHT - 12.5 * mm, "RESEARCH WORKING EDITION")
+        canvas.setStrokeColor(RULE)
+        canvas.setLineWidth(0.6)
+        canvas.line(LEFT, PAGE_HEIGHT - 15.5 * mm, PAGE_WIDTH - RIGHT, PAGE_HEIGHT - 15.5 * mm)
+
+        canvas.setStrokeColor(RULE)
+        canvas.line(LEFT, 14 * mm, PAGE_WIDTH - RIGHT, 14 * mm)
+        canvas.setFillColor(MUTED)
+        canvas.setFont("NotoSans", 7.3)
+        canvas.drawString(LEFT, 8.7 * mm, "SCIENTIFIC AUDIT COVERAGE: ELEMENTS 1-30  |  FULL REVIEW IN PROGRESS")
+        canvas.drawRightString(PAGE_WIDTH - RIGHT, 8.7 * mm, f"PAGE {doc.page}")
+    canvas.restoreState()
+
+
+def draw_cover(canvas, doc):
+    canvas.saveState()
+    # Clean academic cover with a controlled blue palette.
+    canvas.setFillColor(NAVY)
+    canvas.rect(0, PAGE_HEIGHT - 31 * mm, PAGE_WIDTH, 31 * mm, stroke=0, fill=1)
+    canvas.setFillColor(BLUE)
+    canvas.rect(0, PAGE_HEIGHT - 33 * mm, PAGE_WIDTH, 2 * mm, stroke=0, fill=1)
+    canvas.setFillColor(PALE_BLUE)
+    canvas.rect(0, 0, PAGE_WIDTH, 17 * mm, stroke=0, fill=1)
+    canvas.setFillColor(BLUE_DARK)
+    canvas.rect(0, 0, 5 * mm, PAGE_HEIGHT, stroke=0, fill=1)
+    canvas.setStrokeColor(RULE)
+    canvas.setLineWidth(0.7)
+    canvas.line(23 * mm, 26 * mm, PAGE_WIDTH - 18 * mm, 26 * mm)
+    canvas.setFont("NotoSans-Bold", 8)
+    canvas.setFillColor(WHITE)
+    canvas.drawString(23 * mm, PAGE_HEIGHT - 19 * mm, "SCIENTIFIC REFERENCE SERIES")
+    canvas.setFont("NotoSans", 7.4)
+    canvas.setFillColor(MUTED)
+    canvas.drawString(23 * mm, 10 * mm, "VERSION 0.3  |  18 NOVEMBER 2026")
+    canvas.drawRightString(PAGE_WIDTH - 18 * mm, 10 * mm, "EDITORIAL WORKING COPY")
     canvas.restoreState()
 
 class ReferenceDocTemplate(SimpleDocTemplate):
@@ -188,168 +242,126 @@ def table_widths(rows):
 def make_table(rows):
     column_count = len(rows[0])
     normalized = [row[:column_count] + [""] * max(0, column_count - len(row)) for row in rows]
-    data = [[Paragraph(inline(cell.strip()), styles["Cellx"]) for cell in row] for row in normalized]
+    data = []
+    for row_index, row in enumerate(normalized):
+        cells = []
+        for cell in row:
+            style = styles["CellHeadx"] if row_index == 0 else styles["Cellx"]
+            cells.append(Paragraph(inline(cell.strip()), style))
+        data.append(cells)
+
     table = Table(
         data,
         colWidths=table_widths(normalized),
         repeatRows=1,
         hAlign="LEFT",
         splitByRow=1,
-        spaceBefore=2,
-        spaceAfter=5,
+        spaceBefore=3,
+        spaceAfter=7,
     )
     commands = [
-        ("BACKGROUND", (0, 0), (-1, 0), PALE),
-        ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
-        ("GRID", (0, 0), (-1, -1), 0.35, RULE),
+        ("BACKGROUND", (0, 0), (-1, 0), BLUE_DARK),
+        ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
+        ("GRID", (0, 0), (-1, -1), 0.4, RULE),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 5.5),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 5.5),
-        ("TOPPADDING", (0, 0), (-1, -1), 4.5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6.5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6.5),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
     ]
     for row_index in range(1, len(data)):
-        if row_index % 2 == 0:
-            commands.append(("BACKGROUND", (0, row_index), (-1, row_index), PALE_BLUE))
+        fill = PALE_BLUE if row_index % 2 == 0 else WHITE
+        commands.append(("BACKGROUND", (0, row_index), (-1, row_index), fill))
     table.setStyle(TableStyle(commands))
     return table
 
+
+def make_metadata_table(pairs):
+    # Two key/value pairs per row keeps element identity data scannable.
+    rows = []
+    for i in range(0, len(pairs), 2):
+        left = pairs[i]
+        right = pairs[i + 1] if i + 1 < len(pairs) else ("", "")
+        rows.append([
+            Paragraph(inline(left[0]), styles["MetaLabelx"]),
+            Paragraph(inline(left[1]), styles["MetaValuex"]),
+            Paragraph(inline(right[0]), styles["MetaLabelx"]) if right[0] else "",
+            Paragraph(inline(right[1]), styles["MetaValuex"]) if right[1] else "",
+        ])
+    table = Table(
+        rows,
+        colWidths=[29 * mm, 58 * mm, 29 * mm, CONTENT_WIDTH - 116 * mm],
+        hAlign="LEFT",
+        spaceBefore=1,
+        spaceAfter=8,
+    )
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), PALE),
+        ("BACKGROUND", (2, 0), (2, -1), PALE),
+        ("BACKGROUND", (1, 0), (1, -1), PALE_BLUE),
+        ("BACKGROUND", (3, 0), (3, -1), PALE_BLUE),
+        ("GRID", (0, 0), (-1, -1), 0.35, RULE),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    return table
+
+
+def make_heading_panel(title, style):
+    para = Paragraph(inline(title), style)
+    if style.name == "H2x":
+        panel = Table([[para]], colWidths=[CONTENT_WIDTH], hAlign="LEFT")
+        panel.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), PALE_BLUE),
+            ("LINEBEFORE", (0, 0), (0, -1), 2.3, BLUE),
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]))
+        return panel
+    return para
+
 def parse_md(path, element_number=None):
     lines = path.read_text(encoding="utf-8").splitlines()
-    story = []
-    paragraph_lines = []
-    table_rows = []
-    title_added = False
-
-    def flush_paragraph():
-        if paragraph_lines:
-            story.append(Paragraph(inline(" ".join(paragraph_lines)), styles["Bodyx"]))
-            paragraph_lines.clear()
-
-    def flush_table():
-        if table_rows:
-            story.append(make_table(table_rows))
-            story.append(Spacer(1, 6))
-            table_rows.clear()
-
-    for line in lines:
-        text = line.strip()
-
-        if text.startswith("|") and text.endswith("|"):
-            flush_paragraph()
-            cells = [cell.strip() for cell in text.strip("|").split("|")]
-            if all(re.fullmatch(r":?-{3,}:?", cell or "-") for cell in cells):
-                continue
-            table_rows.append(cells)
-            continue
-
-        flush_table()
-
-        if not text:
-            flush_paragraph()
-        elif text in {"---", "***", "___"}:
-            flush_paragraph()
-        elif re.match(r"^\*{1,2}(Document|Editorial) status:\*{0,2}\s*", text, flags=re.IGNORECASE):
-            flush_paragraph()
-            match = re.match(
-                r"^\*{1,2}(Document|Editorial) status:\*{0,2}\s*(.*?)\*?$",
-                text,
-                flags=re.IGNORECASE
-            )
-            status_label = match.group(1).title()
-            status_text = match.group(2).strip()
-            status_box = Table(
-                [[Paragraph(f"<b>{status_label} status:</b> " + inline(status_text), styles["Statusx"])]],
-                colWidths=[CONTENT_WIDTH],
-                hAlign="LEFT"
-            )
-            status_box.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, -1), STATUS),
-                ("BOX", (0, 0), (-1, -1), 0.45, colors.HexColor("#D8C9AA")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 7),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ]))
-            if story and isinstance(story[-1], Paragraph):
-                previous = story.pop()
-                story.append(KeepTogether([previous, Spacer(1, 4), status_box]))
-            else:
-                story.append(status_box)
-        elif text.startswith("# "):
-            flush_paragraph()
-            title = text[2:]
-            if element_number is not None and not title_added:
-                title_para = Paragraph(inline(title), styles["ElementTitle"])
-                title_para._bookmarkName = f"element-{element_number:03d}"
-                story.append(title_para)
-                title_added = True
-            else:
-                story.append(Paragraph(inline(title), styles["H1x"]))
-        elif text.startswith("## "):
-            flush_paragraph()
-            story.append(Paragraph(inline(text[3:]), styles["H2x"]))
-        elif text.startswith("### "):
-            flush_paragraph()
-            story.append(Paragraph(inline(text[4:]), styles["H3x"]))
-        elif text.startswith("- ") or re.match(r"^\d+\.\s", text):
-            flush_paragraph()
-            item = re.sub(r"^(- |\d+\.\s)", "", text)
-            story.append(Paragraph("• " + inline(item), styles["Listx"]))
-        else:
-            paragraph_lines.append(text)
-
-    flush_paragraph()
-    flush_table()
-    return story
-
-# Fail the build rather than silently publishing a partial reference.
-element_files = sorted((ROOT / "elements").glob("[0-9][0-9][0-9]-*.md"))
-numbers = [int(path.name[:3]) for path in element_files]
-expected = list(range(1, 119))
-if numbers != expected:
-    missing = sorted(set(expected) - set(numbers))
-    duplicates = sorted({n for n in numbers if numbers.count(n) > 1})
-    raise RuntimeError(f"Expected exactly 118 element monographs. Missing={missing}; duplicates={duplicates}")
-
-index_file = ROOT / "elements" / "INDEX.md"
-index_text = index_file.read_text(encoding="utf-8")
-indexed_numbers = [
-    int(match.group(1))
-    for line in index_text.splitlines()
-    if (match := re.match(r"^\|\s*(\d{1,3})\s*\|", line))
-]
-if indexed_numbers != expected:
-    raise RuntimeError("INDEX.md does not contain exactly one ordered register row for elements 1-118.")
-
-standards_file = ROOT / "editorial" / "SCIENTIFIC-STANDARDS.md"
-audit_file = ROOT / "editorial" / "AUDIT-LOG.md"
-research_register_file = ROOT / "editorial" / "RESEARCH-SOURCE-REGISTER.md"
-for required_file in (standards_file, audit_file, research_register_file):
-    if not required_file.exists():
-        raise FileNotFoundError(f"Required editorial file not found: {required_file}")
-
-toc = TableOfContents()
-toc.levelStyles = [styles["TOCEntry"]]
-toc.dotsMinLevel = 0
-
-story = [
-    Spacer(1, 49 * mm),
+    story = [
+    Spacer(1, 48 * mm),
     Paragraph("THE ELEMENTS", styles["CoverTitle"]),
     Paragraph("AN ADVANCED SCIENTIFIC AND RESEARCH REFERENCE", styles["CoverSub"]),
-    Spacer(1, 13 * mm),
+    Spacer(1, 14 * mm),
     Paragraph(
-        "Atomic structure  •  Nuclear properties  •  Spectroscopy  •  Chemistry  •  Materials science",
+        "ATOMIC STRUCTURE  |  NUCLEAR DATA  |  SPECTROSCOPY  |  CHEMISTRY  |  MATERIALS SCIENCE",
         styles["CoverTag"]
     ),
-    Spacer(1, 36 * mm),
+    Spacer(1, 29 * mm),
     Paragraph("118 ELEMENTS  |  ATOMIC NUMBERS 1-118", styles["CoverTag"]),
-    Spacer(1, 7 * mm),
-    Paragraph("DEVELOPMENT PREVIEW  •  18 NOVEMBER 2026", styles["CoverSub"]),
+    Spacer(1, 6 * mm),
+    Paragraph("VERSION 0.3  |  RESEARCH WORKING EDITION  |  18 NOVEMBER 2026", styles["CoverSub"]),
+    Spacer(1, 12 * mm),
+    Table(
+        [[
+            Paragraph("<b>PHASE I BASELINE</b><br/>Elements 1-30: limited atomic and isotope-data cross-check against CIAAW 2024 and NIST ASD 5.12.", styles["CoverMeta"]),
+            Paragraph("<b>REMAINING REVIEW</b><br/>Elements 31-118 and all outstanding property domains remain in the audit queue.", styles["CoverMeta"])
+        ]],
+        colWidths=[CONTENT_WIDTH / 2, CONTENT_WIDTH / 2],
+        style=TableStyle([
+            ("BACKGROUND", (0, 0), (0, 0), PALE_CYAN),
+            ("BACKGROUND", (1, 0), (1, 0), WARNING),
+            ("BOX", (0, 0), (0, 0), 0.6, BLUE_MID),
+            ("BOX", (1, 0), (1, 0), 0.6, WARNING_RULE),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 9),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 9),
+            ("TOPPADDING", (0, 0), (-1, -1), 9),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+        ])
+    ),
     Spacer(1, 8 * mm),
     Paragraph(
-        "An evolving research reference. Individual monographs remain drafts and are not yet "
-        "a complete or fully peer-reviewed encyclopedia.",
+        "This working edition preserves the distinction between evaluated reference data, primary research, calculated results, estimates and unresolved fields. It is not a claim that all 118 monographs have completed full scientific review.",
         styles["Smallx"]
     ),
     PageBreak(),
@@ -382,9 +394,9 @@ doc = ReferenceDocTemplate(
     author="Scientific Reference Project",
     subject="A research reference covering the 118 chemical elements",
 )
-doc.multiBuild(story, onFirstPage=draw_page_chrome, onLaterPages=draw_page_chrome, maxPasses=5)
+doc.multiBuild(story, onFirstPage=draw_cover, onLaterPages=draw_page_chrome, maxPasses=5)
 print(
     f"Built {OUT} ({OUT.stat().st_size} bytes); "
     f"page size=A4; elements={len(element_files)}; "
-    f"TOC entries={len(element_files)}"
+    f"Phase I scope=1-30; TOC entries={len(element_files)}"
 )
