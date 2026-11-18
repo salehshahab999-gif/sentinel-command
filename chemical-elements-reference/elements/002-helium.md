@@ -4,13 +4,13 @@
 **Atomic number:** 2  
 **Group:** 18  
 **Period:** 1  
-**Block:** s-block  
+**Block:** s-block [4]
 **Classification:** Noble gas  
 
 **Block note:** Helium is placed in Group 18 because its filled 1s shell gives it noble-gas behaviour, but its block assignment is s-block because its ground-state configuration ends in 1s².
-**Standard atomic weight (CIAAW 2024):** 4.002602(2)  
-**Ground-state electron configuration:** 1s²  
-**Physical state at approximately 298 K and 1 bar:** Gas
+**Standard atomic weight (CIAAW 2024):** 4.002602(2) [1]
+**Ground-state electron configuration:** 1s²   [3]
+**Physical state at approximately 298 K and 1 bar:** Gas [4]
 
 ## 1. Atomic and periodic context
 Helium is element 2 in the periodic table. Its ground-state configuration, 1s², provides the starting point for interpreting its valence structure, bonding patterns, and characteristic chemistry. Group placement is a useful organizing framework, but observed chemistry also depends on molecular environment, oxidation state, and thermodynamic conditions.
@@ -28,30 +28,30 @@ The standard atomic weight is reproduced from the CIAAW 2024 table. Bracketed va
 The final monograph will add critically evaluated ionization energies, electron affinity, radii with explicit definitions, phase-transition data, thermodynamic functions, crystal structures, spectroscopy, nuclear data, and element-specific safety information. Each numerical entry will carry its own source, conditions, uncertainty, and evidence label.
 
 ## References
-1. Commission on Isotopic Abundances and Atomic Weights (CIAAW), *Standard Atomic Weights 2024*: [https://ciaaw.org/atomic-weights.htm](https://ciaaw.org/atomic-weights.htm).
-2. CIAAW, *Abridged Standard Atomic Weights 2024*: [https://ciaaw.org/abridged-atomic-weights.htm](https://ciaaw.org/abridged-atomic-weights.htm).
-3. NIST, *Atomic Spectra Database*: [https://physics.nist.gov/asd](https://physics.nist.gov/asd).
+
+[1] Commission on Isotopic Abundances and Atomic Weights (CIAAW). *Standard Atomic Weights 2024*. Online evaluated table. https://ciaaw.org/atomic-weights.htm (accessed 2026-11-18).
+
+[2] Commission on Isotopic Abundances and Atomic Weights (CIAAW). *Isotopic Compositions of the Elements 2024*. Online evaluated table, element Z=2. https://ciaaw.org/isotopic-abundances.htm (accessed 2026-11-18).
+
+[3] Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team. *NIST Atomic Spectra Database*, version 5.12 (2024), neutral atom He I, ground state and first ionization energy; source bibliography key(s): L17714. National Institute of Standards and Technology. DOI: https://doi.org/10.18434/T4W30F. ASD version history: https://physics.nist.gov/PhysRefData/ASD/Html/verhist.shtml (accessed 2026-11-18). The uncertainty is taken from the ASD output column, not estimated independently.
+
+[4] Royal Society of Chemistry. *Periodic Table: Helium*, element-specific overview, classification, block, physical state and general properties. https://periodic-table.rsc.org/element/2/ (accessed 2026-11-18).
 
 
+## Phase I audit: atomic ground state and natural isotopic composition
 
-## Evaluated atomic and isotopic data (first-pass audit)
+| Quantity | Evaluated value | Uncertainty | Traceable NIST record |
+|---|---:|---:|---|
+| First ionization energy | 24.587389011 eV | 0.000000025 eV | NIST ASD 5.12; Z=2, neutral He I; bibliography key L17714 [3] |
+| Ground-state term | ¹S₀ | As reported in ASD level designation | NIST ASD 5.12; neutral atom, Z=2 [3] |
 
-| Data item | Evaluated value | Interpretation |
-|---|---:|---|
-| First ionization energy | 24.587389011 eV | NIST ASD 5.12; standard uncertainty: ±0.000000025 eV |
-| Ground-state term | ¹S₀ | NIST ASD 5.12 |
-
-| Nuclide | Representative isotopic composition | Stability |
+| Nuclide | CIAAW 2024 representative isotopic composition (atom fraction) | Stability |
 |---|---:|---|
 | ³He | 0.000002(2) | stable |
 | ⁴He | 0.999998(2) | stable |
 
-The abundance of ³He is very small and can vary strongly in particular geological and extraterrestrial reservoirs; do not treat the representative value as universal.
+The isotope values above are representative compositions for normal terrestrial materials as tabulated by CIAAW. Bracketed ranges are natural-variation intervals, not uncertainty intervals for one laboratory sample [2]. For monoisotopic elements, CIAAW reports a representative fraction of 1 for the listed nuclide. Radioactive nuclides such as ³H, ¹⁰Be, and ¹⁴C are not included in the stable-isotope composition rows.
 
-**Evidence labels:** first ionization energy and ground-state term are **EVALUATED** (NIST ASD); natural isotope compositions and standard atomic weights are **EVALUATED** (CIAAW 2024). These data are not a complete nuclear dossier: isotope masses, decay modes, half-lives, and nuclear levels still require nuclide-specific ENSDF/NUBASE review.
+**Evidence classification:** first ionization energy and atomic ground term: **EVALUATED** (NIST ASD); standard atomic weight and representative isotopic composition: **EVALUATED** (CIAAW 2024). This Phase I audit does not certify the full monograph. Nuclide masses, decay schemes, half-lives, nuclear levels, electron affinities, radii, thermodynamic functions, physical constants, safety limits, and application claims remain subject to their own source-specific review.
 
-
-4. CIAAW, *Isotopic Compositions of the Elements 2024*: [https://www.ciaaw.org/isotopic-abundances.htm](https://www.ciaaw.org/isotopic-abundances.htm).
-5. NIST, *Atomic Spectra Database, Ionization Energies Data* (version 5.12; accessed 2026-11-18): [https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&shells_out=on&spectra=H-Og%2Bi&unc_out=on&units=1](https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&shells_out=on&spectra=H-Og%2Bi&unc_out=on&units=1).
-
-**Editorial status:** initial structured monograph; detailed property tables and element-specific primary-source verification remain in progress.
+**Editorial status:** Phase I partially audited on 2026-11-18. CIAAW 2024 standard atomic weight and isotopic composition, plus NIST ASD 5.12 first ionization energy and ground-state designation, have been cross-checked with traceable source identifiers. Full element monograph review is not complete; see the outstanding-data statement above.
