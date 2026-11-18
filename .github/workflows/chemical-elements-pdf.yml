@@ -1,0 +1,35 @@
+name: Build Chemical Elements PDF
+
+on:
+  push:
+    paths:
+      - "chemical-elements-reference/**"
+      - ".github/workflows/chemical-elements-pdf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PDF dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r chemical-elements-reference/requirements.txt
+      - name: Build PDF preview
+        run: python chemical-elements-reference/scripts/build_pdf.py
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chemical-elements-reference-preview
+          path: chemical-elements-reference/dist/*.pdf
+          if-no-files-found: error
+          retention-days: 30
