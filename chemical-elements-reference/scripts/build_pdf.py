@@ -390,6 +390,7 @@ def parse_md(path, element_number=None):
                         flush_metadata()
                         metadata_scan = False
                         add_callout("Block note:", value, tone="neutral")
+                        continue
                     elif not re.match(r"^(Editorial|Document) status$", label, re.I):
                         metadata_pairs.append((label, value))
                         continue
@@ -455,8 +456,14 @@ def parse_md(path, element_number=None):
         elif text.startswith("- ") or re.match(r"^\d+\.\s", text):
             flush_paragraph()
             flush_metadata()
-            item = re.sub(r"^(- |\d+\.\s)", "", text)
-            story.append(Paragraph("• " + inline(item), styles["Listx"]))
+            ordered = re.match(r"^(\d+)\.\s", text)
+            if ordered:
+                item = re.sub(r"^\d+\.\s", "", text)
+                prefix = f"<b>{ordered.group(1)}.</b> "
+            else:
+                item = re.sub(r"^-\s", "", text)
+                prefix = "• "
+            story.append(Paragraph(prefix + inline(item), styles["Listx"]))
         else:
             paragraph_lines.append(text)
 
