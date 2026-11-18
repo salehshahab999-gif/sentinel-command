@@ -99,19 +99,19 @@ story = [
     Spacer(1, 35*mm),
     Paragraph("DEVELOPMENT PREVIEW", ParagraphStyle("preview", parent=styles["CoverSub"], fontName="Helvetica-Bold", textColor=colors.HexColor("#A14B32"))),
     Spacer(1, 5*mm),
-    Paragraph("This file demonstrates the editorial and PDF production pipeline. It is not the completed encyclopedia and must not be represented as a finished 118-element reference.", styles["Smallx"]),
+    Paragraph("Development build. This is an evolving research reference, not yet a complete or fully peer-reviewed 118-element encyclopedia.", styles["Smallx"]),
     PageBreak(),
-    Paragraph("Contents", styles["H1x"]),
-    Paragraph("Editorial standards", styles["Bodyx"]),
-    Paragraph("Element 001: Hydrogen", styles["Bodyx"]),
-    Paragraph("Scientific references", styles["Bodyx"]),
-    PageBreak(),
+    Paragraph("Editorial Standards", styles["H1x"]),
 ]
 standards = ROOT / "editorial" / "SCIENTIFIC-STANDARDS.md"
-hydrogen = ROOT / "elements" / "001-hydrogen.md"
 story.extend(parse_md(standards))
+index_file = ROOT / "elements" / "INDEX.md"
 story.append(PageBreak())
-story.extend(parse_md(hydrogen))
+story.extend(parse_md(index_file))
+element_files = sorted(p for p in (ROOT / "elements").glob("[0-9][0-9][0-9]-*.md"))
+for element_file in element_files:
+    story.append(PageBreak())
+    story.extend(parse_md(element_file))
 doc = SimpleDocTemplate(str(OUT), pagesize=PAGE, rightMargin=18*mm, leftMargin=18*mm, topMargin=17*mm, bottomMargin=19*mm, title="The Elements: An Advanced Scientific and Research Reference", author="Scientific Reference Project")
 doc.build(story, onFirstPage=footer, onLaterPages=footer)
 print(f"Built {OUT} ({OUT.stat().st_size} bytes)")
