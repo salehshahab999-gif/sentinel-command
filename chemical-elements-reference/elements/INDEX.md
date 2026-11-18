@@ -50,10 +50,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 44 | Ru | Ruthenium | Drafted (initial) |
 | 45 | Rh | Rhodium | Drafted (initial) |
 | 46 | Pd | Palladium | Drafted (initial) |
-| 47 | Ag | Silver | Pending |
-| 48 | Cd | Cadmium | Pending |
-| 49 | In | Indium | Pending |
-| 50 | Sn | Tin | Pending |
+| 47 | Ag | Silver | Drafted (initial) |
+| 48 | Cd | Cadmium | Drafted (initial) |
+| 49 | In | Indium | Drafted (initial) |
+| 50 | Sn | Tin | Drafted (initial) |
 | 51 | Sb | Antimony | Pending |
 | 52 | Te | Tellurium | Pending |
 | 53 | I | Iodine | Pending |
