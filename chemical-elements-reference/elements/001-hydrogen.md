@@ -35,4 +35,26 @@ The standard atomic-weight interval and isotope-abundance information are evalua
 2. Commission on Isotopic Abundances and Atomic Weights (CIAAW), Hydrogen: [https://ciaaw.org/hydrogen.htm](https://ciaaw.org/hydrogen.htm).
 3. IUPAC, Periodic Table of Elements: [https://iupac.org/what-we-do/periodic-table-of-elements/](https://iupac.org/what-we-do/periodic-table-of-elements/).
 
+
+
+## Evaluated atomic and isotopic data (first-pass audit)
+
+| Data item | Evaluated value | Interpretation |
+|---|---:|---|
+| First ionization energy | 13.598434599702 eV | NIST ASD 5.12; standard uncertainty: ±0.000000000012 eV |
+| Ground-state term | ²S₁/₂ | NIST ASD 5.12 |
+
+| Nuclide | Representative isotopic composition | Stability |
+|---|---:|---|
+| ¹H | [0.99972, 0.99999] | stable |
+| ²H | [0.00001, 0.00028] | stable |
+
+CIAAW also lists ³H (tritium) as radioactive; it is not part of the representative stable-isotope abundance ranges above.
+
+**Evidence labels:** first ionization energy and ground-state term are **EVALUATED** (NIST ASD); natural isotope compositions and standard atomic weights are **EVALUATED** (CIAAW 2024). These data are not a complete nuclear dossier: isotope masses, decay modes, half-lives, and nuclear levels still require nuclide-specific ENSDF/NUBASE review.
+
+
+4. CIAAW, *Isotopic Compositions of the Elements 2024*: [https://www.ciaaw.org/isotopic-abundances.htm](https://www.ciaaw.org/isotopic-abundances.htm).
+5. NIST, *Atomic Spectra Database, Ionization Energies Data* (version 5.12; accessed 2026-11-18): [https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&shells_out=on&spectra=H-Og%2Bi&unc_out=on&units=1](https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&shells_out=on&spectra=H-Og%2Bi&unc_out=on&units=1).
+
 **Editorial status:** initial monograph draft; quantitative coverage and citations require source-by-source verification before final publication.
