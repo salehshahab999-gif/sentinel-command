@@ -42,10 +42,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 36 | Kr | Krypton | Drafted (initial) |
 | 37 | Rb | Rubidium | Drafted (initial) |
 | 38 | Sr | Strontium | Drafted (initial) |
-| 39 | Y | Yttrium | Pending |
-| 40 | Zr | Zirconium | Pending |
-| 41 | Nb | Niobium | Pending |
-| 42 | Mo | Molybdenum | Pending |
+| 39 | Y | Yttrium | Drafted (initial) |
+| 40 | Zr | Zirconium | Drafted (initial) |
+| 41 | Nb | Niobium | Drafted (initial) |
+| 42 | Mo | Molybdenum | Drafted (initial) |
 | 43 | Tc | Technetium | Pending |
 | 44 | Ru | Ruthenium | Pending |
 | 45 | Rh | Rhodium | Pending |
