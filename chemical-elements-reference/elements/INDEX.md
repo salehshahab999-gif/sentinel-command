@@ -102,10 +102,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 96 | Cm | Curium | Drafted (initial) |
 | 97 | Bk | Berkelium | Drafted (initial) |
 | 98 | Cf | Californium | Drafted (initial) |
-| 99 | Es | Einsteinium | Pending |
-| 100 | Fm | Fermium | Pending |
-| 101 | Md | Mendelevium | Pending |
-| 102 | No | Nobelium | Pending |
+| 99 | Es | Einsteinium | Drafted (initial) |
+| 100 | Fm | Fermium | Drafted (initial) |
+| 101 | Md | Mendelevium | Drafted (initial) |
+| 102 | No | Nobelium | Drafted (initial) |
 | 103 | Lr | Lawrencium | Pending |
 | 104 | Rf | Rutherfordium | Pending |
 | 105 | Db | Dubnium | Pending |
