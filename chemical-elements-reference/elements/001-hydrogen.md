@@ -6,14 +6,14 @@
 **Period:** 1  
 **Classification:** nonmetal  
 **Standard atomic weight (CIAAW 2024):** [1.00784, 1.00811] [1]  
-**Ground-state electron configuration:** 1s¹   [3]
+**Ground-state electron configuration:** 1s¹ [3]
 **Ground-state term symbol:** ²S₁/₂ [3]
 
 ## 1. Atomic structure
-Neutral hydrogen contains one proton and one electron. Its ground-state electronic configuration is 1s¹. The one-electron system is a foundational test case for quantum mechanics and precision atomic theory.
+Neutral hydrogen contains one proton and one electron. Its ground-state electronic configuration is 1s¹. The one-electron system is a foundational test case for quantum mechanics and precision atomic theory [3].
 
 ## 2. Ionization and spectroscopy
-The evaluated first ionization energy is **13.598434599702 eV**. The hydrogen spectrum is central to tests of atomic structure, relativistic corrections, and quantum electrodynamics.
+The evaluated first ionization energy is **13.598434599702 eV** [3]. The hydrogen spectrum is central to tests of atomic structure, relativistic corrections, and quantum electrodynamics.
 
 ## 3. Naturally occurring isotopes
 
@@ -23,10 +23,10 @@ The evaluated first ionization energy is **13.598434599702 eV**. The hydrogen sp
 | ²H | Deuterium | 1 | 1 | Stable |
 | ³H | Tritium | 1 | 2 | Radioactive |
 
-CIAAW gives the standard atomic-weight interval for normal terrestrial materials as **[1.00784, 1.00811]**. This is an interval reflecting natural variation, not the uncertainty of a single atomic-mass measurement.
+CIAAW gives the standard atomic-weight interval for normal terrestrial materials as **[1.00784, 1.00811]** [1]. This is an interval reflecting natural variation, not the uncertainty of a single atomic-mass measurement.
 
 ## 4. Scientific significance and applications
-Hydrogen is important in molecular spectroscopy, astrophysics, isotope geochemistry, nuclear-fusion research, electrochemistry, industrial chemical synthesis, and hydrogen-energy technologies.
+Hydrogen is important in molecular spectroscopy, astrophysics, isotope geochemistry, nuclear-fusion research, electrochemistry, industrial chemical synthesis, and hydrogen-energy technologies [4].
 
 ## 5. Data quality and limitations
 The standard atomic-weight interval and isotope-abundance information are evaluated reference data. The ionization energy is a precision spectroscopic value. Isotope abundance varies with sample origin and must not be treated as universal for every material.
