@@ -319,6 +319,7 @@ def make_heading_panel(title, style):
             ("TOPPADDING", (0, 0), (-1, -1), 3),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
         ]))
+        panel.keepWithNext = 1
         return panel
     return para
 
@@ -446,8 +447,11 @@ def parse_md(path, element_number=None):
         elif text.startswith("## "):
             flush_paragraph()
             flush_metadata()
-            story.append(make_heading_panel(text[3:], styles["H2x"]))
-            story.append(Spacer(1, 4))
+            heading_panel = make_heading_panel(text[3:], styles["H2x"])
+            heading_space = Spacer(1, 4)
+            heading_panel.keepWithNext = 1
+            heading_space.keepWithNext = 1
+            story.extend([heading_panel, heading_space])
         elif text.startswith("### "):
             flush_paragraph()
             flush_metadata()
