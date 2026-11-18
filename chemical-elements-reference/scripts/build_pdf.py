@@ -400,7 +400,6 @@ def parse_md(path, element_number=None):
 
         if text.startswith("|") and text.endswith("|"):
             flush_paragraph()
-            flush_table()
             cells = [cell.strip() for cell in text.strip("|").split("|")]
             if all(re.fullmatch(r":?-{3,}:?", cell or "-") for cell in cells):
                 continue
