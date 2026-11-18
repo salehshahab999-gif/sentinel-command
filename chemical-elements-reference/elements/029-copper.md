@@ -6,7 +6,7 @@
 **Period:** 4  
 **Block:** d-block  
 **Classification:** Transition metal  
-**Standard atomic weight (CIAAW):** 63.546(3)  
+**Standard atomic weight (CIAAW 2024):** 63.546(3)  
 **Ground-state electron configuration:** [Ar] 3d¹⁰ 4s¹ [3]  
 **Ground-state term symbol:** ²S₁/₂ [3]
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
@@ -62,7 +62,7 @@ The ground-state configuration above is a configuration label, not a complete sp
 | ⁶³Cu | 0.6915(15) | stable |
 | ⁶⁵Cu | 0.3085(15) | stable |
 
-The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. Parenthetical figures are reported in the CIAAW notation; they are not to be converted into a broader natural-variation range. For nickel, copper, and zinc, CIAAW carries footnote **r**: a range of isotopic compositions among normal terrestrial materials limits the precision of a single standard atomic-weight value. The tabulated standard atomic weight and uncertainty are intended to apply to normal material [1,2].
+The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. CIAAW carries footnote **r** for this element: isotopic-composition ranges in normal terrestrial materials limit how precisely a single standard atomic-weight value can be expressed. CIAAW therefore gives a conventional point value with uncertainty, not a bracketed interval: the reported values are 58.6934(4) for nickel, 63.546(3) for copper, and 65.38(2) for zinc [1,2]. Parenthetical figures must not be mistaken for isotope-composition ranges.
 
 **Evidence classification:** first ionization energy and ground-state term/configuration: **EVALUATED** (NIST ASD 5.12); standard atomic weight and representative isotope compositions: **EVALUATED** (CIAAW 2024). This Phase I review does not certify the entire monograph. Detailed nuclide masses, nuclear levels, decay schemes, half-lives, excited-state spectra, thermodynamic functions, phase equilibria, crystal structures, toxicology, and safety limits remain pending separate source-specific review.
 
