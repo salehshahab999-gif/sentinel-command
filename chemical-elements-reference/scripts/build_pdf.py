@@ -329,6 +329,7 @@ def parse_md(path, element_number=None):
     paragraph_lines = []
     table_rows = []
     metadata_pairs = []
+    metadata_note = None
     title_added = False
     metadata_scan = element_number is not None
 
@@ -344,9 +345,13 @@ def parse_md(path, element_number=None):
             table_rows.clear()
 
     def flush_metadata():
+        nonlocal metadata_note
         if metadata_pairs:
             story.append(make_metadata_table(metadata_pairs))
             metadata_pairs.clear()
+        if metadata_note is not None:
+            add_callout("Block note:", metadata_note, tone="neutral")
+            metadata_note = None
 
     def add_callout(label, value, tone="blue"):
         box = Table(
@@ -388,9 +393,7 @@ def parse_md(path, element_number=None):
                     label = meta_match.group(1).strip()
                     value = meta_match.group(2).strip()
                     if label.lower() == "block note":
-                        flush_metadata()
-                        metadata_scan = False
-                        add_callout("Block note:", value, tone="neutral")
+                        metadata_note = value
                         continue
                     elif not re.match(r"^(Editorial|Document) status$", label, re.I):
                         metadata_pairs.append((label, value))
