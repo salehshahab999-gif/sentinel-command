@@ -82,10 +82,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 76 | Os | Osmium | Drafted (initial) |
 | 77 | Ir | Iridium | Drafted (initial) |
 | 78 | Pt | Platinum | Drafted (initial) |
-| 79 | Au | Gold | Pending |
-| 80 | Hg | Mercury | Pending |
-| 81 | Tl | Thallium | Pending |
-| 82 | Pb | Lead | Pending |
+| 79 | Au | Gold | Drafted (initial) |
+| 80 | Hg | Mercury | Drafted (initial) |
+| 81 | Tl | Thallium | Drafted (initial) |
+| 82 | Pb | Lead | Drafted (initial) |
 | 83 | Bi | Bismuth | Pending |
 | 84 | Po | Polonium | Pending |
 | 85 | At | Astatine | Pending |
