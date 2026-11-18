@@ -45,7 +45,7 @@ The final edition will add evaluated ionization energies, electron affinity, exp
 | ⁵³Cr | 0.09501(17) | stable |
 | ⁵⁴Cr | 0.02365(7) | stable |
 
-The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. Parenthetical figures are reported in the CIAAW notation; they are not to be converted into a broader natural-variation range. For nickel, copper, and zinc, CIAAW carries footnote **r**: a range of isotopic compositions among normal terrestrial materials limits the precision of a single standard atomic-weight value. The tabulated standard atomic weight and uncertainty are intended to apply to normal material [1,2].
+The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. Parenthetical figures are reported in the CIAAW notation and express uncertainty in the final digits; they are not to be converted into a broader natural-variation range. CIAAW footnote **r** is not attached to this element in the 2024 table [1,2].
 
 **Evidence classification:** first ionization energy and ground-state term/configuration: **EVALUATED** (NIST ASD 5.12); standard atomic weight and representative isotope compositions: **EVALUATED** (CIAAW 2024). This Phase I review does not certify the entire monograph. Detailed nuclide masses, nuclear levels, decay schemes, half-lives, excited-state spectra, thermodynamic functions, phase equilibria, crystal structures, toxicology, and safety limits remain pending separate source-specific review.
 
