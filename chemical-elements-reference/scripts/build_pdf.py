@@ -302,8 +302,10 @@ if indexed_numbers != expected:
     raise RuntimeError("INDEX.md does not contain exactly one ordered register row for elements 1-118.")
 
 standards_file = ROOT / "editorial" / "SCIENTIFIC-STANDARDS.md"
-if not standards_file.exists():
-    raise FileNotFoundError(f"Required editorial standards file not found: {standards_file}")
+audit_file = ROOT / "editorial" / "AUDIT-LOG.md"
+for required_file in (standards_file, audit_file):
+    if not required_file.exists():
+        raise FileNotFoundError(f"Required editorial file not found: {required_file}")
 
 toc = TableOfContents()
 toc.levelStyles = [styles["TOCEntry"]]
@@ -335,6 +337,8 @@ story = [
 ]
 
 story.extend(parse_md(standards_file))
+story.append(PageBreak())
+story.extend(parse_md(audit_file))
 story.append(PageBreak())
 story.extend(parse_md(index_file))
 
