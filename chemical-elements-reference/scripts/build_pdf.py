@@ -11,8 +11,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
-    KeepTogether, TableOfContents
+    KeepTogether
 )
+from reportlab.platypus.tableofcontents import TableOfContents
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist" / "The_Elements_Advanced_Scientific_Reference_PREVIEW.pdf"
