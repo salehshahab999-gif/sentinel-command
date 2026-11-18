@@ -86,10 +86,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 80 | Hg | Mercury | Drafted (initial) |
 | 81 | Tl | Thallium | Drafted (initial) |
 | 82 | Pb | Lead | Drafted (initial) |
-| 83 | Bi | Bismuth | Pending |
-| 84 | Po | Polonium | Pending |
-| 85 | At | Astatine | Pending |
-| 86 | Rn | Radon | Pending |
+| 83 | Bi | Bismuth | Drafted (initial) |
+| 84 | Po | Polonium | Drafted (initial) |
+| 85 | At | Astatine | Drafted (initial) |
+| 86 | Rn | Radon | Drafted (initial) |
 | 87 | Fr | Francium | Pending |
 | 88 | Ra | Radium | Pending |
 | 89 | Ac | Actinium | Pending |
