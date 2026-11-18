@@ -7,7 +7,7 @@
 **Block:** p-block [4]
 **Classification:** Nonmetal  
 **Standard atomic weight (CIAAW 2024):** [15.99903, 15.99977] [1]
-**Ground-state electron configuration:** [He] 2s² 2p⁴   [3]
+**Ground-state electron configuration:** [He] 2s² 2p⁴ [3]
 **Physical state at approximately 298 K and 1 bar:** Gas [4]
 
 ## 1. Atomic and periodic context
