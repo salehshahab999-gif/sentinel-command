@@ -3,7 +3,7 @@
 **Project:** The Elements: An Advanced Scientific and Research Reference  
 **Audit snapshot:** 18 November 2026  
 **Scope:** 118 element monographs (atomic numbers 1–118)  
-**Current status:** twenty monographs have passed a limited Phase I cross-check; no monograph is yet certified as fully audited or peer-reviewed.
+**Current status:** thirty monographs have passed a limited Phase I cross-check; no monograph is yet certified as fully audited or peer-reviewed.
 
 ## 1. Audit principles
 
@@ -40,10 +40,22 @@ Each audited monograph includes a source list with DOI or stable URL, data versi
 
 | Atomic numbers | Status | Scope |
 |---|---|---|
-| 1–20 | Phase I audit complete* | CIAAW weight/isotope fields and NIST ASD ground-state/first-ionization fields cross-checked |
+| 1–30 | Phase I audit complete* | CIAAW weight/isotope fields and NIST ASD ground-state/first-ionization fields cross-checked |
 | 11–118 | Drafted; Phase I not yet audited | Source-by-source cross-check pending |
 
 *Phase I does not certify the rest of the monograph. The discovery narrative, applications, chemistry, material properties, nuclear dossiers, toxicology, and other quantitative properties remain subject to separate review.
+
+
+
+### Phase I coverage extension: elements 21–30
+
+The same limited field audit has now been applied to scandium through zinc. For each element, the monograph records the CIAAW 2024 standard atomic weight, the representative isotopic composition and nuclear status, the neutral-atom ground configuration/term, and the first ionization energy with the uncertainty and NIST ASD bibliography key.
+
+Important source-interpretation notes for this block:
+- Vanadium's ⁵⁰V is radioactive but naturally present due to its very long half-life; it must not be labelled stable simply because it is included in the natural representative isotope composition.
+- CIAAW 2024 marks Ni, Cu, and Zn with footnote r. This denotes isotope-composition variation in normal materials; it does not mean that the official standard atomic weight is printed as a bracketed interval. The CIAAW table retains 58.6934(4), 63.546(3), and 65.38(2), respectively.
+- NIST ASD 5.12 values are used in preference to older NIST handbook figures where the numerical presentation differs. The NIST version and record bibliography keys are stated at claim level.
+- Element-specific peer-reviewed papers and doctoral theses were added to the research source register and, where directly relevant, to the individual monographs. These sources support particular transition data, methods, or isotope measurements; they do not replace CIAAW or NIST evaluated reference data.
 
 ## 4. Verified source releases for this audit snapshot
 
