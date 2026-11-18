@@ -24,16 +24,16 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 18 | Ar | Argon | Phase I audit complete* |
 | 19 | K | Potassium | Phase I audit complete* |
 | 20 | Ca | Calcium | Phase I audit complete* |
-| 21 | Sc | Scandium | Drafted |
-| 22 | Ti | Titanium | Drafted |
-| 23 | V | Vanadium | Drafted |
-| 24 | Cr | Chromium | Drafted |
-| 25 | Mn | Manganese | Drafted |
-| 26 | Fe | Iron | Drafted |
-| 27 | Co | Cobalt | Drafted (initial) |
-| 28 | Ni | Nickel | Drafted (initial) |
-| 29 | Cu | Copper | Drafted (initial) |
-| 30 | Zn | Zinc | Drafted (initial) |
+| 21 | Sc | Scandium | Phase I audit complete* |
+| 22 | Ti | Titanium | Phase I audit complete* |
+| 23 | V | Vanadium | Phase I audit complete* |
+| 24 | Cr | Chromium | Phase I audit complete* |
+| 25 | Mn | Manganese | Phase I audit complete* |
+| 26 | Fe | Iron | Phase I audit complete* |
+| 27 | Co | Cobalt | Phase I audit complete* |
+| 28 | Ni | Nickel | Phase I audit complete* |
+| 29 | Cu | Copper | Phase I audit complete* |
+| 30 | Zn | Zinc | Phase I audit complete* |
 | 31 | Ga | Gallium | Drafted (initial) |
 | 32 | Ge | Germanium | Drafted (initial) |
 | 33 | As | Arsenic | Drafted (initial) |
