@@ -6,7 +6,7 @@
 **Period:** 4  
 **Block:** d-block  
 **Classification:** Group 12 metal (d-block; classification terminology varies among references)  
-**Standard atomic weight (CIAAW):** 65.38(2)  
+**Standard atomic weight (CIAAW 2024):** 65.38(2)  
 **Ground-state electron configuration:** [Ar] 3d¹⁰ 4s² [3]  
 **Ground-state term symbol:** ¹S₀ [3]
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
@@ -15,7 +15,7 @@
 Zinc is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d¹⁰ 4s². Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. For group 12 zinc, the filled d subshell gives chemistry that differs from the more conventionally redox-active transition metals.
 
 ## 2. Isotopic and nuclear context
-Naturally occurring zinc has five stable isotopes: ⁶⁴Zn, ⁶⁶Zn, ⁶⁷Zn, ⁶⁸Zn, and ⁷⁰Zn. CIAAW lists amount fractions of 0.4917(75), 0.2773(98), 0.0404(16), 0.1845(63), and 0.0061(10), respectively. The element's standard atomic weight is interval-valued because natural isotopic composition varies among normal materials.
+Naturally occurring zinc has five stable isotopes: ⁶⁴Zn, ⁶⁶Zn, ⁶⁷Zn, ⁶⁸Zn, and ⁷⁰Zn. CIAAW lists amount fractions of 0.4917(75), 0.2773(98), 0.0404(16), 0.1845(63), and 0.0061(10), respectively. The CIAAW 2024 standard atomic weight is 65.38(2) with footnote r, which flags variation in natural isotopic composition among normal materials; it is not printed as a bracketed interval.
 
 **Data status:** Standard atomic weight and naturally occurring isotope information are **EVALUATED** values attributed to CIAAW. This short monograph does not yet constitute a complete nuclear-data evaluation. Individual radioactive nuclides, decay schemes, uncertainties, and ENSDF evaluation dates must be added from nuclide-specific records before the publication is considered complete.
 
@@ -65,7 +65,7 @@ The ground-state configuration above is a configuration label, not a complete sp
 | ⁶⁸Zn | 0.1845(63) | stable |
 | ⁷⁰Zn | 0.0061(10) | stable |
 
-The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. Parenthetical figures are reported in the CIAAW notation; they are not to be converted into a broader natural-variation range. For nickel, copper, and zinc, CIAAW carries footnote **r**: a range of isotopic compositions among normal terrestrial materials limits the precision of a single standard atomic-weight value. The tabulated standard atomic weight and uncertainty are intended to apply to normal material [1,2].
+The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. CIAAW carries footnote **r** for this element: isotopic-composition ranges in normal terrestrial materials limit how precisely a single standard atomic-weight value can be expressed. CIAAW therefore gives a conventional point value with uncertainty, not a bracketed interval: the reported values are 58.6934(4) for nickel, 63.546(3) for copper, and 65.38(2) for zinc [1,2]. Parenthetical figures must not be mistaken for isotope-composition ranges.
 
 **Evidence classification:** first ionization energy and ground-state term/configuration: **EVALUATED** (NIST ASD 5.12); standard atomic weight and representative isotope compositions: **EVALUATED** (CIAAW 2024). This Phase I review does not certify the entire monograph. Detailed nuclide masses, nuclear levels, decay schemes, half-lives, excited-state spectra, thermodynamic functions, phase equilibria, crystal structures, toxicology, and safety limits remain pending separate source-specific review.
 
