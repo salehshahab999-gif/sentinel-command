@@ -114,10 +114,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 108 | Hs | Hassium | Drafted (initial) |
 | 109 | Mt | Meitnerium | Drafted (initial) |
 | 110 | Ds | Darmstadtium | Drafted (initial) |
-| 111 | Rg | Roentgenium | Pending |
-| 112 | Cn | Copernicium | Pending |
-| 113 | Nh | Nihonium | Pending |
-| 114 | Fl | Flerovium | Pending |
+| 111 | Rg | Roentgenium | Drafted (initial) |
+| 112 | Cn | Copernicium | Drafted (initial) |
+| 113 | Nh | Nihonium | Drafted (initial) |
+| 114 | Fl | Flerovium | Drafted (initial) |
 | 115 | Mc | Moscovium | Pending |
 | 116 | Lv | Livermorium | Pending |
 | 117 | Ts | Tennessine | Pending |
