@@ -575,6 +575,10 @@ doc = ReferenceDocTemplate(
     author="Scientific Reference Project",
     subject="Research working edition. Limited Phase I atomic and isotopic baseline reviewed for elements 1-30; full monograph review remains in progress.",
     keywords="118 elements, CIAAW 2024, NIST ASD 5.12, atomic structure, isotopic composition, ionization energy, spectroscopy, nuclear data, chemistry, materials science",
+    creator="Scientific Reference Project editorial build",
+    lang="en",
+    displayDocTitle=True,
+    pageCompression=1,
 )
 doc.multiBuild(story, onFirstPage=draw_cover, onLaterPages=draw_page_chrome, maxPasses=5)
 print(
