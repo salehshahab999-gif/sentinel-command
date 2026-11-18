@@ -94,10 +94,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 88 | Ra | Radium | Drafted (initial) |
 | 89 | Ac | Actinium | Drafted (initial) |
 | 90 | Th | Thorium | Drafted (initial) |
-| 91 | Pa | Protactinium | Pending |
-| 92 | U | Uranium | Pending |
-| 93 | Np | Neptunium | Pending |
-| 94 | Pu | Plutonium | Pending |
+| 91 | Pa | Protactinium | Drafted (initial) |
+| 92 | U | Uranium | Drafted (initial) |
+| 93 | Np | Neptunium | Drafted (initial) |
+| 94 | Pu | Plutonium | Drafted (initial) |
 | 95 | Am | Americium | Pending |
 | 96 | Cm | Curium | Pending |
 | 97 | Bk | Berkelium | Pending |
