@@ -58,10 +58,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 52 | Te | Tellurium | Drafted (initial) |
 | 53 | I | Iodine | Drafted (initial) |
 | 54 | Xe | Xenon | Drafted (initial) |
-| 55 | Cs | Caesium | Pending |
-| 56 | Ba | Barium | Pending |
-| 57 | La | Lanthanum | Pending |
-| 58 | Ce | Cerium | Pending |
+| 55 | Cs | Caesium | Drafted (initial) |
+| 56 | Ba | Barium | Drafted (initial) |
+| 57 | La | Lanthanum | Drafted (initial) |
+| 58 | Ce | Cerium | Drafted (initial) |
 | 59 | Pr | Praseodymium | Pending |
 | 60 | Nd | Neodymium | Pending |
 | 61 | Pm | Promethium | Pending |
