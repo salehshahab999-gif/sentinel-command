@@ -174,7 +174,6 @@ def inline(text):
 def draw_page_chrome(canvas, doc):
     canvas.saveState()
     if doc.page > 1:
-        # Restrained blue running head and hairline rule.
         canvas.setFillColor(BLUE_DARK)
         canvas.setFont("NotoSans-Bold", 7.4)
         canvas.drawString(LEFT, PAGE_HEIGHT - 12.5 * mm, "THE ELEMENTS  |  SCIENTIFIC REFERENCE")
@@ -196,7 +195,6 @@ def draw_page_chrome(canvas, doc):
 
 def draw_cover(canvas, doc):
     canvas.saveState()
-    # Clean academic cover with a controlled blue palette.
     canvas.setFillColor(NAVY)
     canvas.rect(0, PAGE_HEIGHT - 31 * mm, PAGE_WIDTH, 31 * mm, stroke=0, fill=1)
     canvas.setFillColor(BLUE)
@@ -277,7 +275,6 @@ def make_table(rows):
 
 
 def make_metadata_table(pairs):
-    # Two key/value pairs per row keeps element identity data scannable.
     rows = []
     for i in range(0, len(pairs), 2):
         left = pairs[i]
@@ -327,7 +324,178 @@ def make_heading_panel(title, style):
 
 def parse_md(path, element_number=None):
     lines = path.read_text(encoding="utf-8").splitlines()
-    story = [
+    story = []
+    paragraph_lines = []
+    table_rows = []
+    metadata_pairs = []
+    title_added = False
+    metadata_scan = element_number is not None
+
+    def flush_paragraph():
+        if paragraph_lines:
+            story.append(Paragraph(inline(" ".join(paragraph_lines)), styles["Bodyx"]))
+            paragraph_lines.clear()
+
+    def flush_table():
+        if table_rows:
+            story.append(make_table(table_rows))
+            story.append(Spacer(1, 7))
+            table_rows.clear()
+
+    def flush_metadata():
+        if metadata_pairs:
+            story.append(make_metadata_table(metadata_pairs))
+            metadata_pairs.clear()
+
+    def add_callout(label, value, tone="blue"):
+        box = Table(
+            [[Paragraph(f"<b>{esc(label)}</b> " + inline(value), styles["Statusx"])]],
+            colWidths=[CONTENT_WIDTH],
+            hAlign="LEFT"
+        )
+        if tone == "warning":
+            bg, rule = WARNING, WARNING_RULE
+        elif tone == "neutral":
+            bg, rule = PALE, RULE
+        else:
+            bg, rule = PALE_CYAN, BLUE_MID
+        box.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), bg),
+            ("BOX", (0, 0), (-1, -1), 0.55, rule),
+            ("LINEBEFORE", (0, 0), (0, -1), 2.2, BLUE if tone != "warning" else WARNING_RULE),
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        story.append(box)
+        story.append(Spacer(1, 5))
+
+    for line in lines:
+        text = line.strip()
+
+        # Element identity fields become a compact but readable data grid.
+        if metadata_scan and title_added:
+            if not text:
+                continue
+            if text.startswith("## ") or text.startswith("# "):
+                flush_metadata()
+                metadata_scan = False
+            else:
+                meta_match = re.match(r"^\*\*(.+?):\*\*\s*(.*?)$", text)
+                if meta_match:
+                    label = meta_match.group(1).strip()
+                    value = meta_match.group(2).strip()
+                    if label.lower() == "block note":
+                        flush_metadata()
+                        metadata_scan = False
+                        add_callout("Block note:", value, tone="neutral")
+                    elif not re.match(r"^(Editorial|Document) status$", label, re.I):
+                        metadata_pairs.append((label, value))
+                        continue
+                elif metadata_pairs:
+                    flush_metadata()
+                    metadata_scan = False
+
+        if text.startswith("|") and text.endswith("|"):
+            flush_paragraph()
+            flush_table()
+            cells = [cell.strip() for cell in text.strip("|").split("|")]
+            if all(re.fullmatch(r":?-{3,}:?", cell or "-") for cell in cells):
+                continue
+            table_rows.append(cells)
+            continue
+
+        flush_table()
+
+        if not text:
+            flush_paragraph()
+        elif text in {"---", "***", "___"}:
+            flush_paragraph()
+            flush_metadata()
+        elif re.match(r"^\*{1,2}(Document|Editorial) status:\*{0,2}\s*", text, flags=re.IGNORECASE):
+            flush_paragraph()
+            flush_metadata()
+            match = re.match(
+                r"^\*{1,2}(Document|Editorial) status:\*{0,2}\s*(.*?)\*?$",
+                text,
+                flags=re.IGNORECASE
+            )
+            status_label = match.group(1).title()
+            status_text = match.group(2).strip()
+            tone = "warning" if re.search(r"draft|pending|in progress|not complete|not yet", status_text, re.I) else "blue"
+            add_callout(f"{status_label} status:", status_text, tone=tone)
+        elif re.match(r"^\*{1,2}(Evidence classification|Evidence status|Data status|Important|Caution|Scope note):\*{0,2}", text, flags=re.IGNORECASE):
+            flush_paragraph()
+            flush_metadata()
+            match = re.match(r"^\*{1,2}([^:]+):\*{0,2}\s*(.*?)$", text)
+            label, value = match.group(1).strip()+":", match.group(2).strip()
+            tone = "warning" if re.search(r"caution|unknown|pending|not complete|not yet", label+" "+value, re.I) else "blue"
+            add_callout(label, value, tone=tone)
+        elif text.startswith("# "):
+            flush_paragraph()
+            flush_metadata()
+            title = text[2:]
+            if element_number is not None and not title_added:
+                title_para = Paragraph(inline(title), styles["ElementTitle"])
+                title_para._bookmarkName = f"element-{element_number:03d}"
+                story.append(title_para)
+                title_added = True
+            else:
+                story.append(Paragraph(inline(title), styles["H1x"]))
+        elif text.startswith("## "):
+            flush_paragraph()
+            flush_metadata()
+            story.append(make_heading_panel(text[3:], styles["H2x"]))
+            story.append(Spacer(1, 4))
+        elif text.startswith("### "):
+            flush_paragraph()
+            flush_metadata()
+            story.append(Paragraph(inline(text[4:]), styles["H3x"]))
+        elif text.startswith("- ") or re.match(r"^\d+\.\s", text):
+            flush_paragraph()
+            flush_metadata()
+            item = re.sub(r"^(- |\d+\.\s)", "", text)
+            story.append(Paragraph("• " + inline(item), styles["Listx"]))
+        else:
+            paragraph_lines.append(text)
+
+    flush_paragraph()
+    flush_table()
+    flush_metadata()
+    return story
+
+# Fail the build rather than silently publishing a partial reference.
+element_files = sorted((ROOT / "elements").glob("[0-9][0-9][0-9]-*.md"))
+numbers = [int(path.name[:3]) for path in element_files]
+expected = list(range(1, 119))
+if numbers != expected:
+    missing = sorted(set(expected) - set(numbers))
+    duplicates = sorted({n for n in numbers if numbers.count(n) > 1})
+    raise RuntimeError(f"Expected exactly 118 element monographs. Missing={missing}; duplicates={duplicates}")
+
+index_file = ROOT / "elements" / "INDEX.md"
+index_text = index_file.read_text(encoding="utf-8")
+indexed_numbers = [
+    int(match.group(1))
+    for line in index_text.splitlines()
+    if (match := re.match(r"^\|\s*(\d{1,3})\s*\|", line))
+]
+if indexed_numbers != expected:
+    raise RuntimeError("INDEX.md does not contain exactly one ordered register row for elements 1-118.")
+
+standards_file = ROOT / "editorial" / "SCIENTIFIC-STANDARDS.md"
+audit_file = ROOT / "editorial" / "AUDIT-LOG.md"
+research_register_file = ROOT / "editorial" / "RESEARCH-SOURCE-REGISTER.md"
+for required_file in (standards_file, audit_file, research_register_file):
+    if not required_file.exists():
+        raise FileNotFoundError(f"Required editorial file not found: {required_file}")
+
+toc = TableOfContents()
+toc.levelStyles = [styles["TOCEntry"]]
+toc.dotsMinLevel = 0
+
+story = [
     Spacer(1, 48 * mm),
     Paragraph("THE ELEMENTS", styles["CoverTitle"]),
     Paragraph("AN ADVANCED SCIENTIFIC AND RESEARCH REFERENCE", styles["CoverSub"]),
