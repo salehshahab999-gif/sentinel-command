@@ -26,12 +26,12 @@ pdfmetrics.registerFontFamily("NotoSans", normal="NotoSans", bold="NotoSans-Bold
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name="CoverTitle", parent=styles["Title"], fontName="NotoSans-Bold", fontSize=25, leading=30, alignment=TA_CENTER, textColor=colors.HexColor("#14263D"), spaceAfter=14))
 styles.add(ParagraphStyle(name="CoverSub", parent=styles["Normal"], fontName="NotoSans", fontSize=10, leading=15, alignment=TA_CENTER, textColor=colors.HexColor("#526477")))
-styles.add(ParagraphStyle(name="H1x", parent=styles["Heading1"], fontSize=17, leading=21, textColor=colors.HexColor("#14263D"), spaceBefore=12, spaceAfter=8))
+styles.add(ParagraphStyle(name="H1x", parent=styles["Heading1"], fontName="NotoSans-Bold", fontSize=17, leading=21, textColor=colors.HexColor("#14263D"), spaceBefore=12, spaceAfter=8))
 styles.add(ParagraphStyle(name="H2x", parent=styles["Heading2"], fontName="NotoSans-Bold", fontSize=12, leading=15, textColor=colors.HexColor("#235B75"), spaceBefore=9, spaceAfter=5))
 styles["Heading3"].fontName = "NotoSans-Bold"
-styles.add(ParagraphStyle(name="Bodyx", parent=styles["BodyText"], fontSize=8.7, leading=12.2, spaceAfter=6))
-styles.add(ParagraphStyle(name="Smallx", parent=styles["BodyText"], fontSize=7.2, leading=9, textColor=colors.HexColor("#526477")))
-styles.add(ParagraphStyle(name="Cellx", parent=styles["BodyText"], fontSize=7.2, leading=9))
+styles.add(ParagraphStyle(name="Bodyx", parent=styles["BodyText"], fontName="NotoSans", fontSize=8.7, leading=12.2, spaceAfter=6))
+styles.add(ParagraphStyle(name="Smallx", parent=styles["BodyText"], fontName="NotoSans", fontSize=7.2, leading=9, textColor=colors.HexColor("#526477")))
+styles.add(ParagraphStyle(name="Cellx", parent=styles["BodyText"], fontName="NotoSans", fontSize=7.2, leading=9))
 
 def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
