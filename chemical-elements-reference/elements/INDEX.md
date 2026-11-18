@@ -98,10 +98,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 92 | U | Uranium | Drafted (initial) |
 | 93 | Np | Neptunium | Drafted (initial) |
 | 94 | Pu | Plutonium | Drafted (initial) |
-| 95 | Am | Americium | Pending |
-| 96 | Cm | Curium | Pending |
-| 97 | Bk | Berkelium | Pending |
-| 98 | Cf | Californium | Pending |
+| 95 | Am | Americium | Drafted (initial) |
+| 96 | Cm | Curium | Drafted (initial) |
+| 97 | Bk | Berkelium | Drafted (initial) |
+| 98 | Cf | Californium | Drafted (initial) |
 | 99 | Es | Einsteinium | Pending |
 | 100 | Fm | Fermium | Pending |
 | 101 | Md | Mendelevium | Pending |
