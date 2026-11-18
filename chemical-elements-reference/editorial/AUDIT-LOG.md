@@ -3,7 +3,7 @@
 **Project:** The Elements: An Advanced Scientific and Research Reference  
 **Audit snapshot:** 18 November 2026  
 **Scope:** 118 element monographs (atomic numbers 1–118)  
-**Current status:** ten monographs have passed a limited Phase I cross-check; no monograph is yet certified as fully audited or peer-reviewed.
+**Current status:** twenty monographs have passed a limited Phase I cross-check; no monograph is yet certified as fully audited or peer-reviewed.
 
 ## 1. Audit principles
 
@@ -40,7 +40,7 @@ Each audited monograph includes a source list with DOI or stable URL, data versi
 
 | Atomic numbers | Status | Scope |
 |---|---|---|
-| 1–10 | Phase I audit complete* | CIAAW weight/isotope fields and NIST ASD ground-state/first-ionization fields cross-checked |
+| 1–20 | Phase I audit complete* | CIAAW weight/isotope fields and NIST ASD ground-state/first-ionization fields cross-checked |
 | 11–118 | Drafted; Phase I not yet audited | Source-by-source cross-check pending |
 
 *Phase I does not certify the rest of the monograph. The discovery narrative, applications, chemistry, material properties, nuclear dossiers, toxicology, and other quantitative properties remain subject to separate review.
