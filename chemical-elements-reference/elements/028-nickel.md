@@ -7,8 +7,9 @@
 **Block:** d-block  
 **Classification:** Transition metal  
 **Standard atomic weight (CIAAW):** 58.6934(4)  
-**Ground-state electron configuration:** [Ar] 3d⁸ 4s²  
-**Physical state at approximately 298 K and 1 bar:** Solid
+**Ground-state electron configuration:** [Ar] 3d⁸ 4s² [3]  
+**Ground-state term symbol:** ³F₄ [3]
+**Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
 Nickel is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d⁸ 4s². Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. For group 12 zinc, the filled d subshell gives chemistry that differs from the more conventionally redox-active transition metals.
@@ -48,3 +49,40 @@ The ground-state configuration above is a configuration label, not a complete sp
 - PubChem, Nickel: https://pubchem.ncbi.nlm.nih.gov/element/Ni (compiled property cross-check; accessed 2026-11-18).
 - NIST Atomic Spectra Database: https://physics.nist.gov/asd (spectroscopic data source; element-specific extraction pending).
 - NNDC ENSDF: https://www.nndc.bnl.gov/ensdfarchivals/ (evaluated nuclide data source; isotope-by-isotope review pending).
+
+## Phase I audit: atomic ground state and natural isotopic composition
+
+| Quantity | NIST ASD 5.12 value | Standard uncertainty | NIST bibliography key |
+|---|---:|---:|---|
+| First ionization energy, neutral atom | 7.639878 eV | 0.000017 eV | L12369 [3] |
+| Ground-state term | ³F₄ | ASD term designation | [3] |
+
+| Nuclide | CIAAW 2024 representative isotopic composition (atom fraction) | Nuclear status |
+|---|---:|---|
+| ⁵⁸Ni | 0.680769(190) | stable |
+| ⁶⁰Ni | 0.262231(150) | stable |
+| ⁶¹Ni | 0.011399(13) | stable |
+| ⁶²Ni | 0.036345(40) | stable |
+| ⁶⁴Ni | 0.009256(19) | stable |
+
+The isotopic compositions are CIAAW 2024 representative values for normal terrestrial materials [2]. Parenthetical figures are reported in the CIAAW notation; they are not to be converted into a broader natural-variation range. For nickel, copper, and zinc, CIAAW carries footnote **r**: a range of isotopic compositions among normal terrestrial materials limits the precision of a single standard atomic-weight value. The tabulated standard atomic weight and uncertainty are intended to apply to normal material [1,2].
+
+**Evidence classification:** first ionization energy and ground-state term/configuration: **EVALUATED** (NIST ASD 5.12); standard atomic weight and representative isotope compositions: **EVALUATED** (CIAAW 2024). This Phase I review does not certify the entire monograph. Detailed nuclide masses, nuclear levels, decay schemes, half-lives, excited-state spectra, thermodynamic functions, phase equilibria, crystal structures, toxicology, and safety limits remain pending separate source-specific review.
+
+## Selected research literature and research provenance
+
+The publications below are specialist research supporting only the named methods or properties. Doctoral theses are used for methodological depth and source discovery; peer-reviewed journal articles are preferred where a corresponding article exists. Neither category supersedes current evaluated reference data for the standard atomic weight or the NIST ionization-energy result.
+
+[5] Ward, J. W. (2021). “Experimental Atomic Spectroscopy of Iron Group Elements for Astrophysics.” PhD dissertation, University of Maryland. DOI: https://doi.org/10.13016/vgfe-sg1f. Includes a critical evaluation of Ni V, approximately 1500 wavelengths, over 300 energy levels, and calculated oscillator strengths; not neutral Ni I.
+
+## Phase I references
+
+[1] Commission on Isotopic Abundances and Atomic Weights (CIAAW). *Standard Atomic Weights 2024*. Evaluated table, element Z=28. https://ciaaw.org/atomic-weights.htm (accessed 2026-11-18).
+
+[2] Commission on Isotopic Abundances and Atomic Weights (CIAAW). *Isotopic Compositions of the Elements 2024*. Evaluated table, element Z=28. https://ciaaw.org/isotopic-abundances.htm (accessed 2026-11-18).
+
+[3] Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team. *NIST Atomic Spectra Database*, version 5.12 (2024), neutral Ni I: ground configuration/term and first ionization energy. NIST Standard Reference Database 78. DOI: https://doi.org/10.18434/T4W30F. Record bibliography key(s): L12369. Online output and uncertainty column checked 2026-11-18. https://physics.nist.gov/asd.
+
+[4] Royal Society of Chemistry. *Periodic Table: Nickel*, element-specific overview and reference physical state. https://periodic-table.rsc.org/element/28/nickel (accessed 2026-11-18).
+
+**Editorial status:** Phase I partially audited on 2026-11-18. CIAAW 2024 standard atomic weight/isotopic composition and NIST ASD 5.12 neutral-atom ground-state/first-ionization data have been matched to explicit records and uncertainty fields. The selected research bibliography provides element-specific specialist context. Full monograph validation remains incomplete; see the outstanding-data statement above.
