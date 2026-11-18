@@ -324,7 +324,8 @@ if indexed_numbers != expected:
 
 standards_file = ROOT / "editorial" / "SCIENTIFIC-STANDARDS.md"
 audit_file = ROOT / "editorial" / "AUDIT-LOG.md"
-for required_file in (standards_file, audit_file):
+research_register_file = ROOT / "editorial" / "RESEARCH-SOURCE-REGISTER.md"
+for required_file in (standards_file, audit_file, research_register_file):
     if not required_file.exists():
         raise FileNotFoundError(f"Required editorial file not found: {required_file}")
 
@@ -360,6 +361,8 @@ story = [
 story.extend(parse_md(standards_file))
 story.append(PageBreak())
 story.extend(parse_md(audit_file))
+story.append(PageBreak())
+story.extend(parse_md(research_register_file))
 story.append(PageBreak())
 story.extend(parse_md(index_file))
 
