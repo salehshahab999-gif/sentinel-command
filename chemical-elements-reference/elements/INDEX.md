@@ -70,10 +70,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 64 | Gd | Gadolinium | Drafted (initial) |
 | 65 | Tb | Terbium | Drafted (initial) |
 | 66 | Dy | Dysprosium | Drafted (initial) |
-| 67 | Ho | Holmium | Pending |
-| 68 | Er | Erbium | Pending |
-| 69 | Tm | Thulium | Pending |
-| 70 | Yb | Ytterbium | Pending |
+| 67 | Ho | Holmium | Drafted (initial) |
+| 68 | Er | Erbium | Drafted (initial) |
+| 69 | Tm | Thulium | Drafted (initial) |
+| 70 | Yb | Ytterbium | Drafted (initial) |
 | 71 | Lu | Lutetium | Pending |
 | 72 | Hf | Hafnium | Pending |
 | 73 | Ta | Tantalum | Pending |
