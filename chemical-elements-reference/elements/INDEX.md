@@ -34,10 +34,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 28 | Ni | Nickel | Drafted (initial) |
 | 29 | Cu | Copper | Drafted (initial) |
 | 30 | Zn | Zinc | Drafted (initial) |
-| 31 | Ga | Gallium | Pending |
-| 32 | Ge | Germanium | Pending |
-| 33 | As | Arsenic | Pending |
-| 34 | Se | Selenium | Pending |
+| 31 | Ga | Gallium | Drafted (initial) |
+| 32 | Ge | Germanium | Drafted (initial) |
+| 33 | As | Arsenic | Drafted (initial) |
+| 34 | Se | Selenium | Drafted (initial) |
 | 35 | Br | Bromine | Pending |
 | 36 | Kr | Krypton | Pending |
 | 37 | Rb | Rubidium | Pending |
