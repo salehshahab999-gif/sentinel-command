@@ -128,4 +128,4 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 - **Phase I audit complete*:** the limited Phase I data fields were checked against named CIAAW and NIST ASD releases, with source record identifiers and access dates. Other scientific sections remain under review.
 - **Pending:** monograph not yet drafted.
 
-️*The asterisk is a scope warning, not a full editorial approval. See `../editorial/AUDIT-LOG.md` for methods and remaining stages.
+*The asterisk is a scope warning, not a full editorial approval. See `../editorial/AUDIT-LOG.md` for methods and remaining stages.
