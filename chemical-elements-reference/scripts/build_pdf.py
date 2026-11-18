@@ -116,13 +116,34 @@ def esc(text):
 
 def inline(text):
     text = esc(text)
-    text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
-    text = re.sub(r"\*(.+?)\*", r"<i>\1</i>", text)
+    saved_links = []
+
+    def hold_markdown_link(match):
+        saved_links.append((match.group(1), match.group(2)))
+        return f"__PDF_LINK_{len(saved_links) - 1}__"
+
+    # Preserve Markdown links first so the bare-URL pass does not nest anchors.
     text = re.sub(
-        r"\[([^\]]+)\]\((https?://[^)]+)\)",
-        r'<link href="\2" color="#235B75">\1</link>',
+        r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
+        hold_markdown_link,
         text
     )
+
+    def hold_bare_url(match):
+        raw = match.group(0)
+        url = raw.rstrip(".,;:)")
+        trailing = raw[len(url):]
+        saved_links.append((url, url))
+        return f"__PDF_LINK_{len(saved_links) - 1}__{trailing}"
+
+    text = re.sub(r"https?://[^\s<]+", hold_bare_url, text)
+
+    for index, (label, url) in enumerate(saved_links):
+        anchor = f'<link href="{url}" color="#235B75">{label}</link>'
+        text = text.replace(f"__PDF_LINK_{index}__", anchor)
+
+    text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+    text = re.sub(r"\*(.+?)\*", r"<i>\1</i>", text)
     return text
 
 def draw_page_chrome(canvas, doc):
