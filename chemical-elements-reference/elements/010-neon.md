@@ -7,14 +7,14 @@
 **Block:** p-block [4]
 **Classification:** Noble gas  
 **Standard atomic weight (CIAAW 2024):** 20.1797(6) [1]
-**Ground-state electron configuration:** [He] 2s² 2p⁶   [3]
+**Ground-state electron configuration:** [He] 2s² 2p⁶ [3]
 **Physical state at approximately 298 K and 1 bar:** Gas [4]
 
 ## 1. Atomic and periodic context
 Neon is element 10 in the periodic table. Its ground-state configuration, [He] 2s² 2p⁶, provides the starting point for interpreting its valence structure, bonding patterns, and characteristic chemistry. Group placement is a useful organizing framework, but observed chemistry also depends on molecular environment, oxidation state, and thermodynamic conditions.
 
 ## 2. Isotopic and nuclear context
-Naturally occurring neon consists mainly of ²⁰Ne, with ²¹Ne and ²²Ne also present. Its closed-shell configuration accounts for its low chemical reactivity under ordinary conditions. A complete isotope dossier requires nuclide-by-nuclide evaluation of atomic masses, natural abundances, decay modes, and half-lives. Values are not inferred from the standard atomic weight.
+Naturally occurring neon consists mainly of ²⁰Ne, with ²¹Ne and ²²Ne also present. Its closed-shell configuration accounts for its low chemical reactivity under ordinary conditions [4]. A complete isotope dossier requires nuclide-by-nuclide evaluation of atomic masses, natural abundances, decay modes, and half-lives. Values are not inferred from the standard atomic weight.
 
 ## 3. Chemical and materials significance
 Gas-discharge lighting, indicator lamps, helium–neon lasers, and cryogenic refrigeration in specialized systems.
