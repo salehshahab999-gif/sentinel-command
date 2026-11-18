@@ -7,7 +7,7 @@
 **Block:** s-block [4]
 **Classification:** Alkali metal  
 **Standard atomic weight (CIAAW 2024):** [6.938, 6.997] [1]
-**Ground-state electron configuration:** [He] 2s¹   [3]
+**Ground-state electron configuration:** [He] 2s¹ [3]
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
