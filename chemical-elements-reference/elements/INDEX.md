@@ -118,10 +118,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 112 | Cn | Copernicium | Drafted (initial) |
 | 113 | Nh | Nihonium | Drafted (initial) |
 | 114 | Fl | Flerovium | Drafted (initial) |
-| 115 | Mc | Moscovium | Pending |
-| 116 | Lv | Livermorium | Pending |
-| 117 | Ts | Tennessine | Pending |
-| 118 | Og | Oganesson | Pending |
+| 115 | Mc | Moscovium | Drafted (initial) |
+| 116 | Lv | Livermorium | Drafted (initial) |
+| 117 | Ts | Tennessine | Drafted (initial) |
+| 118 | Og | Oganesson | Drafted (initial) |
 
 ## Status definitions
 - **Drafted:** an initial structured monograph file exists; scientific expansion and review may remain.
