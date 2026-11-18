@@ -62,10 +62,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 56 | Ba | Barium | Drafted (initial) |
 | 57 | La | Lanthanum | Drafted (initial) |
 | 58 | Ce | Cerium | Drafted (initial) |
-| 59 | Pr | Praseodymium | Pending |
-| 60 | Nd | Neodymium | Pending |
-| 61 | Pm | Promethium | Pending |
-| 62 | Sm | Samarium | Pending |
+| 59 | Pr | Praseodymium | Drafted (initial) |
+| 60 | Nd | Neodymium | Drafted (initial) |
+| 61 | Pm | Promethium | Drafted (initial) |
+| 62 | Sm | Samarium | Drafted (initial) |
 | 63 | Eu | Europium | Pending |
 | 64 | Gd | Gadolinium | Pending |
 | 65 | Tb | Terbium | Pending |
