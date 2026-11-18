@@ -38,10 +38,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 32 | Ge | Germanium | Drafted (initial) |
 | 33 | As | Arsenic | Drafted (initial) |
 | 34 | Se | Selenium | Drafted (initial) |
-| 35 | Br | Bromine | Pending |
-| 36 | Kr | Krypton | Pending |
-| 37 | Rb | Rubidium | Pending |
-| 38 | Sr | Strontium | Pending |
+| 35 | Br | Bromine | Drafted (initial) |
+| 36 | Kr | Krypton | Drafted (initial) |
+| 37 | Rb | Rubidium | Drafted (initial) |
+| 38 | Sr | Strontium | Drafted (initial) |
 | 39 | Y | Yttrium | Pending |
 | 40 | Zr | Zirconium | Pending |
 | 41 | Nb | Niobium | Pending |
