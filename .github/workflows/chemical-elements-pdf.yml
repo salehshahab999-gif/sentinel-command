@@ -33,7 +33,7 @@ jobs:
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chemical-elements-reference-preview
-          path: chemical-elements-reference/dist/*.pdf
+          name: chemical-elements-reference-professional-working-edition
+          path: chemical-elements-reference/dist/The_Elements_Advanced_Scientific_Reference_Professional.pdf
           if-no-files-found: error
           retention-days: 30
