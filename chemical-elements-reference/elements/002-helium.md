@@ -4,8 +4,10 @@
 **Atomic number:** 2  
 **Group:** 18  
 **Period:** 1  
-**Block:** p-block  
+**Block:** s-block  
 **Classification:** Noble gas  
+
+**Block note:** Helium is placed in Group 18 because its filled 1s shell gives it noble-gas behaviour, but its block assignment is s-block because its ground-state configuration ends in 1s².
 **Standard atomic weight (CIAAW 2024):** 4.002602(2)  
 **Ground-state electron configuration:** 1s²  
 **Physical state at approximately 298 K and 1 bar:** Gas
@@ -29,5 +31,27 @@ The final monograph will add critically evaluated ionization energies, electron 
 1. Commission on Isotopic Abundances and Atomic Weights (CIAAW), *Standard Atomic Weights 2024*: [https://ciaaw.org/atomic-weights.htm](https://ciaaw.org/atomic-weights.htm).
 2. CIAAW, *Abridged Standard Atomic Weights 2024*: [https://ciaaw.org/abridged-atomic-weights.htm](https://ciaaw.org/abridged-atomic-weights.htm).
 3. NIST, *Atomic Spectra Database*: [https://physics.nist.gov/asd](https://physics.nist.gov/asd).
+
+
+
+## Evaluated atomic and isotopic data (first-pass audit)
+
+| Data item | Evaluated value | Interpretation |
+|---|---:|---|
+| First ionization energy | 24.587389011 eV | NIST ASD 5.12; standard uncertainty: ±0.000000025 eV |
+| Ground-state term | ¹S₀ | NIST ASD 5.12 |
+
+| Nuclide | Representative isotopic composition | Stability |
+|---|---:|---|
+| ³He | 0.000002(2) | stable |
+| ⁴He | 0.999998(2) | stable |
+
+The abundance of ³He is very small and can vary strongly in particular geological and extraterrestrial reservoirs; do not treat the representative value as universal.
+
+**Evidence labels:** first ionization energy and ground-state term are **EVALUATED** (NIST ASD); natural isotope compositions and standard atomic weights are **EVALUATED** (CIAAW 2024). These data are not a complete nuclear dossier: isotope masses, decay modes, half-lives, and nuclear levels still require nuclide-specific ENSDF/NUBASE review.
+
+
+4. CIAAW, *Isotopic Compositions of the Elements 2024*: [https://www.ciaaw.org/isotopic-abundances.htm](https://www.ciaaw.org/isotopic-abundances.htm).
+5. NIST, *Atomic Spectra Database, Ionization Energies Data* (version 5.12; accessed 2026-11-18): [https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&shells_out=on&spectra=H-Og%2Bi&unc_out=on&units=1](https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&shells_out=on&spectra=H-Og%2Bi&unc_out=on&units=1).
 
 **Editorial status:** initial structured monograph; detailed property tables and element-specific primary-source verification remain in progress.
