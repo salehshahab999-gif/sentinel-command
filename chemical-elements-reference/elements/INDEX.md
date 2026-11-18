@@ -66,10 +66,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 60 | Nd | Neodymium | Drafted (initial) |
 | 61 | Pm | Promethium | Drafted (initial) |
 | 62 | Sm | Samarium | Drafted (initial) |
-| 63 | Eu | Europium | Pending |
-| 64 | Gd | Gadolinium | Pending |
-| 65 | Tb | Terbium | Pending |
-| 66 | Dy | Dysprosium | Pending |
+| 63 | Eu | Europium | Drafted (initial) |
+| 64 | Gd | Gadolinium | Drafted (initial) |
+| 65 | Tb | Terbium | Drafted (initial) |
+| 66 | Dy | Dysprosium | Drafted (initial) |
 | 67 | Ho | Holmium | Pending |
 | 68 | Er | Erbium | Pending |
 | 69 | Tm | Thulium | Pending |
