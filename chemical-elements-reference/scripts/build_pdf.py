@@ -228,11 +228,17 @@ def parse_md(path, element_number=None):
             flush_paragraph()
         elif text in {"---", "***", "___"}:
             flush_paragraph()
-        elif re.match(r"^\*Document status:\*?", text, flags=re.IGNORECASE):
+        elif re.match(r"^\*{1,2}(Document|Editorial) status:\*{0,2}\s*", text, flags=re.IGNORECASE):
             flush_paragraph()
-            status_text = re.sub(r"^\*Document status:\*?\s*", "", text, flags=re.IGNORECASE)
+            match = re.match(
+                r"^\*{1,2}(Document|Editorial) status:\*{0,2}\s*(.*?)\*?$",
+                text,
+                flags=re.IGNORECASE
+            )
+            status_label = match.group(1).title()
+            status_text = match.group(2).strip()
             status_box = Table(
-                [[Paragraph("<b>Document status:</b> " + inline(status_text), styles["Statusx"])]],
+                [[Paragraph(f"<b>{status_label} status:</b> " + inline(status_text), styles["Statusx"])]],
                 colWidths=[CONTENT_WIDTH],
                 hAlign="LEFT"
             )
@@ -348,7 +354,7 @@ doc = ReferenceDocTemplate(
     author="Scientific Reference Project",
     subject="A research reference covering the 118 chemical elements",
 )
-doc.multiBuild(story, maxPasses=5)
+doc.multiBuild(story, onFirstPage=draw_page_chrome, onLaterPages=draw_page_chrome, maxPasses=5)
 print(
     f"Built {OUT} ({OUT.stat().st_size} bytes); "
     f"page size=A4; elements={len(element_files)}; "
