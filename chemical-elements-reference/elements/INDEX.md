@@ -1,19 +1,19 @@
 # Elemental Monograph Register
 
-The register covers atomic numbers 1–118. A file is considered drafted only when a corresponding monograph exists in this directory. A draft is not a claim of full scientific validation.
+The register covers atomic numbers 1–118. A file is considered drafted only when a corresponding monograph exists in this directory. A draft is not a claim of full scientific validation. Phase I audit completion applies only to the atomic ground-state / first-ionization data and CIAAW standard-weight / isotopic-composition fields explicitly identified in each monograph; it does not certify the whole entry.
 
 | Z | Symbol | Element | Monograph status |
 |---:|:---:|---|---|
-| 1 | H | Hydrogen | Drafted |
-| 2 | He | Helium | Drafted |
-| 3 | Li | Lithium | Drafted |
-| 4 | Be | Beryllium | Drafted |
-| 5 | B | Boron | Drafted |
-| 6 | C | Carbon | Drafted |
-| 7 | N | Nitrogen | Drafted |
-| 8 | O | Oxygen | Drafted |
-| 9 | F | Fluorine | Drafted |
-| 10 | Ne | Neon | Drafted |
+| 1 | H | Hydrogen | Phase I audit complete* |
+| 2 | He | Helium | Phase I audit complete* |
+| 3 | Li | Lithium | Phase I audit complete* |
+| 4 | Be | Beryllium | Phase I audit complete* |
+| 5 | B | Boron | Phase I audit complete* |
+| 6 | C | Carbon | Phase I audit complete* |
+| 7 | N | Nitrogen | Phase I audit complete* |
+| 8 | O | Oxygen | Phase I audit complete* |
+| 9 | F | Fluorine | Phase I audit complete* |
+| 10 | Ne | Neon | Phase I audit complete* |
 | 11 | Na | Sodium | Drafted |
 | 12 | Mg | Magnesium | Drafted |
 | 13 | Al | Aluminium | Drafted |
@@ -125,4 +125,7 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 
 ## Status definitions
 - **Drafted:** an initial structured monograph file exists; scientific expansion and review may remain.
+- **Phase I audit complete*:** the limited Phase I data fields were checked against named CIAAW and NIST ASD releases, with source record identifiers and access dates. Other scientific sections remain under review.
 - **Pending:** monograph not yet drafted.
+
+️*The asterisk is a scope warning, not a full editorial approval. See `../editorial/AUDIT-LOG.md` for methods and remaining stages.
