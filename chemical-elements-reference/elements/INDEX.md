@@ -14,16 +14,16 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 8 | O | Oxygen | Phase I audit complete* |
 | 9 | F | Fluorine | Phase I audit complete* |
 | 10 | Ne | Neon | Phase I audit complete* |
-| 11 | Na | Sodium | Drafted |
-| 12 | Mg | Magnesium | Drafted |
-| 13 | Al | Aluminium | Drafted |
-| 14 | Si | Silicon | Drafted |
-| 15 | P | Phosphorus | Drafted |
-| 16 | S | Sulfur | Drafted |
-| 17 | Cl | Chlorine | Drafted |
-| 18 | Ar | Argon | Drafted |
-| 19 | K | Potassium | Drafted |
-| 20 | Ca | Calcium | Drafted |
+| 11 | Na | Sodium | Phase I audit complete* |
+| 12 | Mg | Magnesium | Phase I audit complete* |
+| 13 | Al | Aluminium | Phase I audit complete* |
+| 14 | Si | Silicon | Phase I audit complete* |
+| 15 | P | Phosphorus | Phase I audit complete* |
+| 16 | S | Sulfur | Phase I audit complete* |
+| 17 | Cl | Chlorine | Phase I audit complete* |
+| 18 | Ar | Argon | Phase I audit complete* |
+| 19 | K | Potassium | Phase I audit complete* |
+| 20 | Ca | Calcium | Phase I audit complete* |
 | 21 | Sc | Scandium | Drafted |
 | 22 | Ti | Titanium | Drafted |
 | 23 | V | Vanadium | Drafted |
