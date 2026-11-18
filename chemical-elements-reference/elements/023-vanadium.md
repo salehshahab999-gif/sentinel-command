@@ -26,11 +26,6 @@ The standard atomic weight is reproduced from the CIAAW 2024 table. Parenthetica
 ## 5. Research expansion required
 The final edition will add evaluated ionization energies, electron affinity, explicitly defined radii, oxidation-state and coordination chemistry, phase-transition and thermodynamic data, crystal structures, spectroscopy, nuclear datasets, and element-specific hazard classifications. Quantitative values will be accompanied by sources, conditions, uncertainty, and evidence status.
 
-## References
-1. Commission on Isotopic Abundances and Atomic Weights (CIAAW), *Standard Atomic Weights 2024*: https://www.ciaaw.org/atomic-weights.htm
-2. CIAAW, *Isotopic Abundances of the Elements*: https://www.ciaaw.org/isotopic-abundances.htm
-3. NIST, *Atomic Spectra Database*: https://physics.nist.gov/asd
-
 ## Phase I audit: atomic ground state and natural isotopic composition
 
 | Quantity | NIST ASD 5.12 value | Standard uncertainty | NIST bibliography key |
