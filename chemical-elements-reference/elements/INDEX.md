@@ -90,10 +90,10 @@ The register covers atomic numbers 1–118. A file is considered drafted only wh
 | 84 | Po | Polonium | Drafted (initial) |
 | 85 | At | Astatine | Drafted (initial) |
 | 86 | Rn | Radon | Drafted (initial) |
-| 87 | Fr | Francium | Pending |
-| 88 | Ra | Radium | Pending |
-| 89 | Ac | Actinium | Pending |
-| 90 | Th | Thorium | Pending |
+| 87 | Fr | Francium | Drafted (initial) |
+| 88 | Ra | Radium | Drafted (initial) |
+| 89 | Ac | Actinium | Drafted (initial) |
+| 90 | Th | Thorium | Drafted (initial) |
 | 91 | Pa | Protactinium | Pending |
 | 92 | U | Uranium | Pending |
 | 93 | Np | Neptunium | Pending |
