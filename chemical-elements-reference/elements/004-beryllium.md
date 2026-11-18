@@ -7,14 +7,14 @@
 **Block:** s-block [4]
 **Classification:** Alkaline-earth metal  
 **Standard atomic weight (CIAAW 2024):** 9.0121831(5) [1]
-**Ground-state electron configuration:** [He] 2s²   [3]
+**Ground-state electron configuration:** [He] 2s² [3]
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
 Beryllium is element 4 in the periodic table. Its ground-state configuration, [He] 2s², provides the starting point for interpreting its valence structure, bonding patterns, and characteristic chemistry. Group placement is a useful organizing framework, but observed chemistry also depends on molecular environment, oxidation state, and thermodynamic conditions.
 
 ## 2. Isotopic and nuclear context
-Beryllium and many of its compounds are highly toxic when inhaled; occupational exposure can cause chronic beryllium disease. Handling requires strict industrial controls. A complete isotope dossier requires nuclide-by-nuclide evaluation of atomic masses, natural abundances, decay modes, and half-lives. Values are not inferred from the standard atomic weight.
+Beryllium and many of its compounds are highly toxic when inhaled; occupational exposure can cause chronic beryllium disease. Handling requires strict industrial controls [4]. A complete isotope dossier requires nuclide-by-nuclide evaluation of atomic masses, natural abundances, decay modes, and half-lives. Values are not inferred from the standard atomic weight.
 
 ## 3. Chemical and materials significance
 Aerospace structures, X-ray windows, precision instruments, and neutron-moderator/reflector applications in specialized nuclear systems.
