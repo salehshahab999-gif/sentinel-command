@@ -66,6 +66,31 @@ def stac_search(collection):
     write_json(f"{collection}_catalog.json", result)
     return result
 
+def download_sentinel_previews(catalogs):
+    """Download public thumbnail assets for all 40 Sentinel-2 STAC records."""
+    results = []
+    catalog = catalogs.get("sentinel-2-l2a", {})
+    for item in catalog.get("items", []):
+        href = item.get("assets", {}).get("thumbnail")
+        rec = {"id":item.get("id"),"datetime_utc":item.get("datetime_utc"),
+               "cloud_cover_pct":item.get("cloud_cover_pct"),"url":href}
+        if not href:
+            rec["status"] = "no_thumbnail_asset"
+        else:
+            try:
+                body, ctype = get_bytes(href, 90)
+                if body and ctype.startswith("image/"):
+                    name = "sentinel2_preview_" + (item.get("id") or "scene").replace("/", "_") + ".jpg"
+                    (OUT/name).write_bytes(body)
+                    rec.update(status="downloaded",filename=name,bytes=len(body),content_type=ctype)
+                else:
+                    rec.update(status="not_image",content_type=ctype,preview=body[:300].decode("utf-8","replace"))
+            except Exception as ex:
+                rec.update(status="unavailable",error=str(ex)[:300])
+        results.append(rec)
+    write_json("sentinel2_thumbnail_download_log.json",results)
+    return results
+
 def nasa_gibs():
     w, s, e, n = bbox_values()
     layers = ["VIIRS_SNPP_Thermal_Anomalies_375m_All",
@@ -94,6 +119,33 @@ def nasa_gibs():
             except Exception as ex:
                 rec.update(status="unavailable",error=str(ex)[:400])
             records.append(rec)
+    # Retry any failed thermal browse requests using an explicit UTC timestamp and WMS 1.3.0.
+    retry_records = []
+    for rec in records:
+        if rec.get("status") == "downloaded" or "Thermal_Anomalies" not in rec.get("layer", ""):
+            continue
+        w, s, e, n = bbox_values()
+        attempts = [
+            {"VERSION":"1.1.1","TIME":rec["date_utc"]+"T00:00:00Z","SRS":"EPSG:4326","BBOX":f"{w},{s},{e},{n}"},
+            {"VERSION":"1.3.0","TIME":rec["date_utc"],"CRS":"CRS:84","BBOX":f"{w},{s},{e},{n}"},
+            {"VERSION":"1.3.0","TIME":rec["date_utc"]+"T00:00:00Z","CRS":"EPSG:4326","BBOX":f"{s},{w},{n},{e}"},
+        ]
+        for idx, variant in enumerate(attempts, 1):
+            params = {"SERVICE":"WMS","REQUEST":"GetMap","LAYERS":rec["layer"],"STYLES":"",
+                      "WIDTH":"1000","HEIGHT":"800","FORMAT":"image/png", **variant}
+            url = GIBS + "?" + urllib.parse.urlencode(params)
+            try:
+                body, ctype = get_bytes(url, 90)
+                if ctype.startswith("image/") and body[:8] == bytes.fromhex("89504e470d0a1a0a"):
+                    name = f"{rec['date_utc']}_{rec['layer']}_retry{idx}.png"
+                    (OUT/name).write_bytes(body)
+                    rec.update(status="downloaded_on_retry", filename=name, bytes=len(body),
+                               retry_attempt=idx, retry_version=variant["VERSION"])
+                    break
+                rec["retry_last_response"] = body[:1000].decode("utf-8","replace")
+            except Exception as ex:
+                rec["retry_last_error"] = str(ex)[:400]
+            rec["retry_attempts"] = idx
     write_json("nasa_gibs_download_log.json", records)
     return records
 
@@ -150,6 +202,7 @@ def main():
             catalogs[collection] = {"status":"ok","count":r["feature_count"],"pages":r["pages_read"]}
         except Exception as ex:
             catalogs[collection] = {"status":"error","error":str(ex)[:400]}
+    previews = download_sentinel_previews({"sentinel-2-l2a": stac_search("sentinel-2-l2a")}) if catalogs.get("sentinel-2-l2a",{}).get("status")=="ok" else []
     gibs, firms, weather = nasa_gibs(), nasa_firms(), era5_context()
     summary = {
         "retrieved_at_utc":dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -159,6 +212,7 @@ def main():
                      "downloaded":sum(x.get("status")=="downloaded" for x in gibs),
                      "log":"nasa_gibs_download_log.json",
                      "caveat":"Browse layers only, not calibrated fire-radiative-power measurements."},
+        "sentinel2_previews":{"records":len(previews),"downloaded":sum(x.get("status")=="downloaded" for x in previews),"log":"sentinel2_thumbnail_download_log.json"},
         "nasa_firms":firms,"era5_context":weather,
         "limitations":[
             "A catalogue hit proves scene coverage, not visibility of wreckage or a burn scar.",
