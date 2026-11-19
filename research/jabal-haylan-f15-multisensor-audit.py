@@ -7,7 +7,7 @@ from pathlib import Path
 OUT = Path("research/output/jabal-haylan-multisensor")
 OUT.mkdir(parents=True, exist_ok=True)
 UA = "SentinelCommand-public-research/1.0"
-BBOX = os.getenv("AOI_BBOX", "45.00,15.45,45.15,15.60")
+BBOX = os.getenv("AOI_BBOX") or "45.00,15.45,45.15,15.60"
 START = os.getenv("START_UTC", "2026-09-15T00:00:00Z")
 END = os.getenv("END_UTC", "2026-11-20T00:00:00Z")
 DATES = ["2026-09-16", "2026-09-17", "2026-09-18", "2026-10-28", "2026-11-17"]
