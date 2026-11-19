@@ -1,9 +1,11 @@
 /**
- * Format a date using the Persian calendar while keeping stable numeric
- * year/month/day segments for the dashboard.
+ * Format a date using the Persian calendar with numeric year/month/day parts.
+ * @param {Date} date
+ * @param {string} [timeZone]
+ * @returns {string}
  */
-export function formatPersianDate(date: Date, timeZone?: string): string {
-  const options: Intl.DateTimeFormatOptions = {
+export function formatPersianDate(date, timeZone) {
+  const options = {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
