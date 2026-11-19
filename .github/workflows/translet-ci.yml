@@ -17,8 +17,6 @@ on:
 
 jobs:
   next-check:
-    continue-on-error: true
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/sentinel?schema=public
