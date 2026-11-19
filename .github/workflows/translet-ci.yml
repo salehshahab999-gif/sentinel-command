@@ -27,6 +27,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm test
       - run: npm run lint
       - run: npx prisma generate --schema=app/prisma/schema-local.prisma
       - run: npm run build
