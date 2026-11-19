@@ -1,0 +1,42 @@
+name: Jabal Haylan F-15 Multisensor Evidence Audit
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "research/jabal-haylan-f15-multisensor-audit.py"
+      - "research/Jabal-Haylan-F15-Multisensor-Source-Register.md"
+      - ".github/workflows/jabal-haylan-multisensor-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jabal-haylan-multisensor-audit
+  cancel-in-progress: false
+
+jobs:
+  collect-public-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Collect Sentinel-1, Sentinel-2, NASA and ERA5 metadata
+        env:
+          AOI_BBOX: ${{ vars.JABAL_HAYLAN_GENERALIZED_BBOX }}
+          NASA_FIRMS_MAP_KEY: ${{ secrets.NASA_FIRMS_MAP_KEY }}
+        run: python research/jabal-haylan-f15-multisensor-audit.py
+      - name: Upload evidence inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: jabal-haylan-multisensor-evidence
+          path: research/output/jabal-haylan-multisensor/
+          if-no-files-found: error
+          retention-days: 30
