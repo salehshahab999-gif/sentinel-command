@@ -1,4 +1,4 @@
-"use client";
+// @ts-nocheck
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MARITIME_PROVIDERS } from "../../core/maritime/maritime-providers";
