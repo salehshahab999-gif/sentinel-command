@@ -1,0 +1,47 @@
+name: Jabal Haylan F-15 Multisensor Evidence Audit
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "research/jabal-haylan-f15-multisensor-audit.py"
+      - "research/Jabal-Haylan-F15-Multisensor-Source-Register.md"
+      - ".github/workflows/jabal-haylan-multisensor-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jabal-haylan-multisensor-audit
+  cancel-in-progress: false
+
+jobs:
+  collect-public-evidence:
+    # The authenticated NASA key is only exposed to code from the trusted default branch.
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout trusted master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Collect Sentinel metadata, NASA browse metadata and ERA5 context
+        env:
+          AOI_BBOX: ${{ vars.JABAL_HAYLAN_GENERALIZED_BBOX }}
+          NASA_FIRMS_MAP_KEY: ${{ secrets.NASA_FIRMS_MAP_KEY }}
+        run: python research/jabal-haylan-f15-multisensor-audit.py
+      - name: Upload evidence inventory, including partial results on failure
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: jabal-haylan-multisensor-evidence
+          path: research/output/jabal-haylan-multisensor/
+          if-no-files-found: warn
+          retention-days: 30
