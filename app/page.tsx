@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SystemMetrics from "./components/SystemMetrics";
 import MonitorCard from "./components/MonitorCard";
+import { formatPersianDate } from "./lib/persian-date.mjs";
 
 type Target = { id: string; name: string; address: string };
 
@@ -124,7 +125,7 @@ function formatBackupAge(latestBackupTime: number | null): string {
 export default function Home() {
   const [time, setTime] = useState("");
   const [isClient, setIsClient] = useState(false);
-  const [persianDate, setPersianDate] = useState("");
+  const persianDate = isClient ? formatPersianDate(new Date()) : "";
   const [logs, setLogs] = useState("");
 
   const [alertState, setAlertState] = useState("ACTIVE");
@@ -270,26 +271,6 @@ export default function Home() {
     );
 
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const parts = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-      year: "numeric",
-      month: "long",
-      day: "2-digit",
-    }).formatToParts(new Date());
-
-    const year =
-      parts.find((part) => part.type === "year")?.value ?? "";
-
-    const month = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-      month: "2-digit",
-    }).format(new Date());
-
-    const day =
-      parts.find((part) => part.type === "day")?.value ?? "";
-
-    setPersianDate(`${year}/${month}/${day}`);
   }, []);
 
   useEffect(() => {
