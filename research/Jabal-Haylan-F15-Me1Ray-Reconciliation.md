@@ -1,54 +1,92 @@
 # Jabal Haylan F-15: Me1Ray Coordinate Reconciliation
 
 **Status:** preliminary terrain-screening result, not a verified crash-site coordinate  
-**Research date:** 19 November 2026  
+**Research update:** 20 November 2026 (Asia/Tehran)  
+**GitHub Actions:** run #1 completed successfully  
 **Repository:** `salehshahab999-gif/sentinel-command`
 
 ## Question
 
-Can the Me1Ray coordinate be adjusted using Saleh's reported elevation of approximately 1,897 m and the terrain profile toward the Jabal Haylan summit?
+Can the Me1Ray coordinate be adjusted using Saleh's reported elevation of approximately 1,897–1,898 m and the terrain profile toward the Jabal Haylan summit?
 
 ## Fixed reference coordinates
 
-| Reference | Latitude | Longitude | Reported / sampled elevation |
+| Reference | Latitude | Longitude | DEM / reported elevation |
 |---|---:|---:|---:|
 | Saleh estimate | 15.497610 | 45.075170 | approximately 1,897–1,898 m |
-| Me1Ray attribution | 15.541900 | 45.080792 | SRTM 1,594 m; ASTER 1,583 m |
-| Jabal Haylan summit reference | 15.524170 | 45.074720 | SRTM 2,002 m; ASTER 2,001 m |
+| Me1Ray attribution | 15.541900 | 45.080792 | SRTM approximately 1,594 m; ASTER approximately 1,583 m |
+| Jabal Haylan summit reference | 15.524170 | 45.074720 | SRTM approximately 2,002 m; ASTER approximately 2,001 m |
 
-Source for the elevations: OpenTopoData API, SRTM 30m and ASTER 30m endpoints. These are DEM grid samples, not surveyed ground elevations.
+Elevation values are OpenTopoData API grid samples from SRTM 30m and ASTER 30m products, not surveyed ground elevations.
 
-## First measurable result
+## GitHub Actions execution
 
-A 21-point profile was sampled along the straight transect from the Me1Ray coordinate toward the summit reference.
+The workflow ran on the `master` branch and completed successfully.
 
-The terrain rises from 1,594 m at the Me1Ray coordinate to approximately 1,904 m around **15.53492085, 45.07840172** in SRTM, then continues toward the summit. ASTER gives 1,887 m at that same coordinate. A nearby sample at **15.53453099, 45.07826820** gives SRTM 1,902 m and ASTER 1,898 m.
+- Workflow: [Jabal Haylan F-15 DEM Reconciliation](https://github.com/salehshahab999-gif/sentinel-command/actions/workflows/jabal-haylan-dem-reconciliation.yml)
+- Run #1: [completed successfully](https://github.com/salehshahab999-gif/sentinel-command/actions/runs/44625110348)
+- Commit: `151e2f7a7cd856633e8c256bd30600dc035d053c`
+- Job: `Sample and compare SRTM / ASTER elevation profiles`
+- Result: all five substantive steps completed successfully, including DEM query, ranking, and artifact upload.
+- Artifact: `jabal-haylan-dem-profile` (CSV profile and JSON candidate summary), retained until 19 December 2026.
 
-The nearby point **15.53453099, 45.07826820** is therefore a useful *elevation-matched candidate* for further visual testing:
-- distance from Me1Ray: approximately 863 m;
-- bearing from Me1Ray: approximately 198.3°;
-- distance from Saleh's estimate: approximately 4.12 km;
-- distance from summit reference: approximately 1.21 km;
-- SRTM elevation: 1,902 m;
-- ASTER elevation: 1,898 m.
+## 41-point transect result
 
-This candidate is not a correction to the crash coordinate. It is a point on the Me1Ray-to-summit transect whose DEM elevations happen to be close to Saleh's reference elevation. It remains about 4.1 km from Saleh's coordinate, so elevation agreement does **not** reconcile the two horizontal estimates.
+The workflow sampled 41 points along the straight transect from the Me1Ray coordinate toward the summit reference, using both SRTM 30m and ASTER 30m.
 
-## What this does and does not establish
+Two nearby samples deserve attention, for different reasons:
 
-1. The Me1Ray coordinate lies on terrain roughly 300 m lower than Saleh's elevation reference in both sampled DEM products.
-2. A higher-elevation part of the transect exists roughly 0.86 km southwest of Me1Ray.
-3. SRTM and ASTER disagree locally by several metres to more than 10 m, so a single 1–2 m match must not be overinterpreted.
-4. The DEM transect does not prove that the video camera, wreckage, or impact point lies on this line.
-5. Elevation alone supplies no unique horizontal displacement vector. The candidate must be tested against independent skyline, ridge, slope/aspect, and fixed-feature matches from the original media.
+### Candidate A: closest mean elevation to Saleh's reference
+
+**15.53480802, 45.07836308**
+
+- SRTM: 1,904 m
+- ASTER: 1,892 m
+- Mean: 1,898 m
+- Difference between DEM products: 12 m
+- Distance from Me1Ray: 830.4 m
+- Bearing from Me1Ray: 198.3° (south-southwest)
+- Distance from Saleh's estimate: 4,150.4 m
+- Distance from summit reference: 1,245.6 m
+
+This is the closest sampled mean elevation to the 1,897 m target, but the two DEM products differ by 12 m at this cell.
+
+### Candidate B: strongest agreement between the two DEM products
+
+**15.53436477, 45.07821127**
+
+- SRTM: 1,901 m
+- ASTER: 1,900 m
+- Mean: 1,900.5 m
+- Difference between DEM products: 1 m
+- Distance from Me1Ray: 882.3 m
+- Bearing from Me1Ray: 198.3° (south-southwest)
+- Distance from Saleh's estimate: 4,099.9 m
+- Distance from summit reference: 1,193.7 m
+
+Candidate B is slightly higher than the target, but the close agreement between two separate DEM products makes its elevation estimate more internally consistent.
+
+## Interpretation
+
+1. At the Me1Ray coordinate, the sampled terrain is roughly 300 m lower than Saleh's reported elevation.
+2. Along the Me1Ray-to-summit transect, the terrain reaches the 1,897–1,898 m elevation band about 0.83 km southwest of Me1Ray.
+3. The candidate points remain approximately 4.1 km from Saleh's coordinate. Therefore, matching elevation does not reconcile the two horizontal estimates.
+4. The transect is only one line through the terrain. It does not establish that the camera viewpoint, wreckage, or impact point lies on that line.
+5. Elevation alone cannot provide a unique horizontal correction vector. The two candidates are terrain-screening points, not replacement crash coordinates.
 
 ## Provisional conclusion
 
-**Do not replace either published coordinate yet.** Record **15.53453099, 45.07826820** only as an elevation-matched terrain candidate for visual comparison. The currently available measurements do not justify shrinking Saleh's 1.5 km uncertainty radius or claiming that Me1Ray's coordinate has been corrected.
+**Do not replace either published coordinate yet.** Keep Saleh's estimate, **15.497610, 45.075170**, and the attributed Me1Ray coordinate, **15.541900, 45.080792**, unchanged in the main assessment.
+
+For the next visual test, retain Candidate A as the closest elevation match and Candidate B as the more consistent two-DEM match. Neither result justifies reducing the original 1.5 km uncertainty radius. That requires independent matching of the original footage against skyline geometry, ridgelines, slope/aspect, and fixed terrain features.
 
 ## Reproducibility
 
-The script `research/jabal-haylan-f15-dem-reconciliation.py` samples 41 points from Me1Ray toward the summit reference using both OpenTopoData DEM products and writes a CSV profile plus a JSON candidate ranking. GitHub Actions runs it on pushes affecting this investigation and can also be started manually from the repository's Actions tab.
+The script `research/jabal-haylan-f15-dem-reconciliation.py` samples 41 points and writes:
+- `research/output/me1ray_to_summit_dem_profile.csv`
+- `research/output/dem_candidate_summary.json`
+
+The GitHub Actions run uploaded both outputs as the `jabal-haylan-dem-profile` artifact.
 
 - API: https://www.opentopodata.org/
 - SRTM endpoint: https://api.opentopodata.org/v1/srtm30m
@@ -58,6 +96,6 @@ The script `research/jabal-haylan-f15-dem-reconciliation.py` samples 41 points f
 
 ## Evidence labels
 
-- **OBSERVED DATA:** API-returned SRTM/ASTER elevation samples at the coordinates listed above.
-- **ANALYTICAL INFERENCE:** nearby transect segment reaches approximately Saleh's elevation.
-- **UNRESOLVED:** whether any candidate corresponds to the filmed viewpoint, debris field, or impact point.
+- **OBSERVED DATA:** 41 coordinate/elevation samples returned by the SRTM 30m and ASTER 30m API endpoints; GitHub Actions logs and uploaded artifact confirm the run.
+- **ANALYTICAL INFERENCE:** a segment southwest of Me1Ray reaches terrain elevations close to Saleh's reported elevation.
+- **UNRESOLVED:** whether either candidate matches the filmed viewpoint, debris field, or impact point.
