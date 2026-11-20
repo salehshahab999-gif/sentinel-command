@@ -39,7 +39,7 @@ The electron configuration is not a substitute for a spectroscopic level scheme.
 - **EVALUATED:** CIAAW standard atomic weight and natural isotope composition, where explicitly tabulated.
 - **SECONDARY REFERENCE:** RSC physical-property fact box and descriptive overview.
 - **PENDING:** NIST level-by-level spectral extraction; ENSDF nuclide-by-nuclide review; thermodynamic functions; allotrope-specific crystallography; transport, optical, electrical, and mechanical properties; and primary-literature DOI verification.
-- **CAUTION:** For arsenic and selenium, allotropy and chemical speciation are especially important. Values for one form must not be silently generalized to all forms.
+- **CAUTION:** Gallium's melting point is close to ordinary room temperature, so phase must be tied to the stated temperature and pressure. Gallium compounds require compound-specific hazard assessment; elemental gallium data must not be generalized to gallium arsenide, gallium nitride, or other compounds.
 
 ## 9. References and data provenance
 - CIAAW, Gallium: https://www.ciaaw.org/gallium.htm (atomic weight, isotope masses and abundances; accessed 2026-11-18).
