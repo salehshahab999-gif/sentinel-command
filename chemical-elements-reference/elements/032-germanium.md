@@ -39,7 +39,7 @@ The electron configuration is not a substitute for a spectroscopic level scheme.
 - **EVALUATED:** CIAAW standard atomic weight and natural isotope composition, where explicitly tabulated.
 - **SECONDARY REFERENCE:** RSC physical-property fact box and descriptive overview.
 - **PENDING:** NIST level-by-level spectral extraction; ENSDF nuclide-by-nuclide review; thermodynamic functions; allotrope-specific crystallography; transport, optical, electrical, and mechanical properties; and primary-literature DOI verification.
-- **CAUTION:** For arsenic and selenium, allotropy and chemical speciation are especially important. Values for one form must not be silently generalized to all forms.
+- **CAUTION:** Germanium's semiconductor behaviour depends strongly on purity, dopant concentration, crystal defects, and temperature; values from bulk single crystals should not be generalized to amorphous films or compound semiconductors.
 
 ## 9. References and data provenance
 - CIAAW, Germanium: https://www.ciaaw.org/germanium.htm (atomic weight, isotope masses and abundances; accessed 2026-11-18).
