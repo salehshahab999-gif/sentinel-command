@@ -41,7 +41,7 @@ Each audited monograph includes a source list with DOI or stable URL, data versi
 | Atomic numbers | Status | Scope |
 |---|---|---|
 | 1–30 | Phase I audit complete* | CIAAW weight/isotope fields and NIST ASD ground-state/first-ionization fields cross-checked |
-| 11–118 | Drafted; Phase I not yet audited | Source-by-source cross-check pending |
+| 31–118 | Drafted; Phase I not yet audited | Source-by-source cross-check pending |
 
 *Phase I does not certify the rest of the monograph. The discovery narrative, applications, chemistry, material properties, nuclear dossiers, toxicology, and other quantitative properties remain subject to separate review.
 
