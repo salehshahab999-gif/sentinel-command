@@ -190,7 +190,7 @@ def draw_page_chrome(canvas, doc):
         canvas.line(LEFT, 14 * mm, PAGE_WIDTH - RIGHT, 14 * mm)
         canvas.setFillColor(MUTED)
         canvas.setFont("NotoSans", 7.3)
-        canvas.drawString(LEFT, 8.7 * mm, "SCIENTIFIC AUDIT COVERAGE: ELEMENTS 1-30  |  FULL REVIEW IN PROGRESS")
+        canvas.drawString(LEFT, 8.7 * mm, "AUDIT STATUS: LIMITED PHASE I BASELINE  |  FULL MONOGRAPH REVIEW IN PROGRESS")
         canvas.drawRightString(PAGE_WIDTH - RIGHT, 8.7 * mm, f"PAGE {doc.page}")
     canvas.restoreState()
 
