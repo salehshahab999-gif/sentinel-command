@@ -12,7 +12,7 @@
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
-Potassium is element 19. Its ground-state electron configuration, [Ar] 4s¹, is the conventional starting point for interpreting valence, bonding, and periodic behavior. Transition-metal chemistry is particularly sensitive to oxidation state, coordination environment, ligand field, and phase.
+Potassium is element 19. Its [Ar] 4s¹ ground-state configuration gives it one valence electron and helps explain its common +1 oxidation state, predominantly ionic compounds, and strong reducing character. Its reactivity depends on the chemical environment and reaction conditions.
 
 ## 2. Isotopic and nuclear context
 Natural potassium contains ³⁹K and ⁴¹K, plus the long-lived radioactive isotope ⁴⁰K. Potassium-argon and argon-argon dating exploit ⁴⁰K decay. Potassium metal reacts violently with water. Standard atomic weight summarizes naturally occurring material and is not interchangeable with the mass of any individual nuclide. Isotope-specific masses, abundances, and decay data belong in the dedicated nuclear-data tables.
