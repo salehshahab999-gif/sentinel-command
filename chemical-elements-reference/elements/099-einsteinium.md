@@ -6,7 +6,7 @@
 **Standard atomic weight:** none; representative mass number [252]  
 **Neutral ground-state configuration:** [Rn] 5f¹¹ 7s²  
 **Ground-state term:** ⁴I°₁₅/₂  
-**First ionization energy:** 6.3676 eV (PDG 2024 review of NIST data)  
+**First ionization energy:** 6.36840 eV (NIST ASD 5.12; accessed 2026-11-20)  
 **Representative isotopes:** ²⁵²Es, ²⁵³Es and ²⁵⁴Es  
 **Evidence status:** structured research draft; physical properties and chemistry are limited by very small sample quantities and short isotope half-lives.
 
@@ -39,7 +39,7 @@ Einsteinium was identified in 1952 in debris from the first thermonuclear test a
 
 ## References
 1. Particle Data Group, [Electronic Structure of the Elements](https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf), reviewed 2022 data; accessed 2026-11-18.
-2. NIST, [Atomic Spectra Database](https://physics.nist.gov/asd); database version/date to be recorded on final extraction.
+2. Kramida, A., Ralchenko, Yu., Reader, J. and NIST ASD Team (2024), [NIST Atomic Spectra Database, version 5.12](https://physics.nist.gov/asd), ionization energies; DOI: [10.18434/T4W30F](https://doi.org/10.18434/T4W30F); accessed 2026-11-20.
 3. NIST, [Periodic Table: Atomic Properties](https://www.nist.gov/pml/periodic-table-elements); accessed 2026-11-18.
 4. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
 
