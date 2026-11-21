@@ -14,7 +14,7 @@
 Xenon is a closed-shell noble gas. Its ground configuration terminates in 5p⁶ and its ground term is ¹S₀. The first ionization energy, 12.1298 eV, is relatively high but lower than that of lighter noble gases such as neon and helium. Excited xenon has a rich spectrum and is central to excimer and discharge physics; a full appendix must retrieve level classifications, wavelengths, transition probabilities and uncertainties from NIST ASD.
 
 ## 2. Isotopic composition
-CIAAW gives standard atomic weight 131.293(6). Its representative 2024 natural isotopic composition includes **¹²⁴Xe 0.00095(5), ¹²⁶Xe 0.00089(3), ¹²⁸Xe 0.01910(13), ¹²⁹Xe 0.26401(138), ¹³⁰Xe 0.04071(22), ¹³¹Xe 0.21232(51), ¹³²Xe 0.26909(55), ¹³⁴Xe 0.10436(35), and ¹³⁶Xe 0.08857(72)**. Xenon isotope patterns vary substantially among geological reservoirs and can encode radiogenic, fissiogenic and atmospheric histories. ¹²⁴Xe and ¹³⁶Xe are double-beta-decay nuclides with extremely long half-lives; natural occurrence must not be mistaken for strict nuclear stability.
+CIAAW gives standard atomic weight 131.293(6). Its representative 2024 natural isotopic composition includes **¹²⁴Xe 0.00095(5), ¹²⁶Xe 0.00089(3), ¹²⁸Xe 0.01910(13), ¹²⁹Xe 0.26401(138), ¹³⁰Xe 0.04071(22), ¹³¹Xe 0.21232(51), ¹³²Xe 0.26909(55), ¹³⁴Xe 0.10436(35), and ¹³⁶Xe 0.08857(72)**. Xenon isotope patterns vary substantially among geological reservoirs and can encode radiogenic, fissiogenic and atmospheric histories. ¹²⁴Xe undergoes two-neutrino double-electron capture (2νECEC), directly observed with a half-life of about 1.8×10²² years; ¹³⁶Xe undergoes double-beta-minus decay, with the two-neutrino mode observed and neutrinoless decay still unobserved. These rare decays mean that natural occurrence must not be mistaken for strict nuclear stability.
 
 ## 3. Physical properties and cryogenic phase behavior
 At ambient conditions xenon is a monatomic gas. On cooling it forms a molecularly nonbonded, close-packed solid with an fcc structure; the solid-state cohesion is dominated by dispersion interactions. Its critical behavior and phase boundaries are pressure-dependent. Any density, heat capacity, sound speed or dielectric value must specify phase, temperature and pressure. A single “density of xenon” without conditions is not a useful reference datum.
@@ -28,7 +28,7 @@ Although chemically inert under many ordinary conditions, xenon forms stable com
 ## 6. Evidence and open verification tasks
 - **Atomic weight/isotopic composition:** CIAAW 2024 tables; preserve the geological-variation caveat.
 - **Atomic spectroscopy:** PDG summary for ground state and ionization energy; NIST ASD for full line/level data.
-- **Nuclear properties:** ENSDF/NuDat and evaluated neutron-data libraries for ¹³³Xe, ¹³⁵Xe, ¹²⁴Xe and ¹³⁶Xe.
+- **Nuclear properties:** ENSDF/NuDat and evaluated neutron-data libraries for ¹³³Xe and ¹³⁵Xe; evaluated rare-decay literature for ¹²⁴Xe (2νECEC) and ¹³⁶Xe (2νβ⁻β⁻ and 0νββ searches).
 - **Thermophysical properties:** use NIST/REFPROP or critically evaluated sources with explicit phase and state conditions.
 - **Molecular structure:** primary crystallographic and spectroscopic literature for xenon fluorides; distinguish static structures from fluxional behavior.
 
