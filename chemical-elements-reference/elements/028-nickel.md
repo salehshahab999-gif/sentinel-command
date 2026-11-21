@@ -12,7 +12,7 @@
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
-Nickel is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d⁸ 4s². Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. For group 12 zinc, the filled d subshell gives chemistry that differs from the more conventionally redox-active transition metals.
+Nickel is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d⁸ 4s². Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. Nickel's partially filled 3d subshell supports its predominant +2 oxidation state, additional oxidation states in selected compounds, and extensive coordination and catalytic chemistry.
 
 ## 2. Isotopic and nuclear context
 Naturally occurring nickel has five stable isotopes: ⁵⁸Ni, ⁶⁰Ni, ⁶¹Ni, ⁶²Ni, and ⁶⁴Ni. ⁵⁸Ni is the most abundant. The standard atomic weight reflects the isotope-weighted composition of normal terrestrial materials and should not be confused with the mass number of the most abundant isotope.
