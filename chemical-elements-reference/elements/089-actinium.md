@@ -6,7 +6,7 @@
 **Standard atomic weight:** none (no stable isotopes); representative mass number [227]  
 **Neutral ground-state configuration:** [Rn] 6d 7s²  
 **Ground-state term:** ²D₃/₂  
-**First ionization energy:** 5.17 eV (NIST Atomic Data Handbook)  
+**First ionization energy:** 5.380235 eV (NIST ASD; neutral Ac I)  
 **Representative natural isotope:** ²²⁷Ac  
 **Evidence status:** structured research draft; isotope-specific nuclear, radiochemical and high-precision material data remain incomplete.
 
