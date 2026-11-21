@@ -45,7 +45,8 @@ Osmium was discovered with iridium by Smithson Tennant in 1803 while investigati
 5. Royal Society of Chemistry, [Osmium](https://periodic-table.rsc.org/element/76/); accessed 2026-11-18.
 6. Peters, S. T. M., Münker, C., Becker, H. and Schulz, T. (2014), “Alpha-decay of ¹⁸⁴Os revealed by radiogenic ¹⁸⁰W in meteorites: Half life determination and viability as geochronometer,” *Earth and Planetary Science Letters* 391, 69–76, [doi:10.1016/j.epsl.2014.01.030](https://doi.org/10.1016/j.epsl.2014.01.030).
 7. Belli, P. et al. (2024), “Final results of the measurement to search for rare decays of naturally occurring osmium isotopes with ultra-low background gamma-ray spectrometry,” *The European Physical Journal A* 60, 150, [doi:10.1140/epja/s10050-024-01371-x](https://doi.org/10.1140/epja/s10050-024-01371-x); channel-specific limits for excited-state decay branches.
-8. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
+8. Viola, V. E., Roche, C. T. and Minor, M. M. (1975), “Alpha Decay of Natural ¹⁸⁶Os,” *Journal of Inorganic and Nuclear Chemistry* 37, 11, [doi:10.1016/0022-1902(75)80115-1](https://doi.org/10.1016/0022-1902(75)80115-1); experimental study of ¹⁸⁶Os α decay.
+9. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
 
 ---
 *Document status: Initial scientific draft. Not peer-reviewed or fully audited.*
