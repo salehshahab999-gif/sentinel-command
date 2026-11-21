@@ -41,7 +41,7 @@ Iridium was discovered with osmium by Smithson Tennant in 1803 from the residue 
 1. CIAAW, [Standard Atomic Weights](https://www.ciaaw.org/atomic-weights.htm); accessed 2026-11-18.
 2. CIAAW, [Isotopic Compositions of the Elements 2024](https://www.ciaaw.org/isotopic-abundances.htm); accessed 2026-11-18.
 3. NIST, [Atomic Data for Iridium](https://physics.nist.gov/PhysRefData/Handbook/Tables/iridiumtable1.htm); accessed 2026-11-18.
-4. NIST, [Iridium element data index](https://physics.nist.gov/cgi-bin/Elements/elInfo.pl?context=frames&element=77); accessed 2026-11-18.
+4. NIST, [Iridium element data index](https://physics.nist.gov/cgi-bin/Elements/elInfo.pl?context=noframes&element=77); accessed 2026-11-18.
 5. Royal Society of Chemistry, [Iridium](https://periodic-table.rsc.org/element/77/iridium); accessed 2026-11-18.
 6. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
 
