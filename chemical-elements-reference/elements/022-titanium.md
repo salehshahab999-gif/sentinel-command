@@ -49,7 +49,7 @@ The isotopic compositions are CIAAW 2024 representative values for normal terres
 
 The publications below are specialist research supporting only the named methods or properties. Doctoral theses are used for methodological depth and source discovery; peer-reviewed journal articles are preferred where a corresponding article exists. Neither category supersedes current evaluated reference data for the standard atomic weight or the NIST ionization-energy result.
 
-[5] Saloman, E. B. (2012). “Energy Levels and Observed Spectral Lines of Neutral and Singly Ionized Titanium, Ti I and Ti II.” *Journal of Physical and Chemical Reference Data*. DOI: https://doi.org/10.1063/1.4754694. NIST critical compilation of Ti I/Ti II energy levels and observed spectral lines.
+[5] Saloman, E. B. (2012). “Energy Levels and Observed Spectral Lines of Neutral and Singly Ionized Titanium, Ti I and Ti II.” *Journal of Physical and Chemical Reference Data*. DOI: https://doi.org/10.1063/1.3656882. NIST critical compilation of Ti I/Ti II energy levels and observed spectral lines.
 
 [6] Li, W., Hartman, H., Wang, K., and Jönsson, P. (2020). “Theoretical investigation of oscillator strengths and lifetimes in Ti II.” *Astronomy & Astrophysics*, 643, A156. DOI: https://doi.org/10.1051/0004-6361/202038909. Theoretical atomic-structure data for Ti II; distinguish calculations from direct measurements.
 
