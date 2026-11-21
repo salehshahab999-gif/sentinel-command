@@ -12,7 +12,7 @@
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
-Copper is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d¹⁰ 4s¹. Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. For group 12 zinc, the filled d subshell gives chemistry that differs from the more conventionally redox-active transition metals.
+Copper is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d¹⁰ 4s¹. Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. Copper's [Ar] 3d¹⁰ 4s¹ ground-state configuration is associated with its common +1 and +2 oxidation states and the distinct coordination chemistry of Cu(I) and Cu(II).
 
 ## 2. Isotopic and nuclear context
 Natural copper consists primarily of two stable isotopes, ⁶³Cu and ⁶⁵Cu. CIAAW reports atomic masses and amount fractions of 62.929 597(3) Da and 0.6915(15) for ⁶³Cu, and 64.927 790(5) Da and 0.3085(15) for ⁶⁵Cu. Natural isotopic variability is relevant to the stated standard atomic-weight uncertainty.
