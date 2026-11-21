@@ -6,7 +6,7 @@
 **Standard atomic weight:** none; representative mass number [251]  
 **Neutral ground-state configuration:** [Rn] 5f¹⁰ 7s²  
 **Ground-state term:** ⁵I₈  
-**First ionization energy:** 6.2817 eV (NIST Atomic Data Handbook)  
+**First ionization energy:** 6.281878 eV (NIST ASD 5.12; accessed 2026-11-20)  
 **Important isotopes:** ²⁴⁹Cf, ²⁵⁰Cf, ²⁵¹Cf and ²⁵²Cf  
 **Evidence status:** structured research draft; isotope-specific neutron emission and physical-property datasets require careful evaluation.
 
@@ -38,7 +38,7 @@ Californium was first synthesised in 1950 by Stanley Thompson, Kenneth Street Jr
 - **Pending:** isotope-dependent neutron emission and dose constants; Cf(III)/Cf(IV) speciation; material ageing under self-irradiation; calibrated source-output and neutron-spectrum references.
 
 ## References
-1. NIST, [Atomic Data for Californium](https://physics.nist.gov/PhysRefData/Handbook/Tables/californiumtable1.htm); accessed 2026-11-18.
+1. Kramida, A., Ralchenko, Yu., Reader, J. and NIST ASD Team (2024), [NIST Atomic Spectra Database, version 5.12](https://physics.nist.gov/asd), ionization energies; DOI: [10.18434/T4W30F](https://doi.org/10.18434/T4W30F); accessed 2026-11-20.
 2. Royal Society of Chemistry, [Californium](https://periodic-table.rsc.org/element/98/californium); accessed 2026-11-18.
 3. U.S. Department of Energy, [Nuclear Materials Management and Safeguards System: Half-life data](https://www.energy.gov/sites/default/files/2023-10/Final%20Nuclear%20Materials%20Management%20and%20Safeguards%20System%20Users%20Guide%20_Rev.%202.1_AC1%20Dec2022.pdf).
 4. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
