@@ -14,7 +14,7 @@
 Tungsten is a group-6 transition metal with neutral ground configuration [Xe]4f¹⁴5d⁴6s² and ground term ⁵D₀. Its chemistry spans oxidation states from low-valent compounds to the common +6 state. Tungsten(VI) oxo-species, tungstates and tungsten oxides are important in aqueous, solid-state and catalytic chemistry. The element's high cohesive energy and refractory behaviour make it important in high-temperature engineering.
 
 ## 2. Isotopic composition and nuclear properties
-CIAAW representative amount fractions are: ¹⁸⁰W 0.0012(1), ¹⁸²W 0.2650(16), ¹⁸³W 0.1431(4), ¹⁸⁴W 0.3064(2) and ¹⁸⁶W 0.2843(19). The standard atomic weight is 183.84(1). Several naturally occurring tungsten nuclides are extremely long-lived alpha emitters; for example ¹⁸⁰W has a half-life on the order of 10¹⁸ years. ¹⁸³W has nuclear spin I = 1/2, while the even-mass isotopes have zero ground-state spin. Isotope-specific decay properties and neutron-capture data should be taken from evaluated nuclear datasets.
+CIAAW representative amount fractions are: ¹⁸⁰W 0.0012(1), ¹⁸²W 0.2650(16), ¹⁸³W 0.1431(4), ¹⁸⁴W 0.3064(2) and ¹⁸⁶W 0.2843(19). The standard atomic weight is 183.84(1). ¹⁸⁰W is a confirmed, extremely long-lived alpha emitter, with a measured half-life of (1.8 ± 0.2) × 10¹⁸ years. Searches for alpha decay of the other naturally occurring tungsten isotopes have established half-life limits rather than confirmed decays. ¹⁸³W has nuclear spin I = 1/2, while the even-mass isotopes have zero ground-state spin. Isotope-specific decay properties and neutron-capture data should be taken from evaluated nuclear datasets.
 
 ## 3. Physical and thermophysical properties
 At ambient conditions tungsten has a body-centred cubic structure. The RSC compilation lists a melting point of 3414 °C, boiling point of 5555 °C and density of 19.3 g cm⁻³. Its melting point is the highest among the metals at ordinary pressure. Tungsten retains useful strength at elevated temperature, but oxidation in air becomes significant at high temperatures. Thermal conductivity, creep and recrystallisation depend on purity, grain structure, alloy additions and manufacturing history.
@@ -43,7 +43,8 @@ Tungsten was identified in the late eighteenth century. The symbol W derives fro
 3. NIST, [Atomic Data for Tungsten](https://physics.nist.gov/PhysRefData/Handbook/Tables/tungstentable1.htm); accessed 2026-11-18.
 4. NIST, [Atomic Spectra Database](https://physics.nist.gov/asd); live database, version/date to be recorded on full extraction.
 5. Royal Society of Chemistry, [Tungsten](https://periodic-table.rsc.org/element/74/Tungsten); accessed 2026-11-18.
-6. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
+6. Cozzini et al., “Detection of the natural α decay of tungsten,” *Physical Review C* 70, 064606 (2004), [doi:10.1103/PhysRevC.70.064606](https://doi.org/10.1103/PhysRevC.70.064606); measured ¹⁸⁰W half-life and limits for other natural isotopes.
+7. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
 
 ---
 *Document status: Initial scientific draft. Not peer-reviewed or fully audited.*
