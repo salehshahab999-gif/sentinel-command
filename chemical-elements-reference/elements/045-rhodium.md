@@ -17,7 +17,7 @@ Rhodium is a period-5 d-block element. Its tabulated ground-state electron confi
 ## 2. Nuclear properties and isotopic composition
 Natural rhodium is monoisotopic: ¹⁰³Rh has representative isotopic amount fraction 1. CIAAW standard atomic weight is 102.905 49(2). The element's naturally occurring isotopic composition is therefore not a multi-isotope mixture in ordinary terrestrial samples.
 
-**Data status:** CIAAW provides the current standard atomic-weight and natural-isotope framework for stable elements. For technetium, no standard atomic weight exists because there are no stable isotopes. For radioactive nuclides, the values stated here are selected evaluated/compiled data, not a complete decay evaluation. Full ENSDF extraction is required for adopted levels, branching fractions, beta spectra, gamma intensities, internal conversion, Q values, and uncertainties.
+**Data status:** CIAAW provides the current standard atomic-weight and natural-isotope framework for stable elements. CIAAW identifies rhodium as naturally monoisotopic, with ¹⁰³Rh representing the natural isotopic composition. Radioactive rhodium nuclides require separate isotope-specific evaluation; this monograph is not a complete nuclide chart.
 
 ## 3. Physical properties and phase behaviour
 - **Melting point:** 2236 K (1963 °C)
@@ -41,7 +41,7 @@ For engineering use, catalytic activity must be reported with reaction condition
 Bulk rhodium is relatively corrosion resistant, but dusts, soluble salts, and catalyst-processing residues require substance-specific industrial hygiene controls. Rhodium salts can cause sensitization or other adverse effects; hazard statements for soluble compounds should not be transferred uncritically to bulk metal.
 
 ## 7. Spectroscopic and electronic data status
-Ground-state configuration, term, and first ionization energy are reference compilation values. A complete NIST ASD audit remains pending for neutral and ionic spectra, level classifications, transition probabilities, and uncertainty metadata. For technetium, radiochemical species and nuclear isomer identity must be specified explicitly; the nuclear transition of ⁹⁹ᵐTc is not an atomic-electronic transition.
+Ground-state configuration, term, and first ionization energy are reference compilation values. A complete NIST ASD audit remains pending for neutral and ionic spectra, level classifications, transition probabilities, and uncertainty metadata. Where nuclear isomers or radioactive isotopes are discussed, nuclear transitions must be distinguished from atomic-electronic transitions.
 
 ## 8. Evidence quality, uncertainty, and unresolved work
 - **EVALUATED NATURAL ISOTOPE DATA:** CIAAW current tables; uncertainties and annotations retained.
@@ -58,4 +58,3 @@ Ground-state configuration, term, and first ionization energy are reference comp
 - NIST/PDG, Electronic Structure of the Elements, reviewed 2022: https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf (accessed 2026-11-18).
 - Royal Society of Chemistry, Rhodium: https://periodic-table.rsc.org/element/45/Rhodium (accessed 2026-11-18).
 - NNDC, Evaluated Nuclear Structure Data File: https://www.nndc.bnl.gov/ensdfarchivals/ (accessed 2026-11-18; full nuclide audit pending).
-- IAEA, Technetium-99m and radiopharmaceutical references: https://www.iaea.org/ (specific technical publications cited in research notes; accessed 2026-11-18).
