@@ -44,7 +44,8 @@ Rhenium was isolated in 1925 by Walter Noddack, Ida Tacke and Otto Berg. Its nam
 4. NIST, [Rhenium element data index](https://physics.nist.gov/cgi-bin/Elements/elInfo.pl?context=noframes&element=75); accessed 2026-11-18.
 5. NIST, [Atomic Spectra Database](https://physics.nist.gov/asd); live database, version/date to be recorded on full extraction.
 6. Royal Society of Chemistry, [Rhenium](https://periodic-table.rsc.org/element/75/Rhenium); accessed 2026-11-18.
-7. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current nuclear evaluation required.
+7. Galeazzi, M., Fontanelli, F., Gatti, F. and Vitale, S. (2001), “End-point energy and half-life of the ¹⁸⁷Re β decay,” *Physical Review C* 63, 014302, [doi:10.1103/PhysRevC.63.014302](https://doi.org/10.1103/PhysRevC.63.014302); measured half-life (4.12 ± 0.02(stat) ± 0.11(syst)) × 10¹⁰ years.
+8. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current nuclear evaluation required.
 
 ---
 *Document status: Initial scientific draft. Not peer-reviewed or fully audited.*
