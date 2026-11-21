@@ -12,7 +12,7 @@
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
-Cobalt is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d⁷ 4s². Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. For group 12 zinc, the filled d subshell gives chemistry that differs from the more conventionally redox-active transition metals.
+Cobalt is a fourth-period d-block element. Its ground-state electron configuration is [Ar] 3d⁷ 4s². Chemical behaviour cannot be inferred from the configuration alone: oxidation state, ligand field, coordination geometry, phase, and bonding environment all influence observed properties. Cobalt's partially filled 3d subshell underlies its common +2 and +3 oxidation states and its rich coordination and redox chemistry.
 
 ## 2. Isotopic and nuclear context
 Naturally occurring cobalt is monoisotopic: ⁵⁹Co has an isotopic amount fraction of 1. The radionuclide ⁶⁰Co is produced by neutron activation and decays by beta-minus emission to ⁶⁰Ni, with a half-life of approximately 5.27 years.
