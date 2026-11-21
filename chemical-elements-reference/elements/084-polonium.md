@@ -6,7 +6,7 @@
 **Standard atomic weight:** none (no stable isotopes); representative mass number [209]  
 **Neutral ground-state configuration:** [Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴  
 **Ground-state term:** ³P₂  
-**First ionization energy:** approximately 8.4 eV (compiled value; NIST/PDG verification required)  
+**First ionization energy:** 8.418070 eV (NIST ASD; neutral Po I)  
 **Representative naturally occurring radionuclide:** ²¹⁰Po  
 **Evidence status:** structured research draft; physical data are largely compiled or estimated and isotope-specific nuclear data are essential.
 
