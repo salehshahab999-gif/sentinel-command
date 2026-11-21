@@ -12,7 +12,7 @@
 **Physical state at approximately 298 K and 1 bar:** Solid [4]
 
 ## 1. Atomic and periodic context
-Calcium is element 20. Its ground-state electron configuration, [Ar] 4s², is the conventional starting point for interpreting valence, bonding, and periodic behavior. Transition-metal chemistry is particularly sensitive to oxidation state, coordination environment, ligand field, and phase.
+Calcium is element 20. Its [Ar] 4s² ground-state configuration gives it two valence electrons and helps explain its common +2 oxidation state and the predominantly ionic character of many calcium compounds. Its coordination and reactivity depend on the surrounding ligands, solvent, and phase.
 
 ## 2. Isotopic and nuclear context
 Calcium has multiple stable isotopes. ⁴⁰Ca is the most abundant. Calcium ions are central to biomineralization, muscle contraction, intracellular signaling, and many enzyme systems. Standard atomic weight summarizes naturally occurring material and is not interchangeable with the mass of any individual nuclide. Isotope-specific masses, abundances, and decay data belong in the dedicated nuclear-data tables.
