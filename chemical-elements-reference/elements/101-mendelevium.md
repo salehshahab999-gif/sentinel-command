@@ -11,7 +11,7 @@
 **Evidence status:** structured research draft; only trace-scale chemistry and nuclear data are available.
 
 ## 1. Atomic and electronic structure
-Mendelevium is a synthetic actinoid with neutral ground configuration [Rn]5f¹³7s² and ground term ²F°₇/₂. The +3 oxidation state is common, while +2 can be stabilised in solution and certain compounds. The filled-shell limit at nobelium makes the Md/N o sequence important for understanding the final filling of the 5f shell. Atomic properties are based on sparse spectroscopic evidence and current compilations should be versioned.
+Mendelevium is a synthetic actinoid with neutral ground configuration [Rn]5f¹³7s² and ground term ²F°₇/₂. The +3 oxidation state is common, while +2 can be stabilised in solution and certain compounds. The filled-shell limit at nobelium makes the Md/No sequence important for understanding the final filling of the 5f shell. Atomic properties are based on sparse spectroscopic evidence and current compilations should be versioned.
 
 ## 2. Nuclear properties and isotopes
 Mendelevium has no stable isotopes and no standard atomic weight. [258] is a representative mass number. ²⁵⁸Md has a half-life of approximately 51.6 days; other isotopes have shorter half-lives or different decay modes. Isotope-specific nuclear level, decay and mass data must be retrieved from current ENSDF/NuDat evaluations. Production and detection occur atom-by-atom or at very low atom counts.
