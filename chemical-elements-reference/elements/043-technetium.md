@@ -8,11 +8,11 @@
 **Standard atomic weight:** No standard atomic weight; conventional mass number [98]  
 **Ground-state electron configuration:** [Kr] 4d⁵ 5s²  
 **Ground-state term:** ⁶S₅/₂  
-**First ionization energy:** 7.1194 eV  
+**First ionization energy:** 7.11938 eV (standard uncertainty: 0.00003 eV) [9]  
 **State at 20 °C and 1 bar:** Solid
 
 ## 1. Atomic structure and quantum properties
-Technetium is a period-5 d-block element. Its tabulated ground-state electron configuration is [Kr] 4d⁵ 5s². The ground-state term and first ionization energy are taken from the NIST-reviewed periodic-table compilation. These summary values do not replace a level-resolved treatment: a research-grade spectral appendix should query NIST ASD for level energies, J values, transition probabilities, wavelengths, isotope shifts, and uncertainties.
+Technetium is a period-5 d-block element. Its tabulated ground-state electron configuration is [Kr] 4d⁵ 5s². The neutral-atom ground-state configuration, ground-state term, and first ionization energy are taken from the NIST Atomic Spectra Database (ASD), version 5.12. The first ionization energy is 7.11938 eV with a reported standard uncertainty of 0.00003 eV; the NIST bibliography key is L15237. These summary values do not replace a level-resolved treatment: a research-grade spectral appendix should query NIST ASD for level energies, J values, transition probabilities, wavelengths, isotope shifts, and uncertainties [9].
 
 ## 2. Nuclear properties and isotopic composition
 Technetium has no stable isotopes and therefore no standard atomic weight. CIAAW uses the bracketed mass number [98] as a conventional indication, not a standard atomic weight. Important nuclides include ⁹⁷Tc (t₁/₂ ≈ 4.21 × 10⁶ y), ⁹⁸Tc (≈ 4.2 × 10⁶ y), ⁹⁹Tc (≈ 2.111 × 10⁵ y; β⁻), and metastable ⁹⁹ᵐTc (≈ 6.0066 h; predominantly isomeric transition to ⁹⁹Tc). Values here are selected evaluated/compiled values; a complete decay scheme requires direct ENSDF record extraction.
@@ -54,7 +54,7 @@ Ground-state configuration, term, and first ionization energy are reference comp
 - CIAAW, Standard Atomic Weights: https://ciaaw.org/atomic-weights.htm (accessed 2026-11-18).
 - CIAAW, Isotopic Compositions of the Elements 2024: https://ciaaw.org/isotopic-abundances.htm (accessed 2026-11-18).
 - CIAAW, Technetium: https://ciaaw.org/atomic-weights.htm (accessed 2026-11-18).
-- NIST, Atomic Spectra Database, SRD 78: https://physics.nist.gov/asd (accessed 2026-11-18; detailed extraction pending).
+- NIST Atomic Spectra Database (ASD), version 5.12 (2024), Technetium I neutral-atom ionization-energy record: 7.11938 eV; standard uncertainty 0.00003 eV; bibliography key L15237. DOI: https://doi.org/10.18434/T4W30F. Exact output: https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&level_out=on&seq_out=on&shells_out=on&spectra=Tc&unc_out=on&units=1 (accessed 2026-11-18).
 - NIST/PDG, Electronic Structure of the Elements, reviewed 2022: https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf (accessed 2026-11-18).
 - Royal Society of Chemistry, Technetium: https://periodic-table.rsc.org/element/43/Technetium (accessed 2026-11-18).
 - NNDC, Evaluated Nuclear Structure Data File: https://www.nndc.bnl.gov/ensdfarchivals/ (accessed 2026-11-18; full nuclide audit pending).
