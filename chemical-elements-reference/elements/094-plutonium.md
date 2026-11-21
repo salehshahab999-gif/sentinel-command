@@ -14,7 +14,7 @@
 Plutonium is a transuranium actinoid with neutral ground configuration [Rn]5f⁶7s² and ground term ⁷F₀. Its 5f electrons lie near the boundary between localised and itinerant behaviour, contributing to unusually complex electronic, magnetic and structural properties. Plutonium compounds can exhibit oxidation states +3, +4, +5 and +6. The stability of each state depends on ligand, solvent, redox potential and solid-state environment.
 
 ## 2. Nuclear properties and isotopes
-Plutonium has no stable isotopes and therefore no standard atomic weight. The bracketed mass number [244] is a representative value, not a standard atomic weight. Important isotopes include ²³⁸Pu (half-life about 87.7 years), ²³⁹Pu (about 24,100 years), ²⁴⁰Pu (about 6,560 years), ²⁴¹Pu (about 14.3 years), ²⁴²Pu (about 3.75×10⁵ years) and ²⁴⁴Pu (about 8.12×10⁷ years). ²³⁸Pu is an alpha emitter used in radioisotope power systems; ²³⁹Pu and other isotopes are relevant to nuclear fuel science. All isotope-specific decay and neutron data require evaluated nuclear references.
+Plutonium has no stable isotopes and therefore no standard atomic weight. The bracketed mass number [244] is a representative value, not a standard atomic weight. Important isotopes include ²³⁸Pu (half-life about 87.7 years), ²³⁹Pu (about 24,100 years), ²⁴⁰Pu (about 6,560 years), ²⁴¹Pu (about 14.3 years), ²⁴²Pu (about 3.75×10⁵ years) and ²⁴⁴Pu (81.3(3)×10⁶ years; NUBASE2020 evaluation). ²³⁸Pu is an alpha emitter used in radioisotope power systems; ²³⁹Pu and other isotopes are relevant to nuclear fuel science. All isotope-specific decay and neutron data require evaluated nuclear references.
 
 ## 3. Physical and condensed-matter properties
 Plutonium metal exhibits several allotropes with markedly different densities, crystal structures and mechanical properties. The RSC compilation lists melting point 640 °C, boiling point 3228 °C and density 19.7 g cm⁻³, but density depends strongly on allotrope and sample composition. Small temperature changes can induce phase transitions and large volume changes. Gallium and other alloy additions can stabilise selected phases, illustrating the complex interplay between electronic structure and lattice behaviour. A single bulk-density value must therefore be qualified by phase and temperature.
@@ -43,7 +43,8 @@ Plutonium was first produced in 1940 by Glenn Seaborg, Edwin McMillan, Joseph Ke
 3. Particle Data Group, [Electronic Structure of the Elements](https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf).
 4. Royal Society of Chemistry, [Plutonium](https://periodic-table.rsc.org/element/94/plutonium); accessed 2026-11-18.
 5. IAEA, [Actinide and Nuclear Material Data](https://www.iaea.org/resources/databases); specialist nuclear and material references required.
-6. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
+6. Kondev, F. G., Wang, M., Huang, W. J., Naimi, S. and Audi, G. (2021), “The NUBASE2020 evaluation of nuclear physics properties,” *Chinese Physics C* 45, 030001, [doi:10.1088/1674-1137/abddae](https://doi.org/10.1088/1674-1137/abddae).
+7. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
 
 ---
 *Document status: Initial scientific draft. Not peer-reviewed or fully audited.*
