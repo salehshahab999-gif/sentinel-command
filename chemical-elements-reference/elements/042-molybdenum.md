@@ -15,7 +15,7 @@
 Molybdenum is a period-5 d-block transition metal. Its ground-state configuration is [Kr] 4d⁵ 5s¹. The tabulated ground-state term and first ionization energy are reproduced from the NIST periodic-table compilation; the current NIST Atomic Spectra Database should be used for a full level-by-level spectroscopic treatment.
 
 ## 2. Isotopic and nuclear data
-CIAAW representative natural isotopic abundances are: ⁹²Mo 0.14649(106), ⁹⁴Mo 0.09187(33), ⁹⁵Mo 0.15873(30), ⁹⁶Mo 0.16673(8), ⁹⁷Mo 0.09582(15), ⁹⁸Mo 0.24292(80), and ¹⁰⁰Mo 0.09744(65). ⁹²Mo and ¹⁰⁰Mo are extremely long-lived double-beta/related rare-decay nuclides; the other listed isotopes are stable for practical purposes. The standard atomic weight is 95.95(1).
+CIAAW representative natural isotopic abundances are: ⁹²Mo 0.14649(106), ⁹⁴Mo 0.09187(33), ⁹⁵Mo 0.15873(30), ⁹⁶Mo 0.16673(8), ⁹⁷Mo 0.09582(15), ⁹⁸Mo 0.24292(80), and ¹⁰⁰Mo 0.09744(65). ¹⁰⁰Mo is a naturally occurring, extremely long-lived double-beta-minus emitter (half-life approximately 7.1×10¹⁸ years). ⁹²Mo is observationally stable; double-beta-plus/electron-capture decay has been investigated, but no decay has been observed and only lower limits on its half-life are established. The other listed isotopes are stable for practical purposes. The standard atomic weight is 95.95(1).
 
 **Evidence status:** Standard atomic weight and representative isotope abundances are attributed to CIAAW's current tables. This monograph is not a complete evaluated nuclide chart. Half-lives, decay branches, Q-values, radiation energies, and uncertainties for all radioactive isotopes require isotope-by-isotope verification against ENSDF.
 
