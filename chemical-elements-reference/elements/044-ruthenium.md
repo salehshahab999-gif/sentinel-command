@@ -17,7 +17,7 @@ Ruthenium is a period-5 d-block element. Its tabulated ground-state electron con
 ## 2. Nuclear properties and isotopic composition
 CIAAW representative natural isotopic compositions: ⁹⁶Ru 0.0554(14), ⁹⁸Ru 0.0187(3), ⁹⁹Ru 0.1276(14), ¹⁰⁰Ru 0.1260(7), ¹⁰¹Ru 0.1706(2), ¹⁰²Ru 0.3155(14), and ¹⁰⁴Ru 0.1862(27). Standard atomic weight: 101.07(2). The CIAAW note 'g' flags known geological/biological materials with anomalous isotopic compositions.
 
-**Data status:** CIAAW provides the current standard atomic-weight and natural-isotope framework for stable elements. For technetium, no standard atomic weight exists because there are no stable isotopes. For radioactive nuclides, the values stated here are selected evaluated/compiled data, not a complete decay evaluation. Full ENSDF extraction is required for adopted levels, branching fractions, beta spectra, gamma intensities, internal conversion, Q values, and uncertainties.
+**Data status:** CIAAW provides the current standard atomic-weight and natural-isotope framework for stable elements. CIAAW provides the standard atomic weight and representative natural isotope composition for ruthenium. Its radioactive nuclides and rare decay modes require separate isotope-specific evaluation; this monograph is not a complete nuclide chart.
 
 ## 3. Physical properties and phase behaviour
 - **Melting point:** 2606 K (2333 °C)
@@ -41,7 +41,7 @@ For engineering use, catalytic activity must be reported with reaction condition
 Finely divided ruthenium may present dust and fire concerns. RuO₄ is acutely hazardous because it is volatile, strongly oxidizing, and highly toxic/corrosive; rigorous containment is required. Toxicological conclusions must be species-specific and should not be generalized from Ru metal to RuO₄ or organoruthenium complexes.
 
 ## 7. Spectroscopic and electronic data status
-Ground-state configuration, term, and first ionization energy are reference compilation values. A complete NIST ASD audit remains pending for neutral and ionic spectra, level classifications, transition probabilities, and uncertainty metadata. For technetium, radiochemical species and nuclear isomer identity must be specified explicitly; the nuclear transition of ⁹⁹ᵐTc is not an atomic-electronic transition.
+Ground-state configuration, term, and first ionization energy are reference compilation values. A complete NIST ASD audit remains pending for neutral and ionic spectra, level classifications, transition probabilities, and uncertainty metadata. Where nuclear isomers or radioactive isotopes are discussed, nuclear transitions must be distinguished from atomic-electronic transitions.
 
 ## 8. Evidence quality, uncertainty, and unresolved work
 - **EVALUATED NATURAL ISOTOPE DATA:** CIAAW current tables; uncertainties and annotations retained.
@@ -56,6 +56,5 @@ Ground-state configuration, term, and first ionization energy are reference comp
 - CIAAW, Ruthenium: https://ciaaw.org/ruthenium.htm (accessed 2026-11-18).
 - NIST, Atomic Spectra Database, SRD 78: https://physics.nist.gov/asd (accessed 2026-11-18; detailed extraction pending).
 - NIST/PDG, Electronic Structure of the Elements, reviewed 2022: https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf (accessed 2026-11-18).
-- Royal Society of Chemistry, Ruthenium: https://periodic-table.rsc.org/element/44/rutheniu (accessed 2026-11-18).
+- Royal Society of Chemistry, Ruthenium: https://periodic-table.rsc.org/element/44/ruthenium (accessed 2026-11-18).
 - NNDC, Evaluated Nuclear Structure Data File: https://www.nndc.bnl.gov/ensdfarchivals/ (accessed 2026-11-18; full nuclide audit pending).
-- IAEA, Technetium-99m and radiopharmaceutical references: https://www.iaea.org/ (specific technical publications cited in research notes; accessed 2026-11-18).
