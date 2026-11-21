@@ -17,7 +17,7 @@ Palladium is a period-5 d-block element. Its tabulated ground-state electron con
 ## 2. Nuclear properties and isotopic composition
 CIAAW representative natural isotopic compositions: ¹⁰²Pd 0.0102(1), ¹⁰⁴Pd 0.1114(8), ¹⁰⁵Pd 0.2233(8), ¹⁰⁶Pd 0.2733(3), ¹⁰⁸Pd 0.2646(9), and ¹¹⁰Pd 0.1172(9). Standard atomic weight: 106.42(1). The CIAAW 'g' annotation records anomalous isotopic compositions associated with natural fission products in geological materials.
 
-**Data status:** CIAAW provides the current standard atomic-weight and natural-isotope framework for stable elements. For technetium, no standard atomic weight exists because there are no stable isotopes. For radioactive nuclides, the values stated here are selected evaluated/compiled data, not a complete decay evaluation. Full ENSDF extraction is required for adopted levels, branching fractions, beta spectra, gamma intensities, internal conversion, Q values, and uncertainties.
+**Data status:** CIAAW provides the current standard atomic-weight and natural-isotope framework for stable elements. CIAAW provides the standard atomic weight and representative natural isotope composition for palladium. Radioactive palladium nuclides and their decay schemes require separate isotope-specific evaluation; this monograph is not a complete nuclide chart.
 
 ## 3. Physical properties and phase behaviour
 - **Melting point:** 1828 K (1554.8 °C)
@@ -41,7 +41,7 @@ For engineering use, catalytic activity must be reported with reaction condition
 Palladium metal and palladium compounds have different hazard profiles. Some soluble palladium salts can cause skin and respiratory sensitization; catalyst powders and process residues require dust control. Exposure assessment should be compound-specific and should distinguish metallic palladium from soluble salts and supported catalysts.
 
 ## 7. Spectroscopic and electronic data status
-Ground-state configuration, term, and first ionization energy are reference compilation values. A complete NIST ASD audit remains pending for neutral and ionic spectra, level classifications, transition probabilities, and uncertainty metadata. For technetium, radiochemical species and nuclear isomer identity must be specified explicitly; the nuclear transition of ⁹⁹ᵐTc is not an atomic-electronic transition.
+Ground-state configuration, term, and first ionization energy are reference compilation values. A complete NIST ASD audit remains pending for neutral and ionic spectra, level classifications, transition probabilities, and uncertainty metadata. Where nuclear isomers or radioactive isotopes are discussed, nuclear transitions must be distinguished from atomic-electronic transitions.
 
 ## 8. Evidence quality, uncertainty, and unresolved work
 - **EVALUATED NATURAL ISOTOPE DATA:** CIAAW current tables; uncertainties and annotations retained.
@@ -58,4 +58,3 @@ Ground-state configuration, term, and first ionization energy are reference comp
 - NIST/PDG, Electronic Structure of the Elements, reviewed 2022: https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf (accessed 2026-11-18).
 - Royal Society of Chemistry, Palladium: https://periodic-table.rsc.org/element/46/Palladium (accessed 2026-11-18).
 - NNDC, Evaluated Nuclear Structure Data File: https://www.nndc.bnl.gov/ensdfarchivals/ (accessed 2026-11-18; full nuclide audit pending).
-- IAEA, Technetium-99m and radiopharmaceutical references: https://www.iaea.org/ (specific technical publications cited in research notes; accessed 2026-11-18).
