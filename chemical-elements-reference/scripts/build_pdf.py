@@ -140,7 +140,9 @@ def esc(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 def inline(text):
-    text = esc(text)
+    # Normalise Unicode minus to ASCII hyphen so negative scientific values
+    # remain visible in ReportLab paragraph output across embedded fonts.
+    text = esc(text.replace("−", "-"))
     saved_links = []
 
     def hold_markdown_link(match):
