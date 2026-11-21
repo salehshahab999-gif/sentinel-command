@@ -56,6 +56,6 @@ Ground-state configuration, term, and first ionization energy are reference comp
 - CIAAW, Technetium: https://ciaaw.org/atomic-weights.htm (accessed 2026-11-18).
 - NIST, Atomic Spectra Database, SRD 78: https://physics.nist.gov/asd (accessed 2026-11-18; detailed extraction pending).
 - NIST/PDG, Electronic Structure of the Elements, reviewed 2022: https://pdg.lbl.gov/2025/reviews/rpp2024-rev-elements-electronic-struct.pdf (accessed 2026-11-18).
-- Royal Society of Chemistry, Technetium: https://periodic-table.rsc.org/element/43/technetiumhttp (accessed 2026-11-18).
+- Royal Society of Chemistry, Technetium: https://periodic-table.rsc.org/element/43/Technetium (accessed 2026-11-18).
 - NNDC, Evaluated Nuclear Structure Data File: https://www.nndc.bnl.gov/ensdfarchivals/ (accessed 2026-11-18; full nuclide audit pending).
 - IAEA, Technetium-99m and radiopharmaceutical references: https://www.iaea.org/ (specific technical publications cited in research notes; accessed 2026-11-18).
