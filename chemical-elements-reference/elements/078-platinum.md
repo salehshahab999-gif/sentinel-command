@@ -43,7 +43,8 @@ Platinum was known and worked in pre-Columbian South America and was described t
 3. NIST, [Atomic Data for Platinum](https://physics.nist.gov/PhysRefData/Handbook/Tables/platinumtable1.htm); accessed 2026-11-18.
 4. NIST, [Atomic Ionization Energies, Platinum](https://physics.nist.gov/cgi-bin/ASD/ie.pl?at_num_out=on&biblio=on&e_out=0&el_name_out=on&format=1&level_out=on&seq_out=on&shells_out=on&spectra=Pt&unc_out=on&units=1); NIST ASD version 5.12, accessed 2026-11-18.
 5. Royal Society of Chemistry, [Platinum](https://periodic-table.rsc.org/element/78/Platinum); accessed 2026-11-18.
-6. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
+6. Braun, M. et al. (2017), “A new precision measurement of the α-decay half-life of ¹⁹⁰Pt,” *Physics Letters B* 768, 317–320, [doi:10.1016/j.physletb.2017.02.052](https://doi.org/10.1016/j.physletb.2017.02.052); measured T₁/₂ = (4.97 ± 0.16) × 10¹¹ years.
+7. NNDC, [ENSDF/NuDat](https://www.nndc.bnl.gov/nudat3/); current isotope evaluation required.
 
 ---
 *Document status: Initial scientific draft. Not peer-reviewed or fully audited.*
